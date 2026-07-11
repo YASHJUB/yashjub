@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - تفاصيل الطلب</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <div class="logo">يشجب ⚙️</div>
+            <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="goBack()">→ رجوع</button>
+        </div>
+    </div>
+
+    <!-- صفحة الطلب -->
+    <div class="order-container">
+
+        <!-- بطاقة الخدمة -->
+        <div class="order-card">
+
+            <div class="order-service-header" id="serviceHeader">
+                <div class="order-icon" id="orderIcon">🚚</div>
+                <div>
+                    <h2 id="orderTitle">وايت ماء</h2>
+                    <span class="service-type" id="orderType">فوري</span>
+                </div>
+            </div>
+
+            <div class="order-divider"></div>
+
+            <!-- حقل العنوان -->
+            <div class="order-field">
+                <label>📍 موقع التوصيل</label>
+                <input 
+                    type="text" 
+                    id="address" 
+                    placeholder="مثال: حي النرجس، شارع الأمير محمد"
+                />
+            </div>
+
+            <!-- حقل الملاحظات -->
+            <div class="order-field">
+                <label>📝 ملاحظات إضافية</label>
+                <textarea 
+                    id="notes" 
+                    placeholder="أي تفاصيل إضافية تريد إضافتها..."
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <!-- اختيار الوقت للخدمات المجدولة -->
+            <div class="order-field" id="timeField">
+                <label>🕐 وقت الخدمة</label>
+                <input type="datetime-local" id="scheduledTime"/>
+            </div>
+
+            <div class="order-divider"></div>
+
+            <!-- ملخص السعر -->
+            <div class="price-summary">
+                <div class="price-row">
+                    <span>سعر الخدمة</span>
+                    <span id="servicePrice">200 ريال</span>
+                </div>
+                <div class="price-row">
+                    <span>رسوم المنصة (7%)</span>
+                    <span id="platformFee">14 ريال</span>
+                </div>
+                <div class="price-row total">
+                    <span>الإجمالي</span>
+                    <span id="totalPrice">214 ريال</span>
+                </div>
+            </div>
+
+            <!-- زر تأكيد الطلب -->
+            <button class="btn btn-order" onclick="confirmOrder()">
+                تأكيد الطلب والدفع 💳
+            </button>
+
+        </div>
+
+    </div>
+
+    <script src="order.js"></script>
+</body>
+</html>

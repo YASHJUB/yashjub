@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - تسجيل الدخول</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="logo">يشجب ⚙️</div>
+        <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+    </div>
+
+    <!-- صفحة تسجيل الدخول -->
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <div class="login-icon">👷</div>
+            <h2>أهلاً بك في يشجب</h2>
+            <p class="login-sub">أدخل رقم جوالك للمتابعة</p>
+
+            <!-- حقل رقم الجوال -->
+            <div class="input-group">
+                <span class="input-prefix">+966</span>
+                <input 
+                    type="number" 
+                    id="phone" 
+                    placeholder="5XXXXXXXX"
+                    maxlength="9"
+                />
+            </div>
+
+            <!-- زر الدخول -->
+            <button class="btn" onclick="sendOTP()">
+                إرسال رمز التحقق 📱
+            </button>
+
+            <!-- قسم رمز OTP (مخفي في البداية) -->
+            <div class="otp-section" id="otpSection">
+                <p class="login-sub">أدخل الرمز المرسل لجوالك</p>
+                <input 
+                    type="number" 
+                    id="otp" 
+                    placeholder="- - - - - -"
+                    class="otp-input"
+                />
+                <button class="btn" onclick="verifyOTP()">
+                    تحقق وادخل ✅
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - تتبع الطلب</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <div class="logo">يشجب ⚙️</div>
+            <div class="tagline">تتبع طلبك</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">
+                → الرئيسية
+            </button>
+        </div>
+    </div>
+
+    <!-- صفحة التتبع -->
+    <div class="tracking-container">
+
+        <div class="tracking-card">
+
+            <!-- رقم الطلب -->
+            <div class="tracking-header">
+                <div class="tracking-icon" id="trackingIcon">🚚</div>
+                <div>
+                    <h2 id="trackingService">وايت ماء</h2>
+                    <p class="order-number" id="orderNumber">#123456</p>
+                </div>
+            </div>
+
+            <div class="order-divider"></div>
+
+            <!-- مراحل الطلب -->
+            <div class="steps">
+
+                <div class="step done" id="step1">
+                    <div class="step-icon">✅</div>
+                    <div class="step-info">
+                        <div class="step-title">تم استلام الطلب</div>
+                        <div class="step-sub">تم تأكيد طلبك بنجاح</div>
+                    </div>
+                </div>
+
+                <div class="step-line done" id="line1"></div>
+
+                <div class="step active" id="step2">
+                    <div class="step-icon">🔍</div>
+                    <div class="step-info">
+                        <div class="step-title">جاري البحث عن مزود</div>
+                        <div class="step-sub">نبحث عن أقرب مزود لك</div>
+                    </div>
+                </div>
+
+                <div class="step-line" id="line2"></div>
+
+                <div class="step" id="step3">
+                    <div class="step-icon">🚗</div>
+                    <div class="step-info">
+                        <div class="step-title">المزود في الطريق</div>
+                        <div class="step-sub">في انتظار قبول المزود</div>
+                    </div>
+                </div>
+
+                <div class="step-line" id="line3"></div>
+
+                <div class="step" id="step4">
+                    <div class="step-icon">🎉</div>
+                    <div class="step-info">
+                        <div class="step-title">تم التوصيل</div>
+                        <div class="step-sub">اكتملت الخدمة بنجاح</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="order-divider"></div>
+
+            <!-- تفاصيل الطلب -->
+            <div class="tracking-details">
+                <div class="detail-row">
+                    <span class="detail-label">📍 الموقع</span>
+                    <span class="detail-value" id="trackingAddress">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">⏱️ وقت الوصول</span>
+                    <span class="detail-value" id="trackingTime">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">💰 المبلغ</span>
+                    <span class="detail-value" id="trackingPrice">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">🕐 وقت الطلب</span>
+                    <span class="detail-value" id="trackingDate">—</span>
+                </div>
+            </div>
+
+            <div class="order-divider"></div>
+
+            <!-- زر إلغاء -->
+            <button class="btn btn-order" onclick="cancelOrder()">
+                إلغاء الطلب ❌
+            </button>
+
+        </div>
+
+    </div>
+
+    <script src="tracking.js"></script>
+</body>
+</html>

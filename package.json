@@ -1,0 +1,19 @@
+{
+  "name": "yashjub",
+  "version": "1.0.0",
+  "description": "منصة يشجب لخدمات البناء",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0"
+  }
+}

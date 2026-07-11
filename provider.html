@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - لوحة المزود</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <div class="logo">يشجب ⚙️</div>
+            <div class="tagline">لوحة تحكم المزود</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">
+                → الرئيسية
+            </button>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم -->
+    <div class="provider-container">
+
+        <!-- بطاقة المزود -->
+        <div class="provider-profile">
+            <div class="provider-avatar">👷</div>
+            <div class="provider-info">
+                <h2 id="providerName">أحمد المزود</h2>
+                <div class="provider-rating">⭐⭐⭐⭐⭐ 4.8</div>
+                <div class="provider-level">🥇 مزود موثق</div>
+            </div>
+            <!-- زر التوفر -->
+            <div class="availability-toggle">
+                <span id="statusLabel">متاح</span>
+                <label class="toggle">
+                    <input type="checkbox" id="availableToggle" checked onchange="toggleAvailability()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- إحصائيات سريعة -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="todayOrders">٠</div>
+                <div class="stat-label">طلبات اليوم</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayEarnings">٠</div>
+                <div class="stat-label">أرباح اليوم (ريال)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">٤.٨</div>
+                <div class="stat-label">التقييم</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">٩٣٪</div>
+                <div class="stat-label">نسبة الإتمام</div>
+            </div>
+        </div>
+
+        <!-- طلب وارد جديد -->
+        <div class="new-order-card" id="newOrderCard">
+            <div class="new-order-badge">🔔 طلب جديد!</div>
+            <div class="new-order-details">
+                <div class="new-order-service" id="newOrderService">🚚 وايت ماء</div>
+                <div class="new-order-info">
+                    <span>📍 <span id="newOrderAddress">حي النرجس</span></span>
+                    <span>💰 <span id="newOrderPrice">186 ريال</span></span>
+                </div>
+            </div>
+            <div class="new-order-actions">
+                <button class="btn-accept" onclick="acceptOrder()">قبول ✅</button>
+                <button class="btn-reject" onclick="rejectOrder()">رفض ❌</button>
+            </div>
+            <!-- عداد تنازلي -->
+            <div class="countdown">
+                <div class="countdown-bar" id="countdownBar"></div>
+                <span id="countdownText">60 ثانية للرد</span>
+            </div>
+        </div>
+
+        <!-- الطلبات السابقة -->
+        <div class="orders-history">
+            <h3>📋 آخر الطلبات</h3>
+            <div class="history-list" id="historyList">
+
+                <div class="history-item">
+                    <div class="history-icon">🚚</div>
+                    <div class="history-info">
+                        <div class="history-service">وايت ماء</div>
+                        <div class="history-address">حي العليا</div>
+                    </div>
+                    <div class="history-right">
+                        <div class="history-price">186 ريال</div>
+                        <div class="history-status done">مكتمل</div>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-icon">🚛</div>
+                    <div class="history-info">
+                        <div class="history-service">سطحة</div>
+                        <div class="history-address">حي النرجس</div>
+                    </div>
+                    <div class="history-right">
+                        <div class="history-price">232 ريال</div>
+                        <div class="history-status done">مكتمل</div>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-icon">📦</div>
+                    <div class="history-info">
+                        <div class="history-service">حاوية</div>
+                        <div class="history-address">حي الملقا</div>
+                    </div>
+                    <div class="history-right">
+                        <div class="history-price">325 ريال</div>
+                        <div class="history-status cancelled">ملغي</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="provider.js"></script>
+</body>
+</html>
