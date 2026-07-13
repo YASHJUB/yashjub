@@ -43,11 +43,11 @@ body {
     gap: 10px;
 }
 
-.logo {
-    color: #F5C518;
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: 1px;
+/* لوقو الصورة */
+.logo-img {
+    height: 50px;
+    width: auto;
+    margin-bottom: 2px;
 }
 
 .tagline {

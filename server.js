@@ -12,6 +12,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // ========== API المستخدمين ==========
 
@@ -25,7 +26,6 @@ app.post('/api/auth/send-otp', (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // حفظ في قاعدة البيانات
     const existing = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
 
     if (existing) {

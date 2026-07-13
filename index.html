@@ -12,7 +12,7 @@
     <!-- الهيدر -->
     <div class="header">
         <div class="header-right">
-            <div class="logo">يشجب ⚙️</div>
+            <img src="images/logo.jpeg" alt="يشجب" class="logo-img">
             <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
         </div>
         <div class="header-left">
@@ -29,7 +29,7 @@
 
     <!-- القسم الرئيسي -->
     <div class="hero">
-        <h1>اطلب خدمتك الآن 🚧</h1>
+        <h1>اطلب خدمتك <span>الآن</span> 🚧</h1>
         <p>خدمات فورية وجدولة مسبقة بضغطة واحدة</p>
         <button class="btn" onclick="goToLogin()">ابدأ الآن</button>
     </div>
@@ -37,6 +37,7 @@
     <!-- قسم الخدمات -->
     <div class="services">
         <h2>خدماتنا</h2>
+        <p class="services-subtitle">اختر الخدمة المناسبة لك</p>
         <div class="services-grid">
 
             <div class="service-card" onclick="orderService('وايت ماء')">
@@ -72,9 +73,11 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
-<!-- فوتر -->
+    <!-- فوتر -->
     <div class="footer">
         جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
-    </div></body>
+    </div>
+
+    <script src="app.js"></script>
+</body>
 </html>
