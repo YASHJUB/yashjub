@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>يشجب - منصة خدمات البناء</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -28,62 +28,138 @@
     </div>
 
     <!-- البنر الرئيسي -->
-    <div class="hero-banner">
-        <img src="images/banner.jpeg" alt="يشجب - منصة خدمات البناء" class="banner-img">
-        <div class="banner-overlay">
-            <div class="banner-content">
-                <h1>اطلب خدمتك <span>الآن</span> 🚧</h1>
-                <p>خدمات فورية وجدولة مسبقة بضغطة واحدة</p>
-                <button class="btn" onclick="goToLogin()">ابدأ الآن</button>
-            </div>
+    <div class="hero-new">
+
+        <!-- زخارف الزوايا -->
+        <div class="hero-corner-tl"></div>
+        <div class="hero-corner-tr"></div>
+        <div class="hero-dots-tr">
+            <svg width="80" height="60" viewBox="0 0 80 60">
+                <circle cx="10" cy="10" r="2.5" fill="#ddd"/>
+                <circle cx="28" cy="10" r="2.5" fill="#ddd"/>
+                <circle cx="46" cy="10" r="2.5" fill="#ddd"/>
+                <circle cx="64" cy="10" r="2.5" fill="#ddd"/>
+                <circle cx="10" cy="28" r="2.5" fill="#ddd"/>
+                <circle cx="28" cy="28" r="2.5" fill="#ddd"/>
+                <circle cx="46" cy="28" r="2.5" fill="#ddd"/>
+                <circle cx="64" cy="28" r="2.5" fill="#ddd"/>
+                <circle cx="10" cy="46" r="2.5" fill="#ddd"/>
+                <circle cx="28" cy="46" r="2.5" fill="#ddd"/>
+                <circle cx="46" cy="46" r="2.5" fill="#ddd"/>
+                <circle cx="64" cy="46" r="2.5" fill="#ddd"/>
+            </svg>
         </div>
+        <div class="hero-dots-bl">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+                <circle cx="10" cy="10" r="2" fill="#ddd"/>
+                <circle cx="28" cy="10" r="2" fill="#ddd"/>
+                <circle cx="10" cy="28" r="2" fill="#ddd"/>
+                <circle cx="28" cy="28" r="2" fill="#ddd"/>
+                <circle cx="10" cy="46" r="2" fill="#ddd"/>
+                <circle cx="28" cy="46" r="2" fill="#ddd"/>
+            </svg>
+        </div>
+
+        <!-- المحتوى -->
+        <div class="hero-content">
+            <h1>اطلب خدمتك <span>الآن</span></h1>
+            <p>خدمات فورية وجدولة مسبقة بضغطة واحدة</p>
+            <button class="btn hero-btn" onclick="goToLogin()">ابدأ الآن</button>
+        </div>
+
+        <!-- الزاوية الذهبية اليمين -->
+        <div class="hero-gold-corner"></div>
+
     </div>
 
     <!-- قسم الخدمات -->
-    <div class="services">
+    <div class="services-new">
         <h2>خدماتنا</h2>
         <p class="services-subtitle">اختر الخدمة المناسبة لك</p>
-        <div class="services-grid">
 
-           <div class="services-grid">
+        <div class="services-list">
 
-            <div class="service-card" onclick="orderService('وايت ماء')">
-                <div class="service-icon">🚚</div>
-                <div class="service-name">وايت ماء</div>
-                <div class="service-type">فوري</div>
+            <div class="service-row" onclick="orderService('وايت ماء')">
+                <div class="service-row-right">
+                    <div class="service-row-icon">🚚</div>
+                    <div class="service-row-info">
+                        <div class="service-row-name">وايت ماء</div>
+                        <div class="service-row-desc">توصيل المياه لمواقع البناء</div>
+                    </div>
+                </div>
+                <div class="service-row-left">
+                    <span class="service-row-type instant">فوري</span>
+                    <span class="service-row-arrow">←</span>
+                </div>
             </div>
 
-            <div class="service-card" onclick="orderService('سطحة')">
-                <div class="service-icon">🚛</div>
-                <div class="service-name">سطحة</div>
-                <div class="service-type">فوري</div>
+            <div class="service-row" onclick="orderService('سطحة')">
+                <div class="service-row-right">
+                    <div class="service-row-icon">🚛</div>
+                    <div class="service-row-info">
+                        <div class="service-row-name">سطحة</div>
+                        <div class="service-row-desc">نقل وسحب المركبات</div>
+                    </div>
+                </div>
+                <div class="service-row-left">
+                    <span class="service-row-type instant">فوري</span>
+                    <span class="service-row-arrow">←</span>
+                </div>
             </div>
 
-            <div class="service-card" onclick="orderService('معدات ثقيلة')">
-                <div class="service-icon">🏗️</div>
-                <div class="service-name">معدات ثقيلة</div>
-                <div class="service-type">مجدول</div>
+            <div class="service-row" onclick="orderService('معدات ثقيلة')">
+                <div class="service-row-right">
+                    <div class="service-row-icon">🏗️</div>
+                    <div class="service-row-info">
+                        <div class="service-row-name">معدات ثقيلة</div>
+                        <div class="service-row-desc">بوكلينات، شيولات وقلابات</div>
+                    </div>
+                </div>
+                <div class="service-row-left">
+                    <span class="service-row-type scheduled">مجدول</span>
+                    <span class="service-row-arrow">←</span>
+                </div>
             </div>
 
-            <div class="service-card" onclick="orderService('حاوية')">
-                <div class="service-icon">📦</div>
-                <div class="service-name">حاوية</div>
-                <div class="service-type">مجدول</div>
+            <div class="service-row" onclick="orderService('حاوية')">
+                <div class="service-row-right">
+                    <div class="service-row-icon">📦</div>
+                    <div class="service-row-info">
+                        <div class="service-row-name">حاوية</div>
+                        <div class="service-row-desc">حاويات البناء والنفايات</div>
+                    </div>
+                </div>
+                <div class="service-row-left">
+                    <span class="service-row-type scheduled">مجدول</span>
+                    <span class="service-row-arrow">←</span>
+                </div>
             </div>
 
-            <div class="service-card" onclick="orderService('عمالة')">
-                <div class="service-icon">👷</div>
-                <div class="service-name">عمالة</div>
-                <div class="service-type">مجدول</div>
+            <div class="service-row" onclick="orderService('عمالة')">
+                <div class="service-row-right">
+                    <div class="service-row-icon">👷</div>
+                    <div class="service-row-info">
+                        <div class="service-row-name">عمالة</div>
+                        <div class="service-row-desc">عمال بناء ومقاولين</div>
+                    </div>
+                </div>
+                <div class="service-row-left">
+                    <span class="service-row-type scheduled">مجدول</span>
+                    <span class="service-row-arrow">←</span>
+                </div>
             </div>
 
         </div>
+    </div>
 
     <!-- فوتر -->
     <div class="footer">
         جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
     </div>
 
+    <script src="app.js"></script>
+</body>
+</html>
     <script src="app.js"></script>
 </body>
 </html>
