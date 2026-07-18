@@ -1,7 +1,6 @@
 // كود صفحة الطلب — متصل بالسيرفر
 
-const API = 'http://localhost:3000/api';
-
+const API = window.location.origin + '/api';
 const servicesData = {
     "وايت ماء": { icon: "🚚", type: "فوري",   price: 200, time: "8 دقائق"        },
     "سطحة":     { icon: "🚛", type: "فوري",   price: 250, time: "12 دقيقة"       },

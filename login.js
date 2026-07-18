@@ -1,6 +1,6 @@
 // كود تسجيل الدخول — متصل بالسيرفر
 
-const API = 'http://localhost:3000/api';
+const API = window.location.origin + '/api';
 
 async function sendOTP() {
     const phone = document.getElementById('phone').value;
