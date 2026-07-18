@@ -29,8 +29,6 @@
 
     <!-- البنر الرئيسي -->
     <div class="hero-new">
-
-        <!-- زخارف الزوايا -->
         <div class="hero-corner-tl"></div>
         <div class="hero-corner-tr"></div>
         <div class="hero-dots-tr">
@@ -59,24 +57,43 @@
                 <circle cx="28" cy="46" r="2" fill="#ddd"/>
             </svg>
         </div>
-
-        <!-- المحتوى -->
         <div class="hero-content">
             <h1>اطلب خدمتك <span>الآن</span></h1>
             <p>خدمات فورية وجدولة مسبقة بضغطة واحدة</p>
             <button class="btn hero-btn" onclick="goToLogin()">ابدأ الآن</button>
         </div>
-
-        <!-- الزاوية الذهبية اليمين -->
         <div class="hero-gold-corner"></div>
+    </div>
 
+    <!-- قسم الإحصائيات -->
+    <div class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-num">+500</div>
+                <div class="stat-label">مزود معتمد</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">+10,000</div>
+                <div class="stat-label">طلب مكتمل</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">4.8 ⭐</div>
+                <div class="stat-label">متوسط التقييم</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">24/7</div>
+                <div class="stat-label">خدمة مستمرة</div>
+            </div>
+        </div>
     </div>
 
     <!-- قسم الخدمات -->
     <div class="services-new">
         <h2>خدماتنا</h2>
         <p class="services-subtitle">اختر الخدمة المناسبة لك</p>
-
         <div class="services-list">
 
             <div class="service-row" onclick="orderService('وايت ماء')">
@@ -152,14 +169,101 @@
         </div>
     </div>
 
+    <!-- قسم كيف يعمل -->
+    <div class="how-section">
+        <h2>كيف يعمل يشجب؟</h2>
+        <p class="services-subtitle">أربع خطوات بسيطة للحصول على خدمتك</p>
+        <div class="how-grid">
+            <div class="how-card">
+                <div class="how-num">١</div>
+                <div class="how-icon">🔍</div>
+                <div class="how-title">اختر الخدمة</div>
+                <div class="how-desc">اختر من قائمة خدماتنا المتنوعة</div>
+            </div>
+            <div class="how-arrow">←</div>
+            <div class="how-card">
+                <div class="how-num">٢</div>
+                <div class="how-icon">📍</div>
+                <div class="how-title">حدد الموقع</div>
+                <div class="how-desc">أدخل موقعك أو حدده على الخريطة</div>
+            </div>
+            <div class="how-arrow">←</div>
+            <div class="how-card">
+                <div class="how-num">٣</div>
+                <div class="how-icon">✅</div>
+                <div class="how-title">أكّد الطلب</div>
+                <div class="how-desc">ادفع بأمان عبر نظام الأمانة</div>
+            </div>
+            <div class="how-arrow">←</div>
+            <div class="how-card">
+                <div class="how-num">٤</div>
+                <div class="how-icon">🚀</div>
+                <div class="how-title">استلم الخدمة</div>
+                <div class="how-desc">تابع المزود وقيّم تجربتك</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم لماذا يشجب -->
+    <div class="why-section">
+        <div class="why-content">
+            <h2>لماذا يشجب؟</h2>
+            <p class="services-subtitle">نحن نضمن لك أفضل تجربة في قطاع البناء</p>
+            <div class="why-grid">
+                <div class="why-card">
+                    <div class="why-icon">🔒</div>
+                    <div class="why-title">دفع آمن</div>
+                    <div class="why-desc">نظام أمانة يحفظ حقوقك حتى اكتمال الخدمة</div>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon">✔️</div>
+                    <div class="why-title">مزودون موثقون</div>
+                    <div class="why-desc">جميع المزودين معتمدون ومتحقق منهم</div>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon">📡</div>
+                    <div class="why-title">تتبع فوري</div>
+                    <div class="why-desc">تابع موقع المزود لحظة بلحظة</div>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon">💬</div>
+                    <div class="why-title">دعم 24/7</div>
+                    <div class="why-desc">فريق دعم متاح على مدار الساعة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم انضم كمزود -->
+    <div class="provider-section">
+        <div class="provider-content">
+            <div class="provider-text">
+                <h2>هل أنت مزود خدمة؟</h2>
+                <p>انضم لآلاف المزودين وابدأ في استقبال الطلبات اليوم</p>
+                <div class="provider-benefits">
+                    <div class="benefit">✅ بدون رسوم اشتراك</div>
+                    <div class="benefit">✅ عمولة ٧٪ فقط</div>
+                    <div class="benefit">✅ دفع فوري لحسابك</div>
+                    <div class="benefit">✅ تحكم كامل بجدولك</div>
+                </div>
+                <button class="btn provider-btn" onclick="window.location.href='provider.html'">
+                    انضم الآن كمزود 👷
+                </button>
+            </div>
+            <div class="provider-visual">
+                <div class="provider-badge">
+                    <div class="badge-num">+500</div>
+                    <div class="badge-label">مزود نشط</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- فوتر -->
     <div class="footer">
         جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
     </div>
 
-    <script src="app.js"></script>
-</body>
-</html>
     <script src="app.js"></script>
 </body>
 </html>

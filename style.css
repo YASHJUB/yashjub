@@ -1134,4 +1134,270 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     font-size: 18px;
     color: #F5C518;
     font-weight: 700;
+}/* ══ الإحصائيات ══ */
+
+.stats-section {
+    background-color: #111111;
+    padding: 30px 20px;
+}
+
+.stats-grid {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+}
+
+.stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+}
+
+.stat-num {
+    font-size: 28px;
+    font-weight: 900;
+    color: #F5C518;
+    margin-bottom: 4px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Cairo', sans-serif;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.15);
+}
+
+/* ══ كيف يعمل ══ */
+
+.how-section {
+    background-color: #FFFFFF;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.how-section h2 {
+    font-size: 30px;
+    font-weight: 800;
+    color: #111111;
+    margin-bottom: 6px;
+}
+
+.how-grid {
+    max-width: 900px;
+    margin: 40px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.how-card {
+    background: #FAFAFA;
+    border: 1px solid #EEEEEE;
+    border-radius: 16px;
+    padding: 24px 20px;
+    width: 180px;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.how-card:hover {
+    border-color: #F5C518;
+    box-shadow: 0 4px 20px rgba(245,197,24,0.12);
+    transform: translateY(-4px);
+}
+
+.how-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: #F5C518;
+    background: rgba(245,197,24,0.1);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.how-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+}
+
+.how-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 6px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.how-desc {
+    font-size: 12px;
+    color: #888888;
+    line-height: 1.5;
+    font-family: 'Cairo', sans-serif;
+}
+
+.how-arrow {
+    font-size: 22px;
+    color: #F5C518;
+    font-weight: 700;
+}
+
+/* ══ لماذا يشجب ══ */
+
+.why-section {
+    background-color: #FAFAFA;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.why-section h2 {
+    font-size: 30px;
+    font-weight: 800;
+    color: #111111;
+    margin-bottom: 6px;
+}
+
+.why-grid {
+    max-width: 800px;
+    margin: 40px auto 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.why-card {
+    background: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: right;
+    transition: all 0.2s;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.why-card:hover {
+    border-color: #F5C518;
+    box-shadow: 0 4px 20px rgba(245,197,24,0.12);
+}
+
+.why-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.why-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 5px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.why-desc {
+    font-size: 12px;
+    color: #888888;
+    line-height: 1.5;
+    font-family: 'Cairo', sans-serif;
+}
+
+/* ══ قسم المزود ══ */
+
+.provider-section {
+    background-color: #111111;
+    padding: 60px 20px;
+}
+
+.provider-content {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.provider-text {
+    flex: 1;
+}
+
+.provider-text h2 {
+    font-size: 30px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 10px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.provider-text p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 20px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.provider-benefits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.benefit {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    font-family: 'Cairo', sans-serif;
+}
+
+.provider-btn {
+    font-size: 16px;
+    padding: 14px 32px;
+    border-radius: 10px;
+}
+
+.provider-visual {
+    flex-shrink: 0;
+}
+
+.provider-badge {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(245,197,24,0.1);
+    border: 3px solid #F5C518;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.badge-num {
+    font-size: 32px;
+    font-weight: 900;
+    color: #F5C518;
+    font-family: 'Cairo', sans-serif;
+}
+
+.badge-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    font-family: 'Cairo', sans-serif;
 }
