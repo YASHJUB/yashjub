@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - انضم كمزود</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.jpeg" alt="يشجب" class="logo-img">
+            <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
+        </div>
+    </div>
+
+    <!-- رأس الصفحة -->
+    <div class="reg-hero">
+        <h1>انضم كمزود <span>خدمة</span> 👷</h1>
+        <p>سجّل بياناتك وابدأ في استقبال الطلبات اليوم</p>
+    </div>
+
+    <!-- مستويات التحقق -->
+    <div class="levels-section">
+        <h2>اختر مستوى تسجيلك</h2>
+        <p class="services-subtitle">كل مستوى يفتح لك مزايا أكثر</p>
+
+        <div class="levels-grid">
+
+            <div class="level-card" id="level1Card" onclick="selectLevel(1)">
+                <div class="level-badge-icon">🥈</div>
+                <div class="level-name">المستوى الأول</div>
+                <div class="level-sub">مزود أساسي</div>
+                <div class="level-features">
+                    <div class="level-feat">✅ هوية / إقامة</div>
+                    <div class="level-feat">✅ رقم الجوال</div>
+                    <div class="level-feat">✅ IBAN البنكي</div>
+                    <div class="level-feat grey">⬜ وصول محدود</div>
+                </div>
+                <div class="level-select-btn">اختر هذا المستوى</div>
+            </div>
+
+            <div class="level-card recommended" id="level2Card" onclick="selectLevel(2)">
+                <div class="recommended-badge">الأكثر طلباً</div>
+                <div class="level-badge-icon">🥇</div>
+                <div class="level-name">المستوى الثاني</div>
+                <div class="level-sub">مزود موثق</div>
+                <div class="level-features">
+                    <div class="level-feat">✅ كل ما في المستوى الأول</div>
+                    <div class="level-feat">✅ شهادة العمل الحر</div>
+                    <div class="level-feat">✅ ظهور أعلى في النتائج</div>
+                    <div class="level-feat">✅ شارة التوثيق</div>
+                </div>
+                <div class="level-select-btn">اختر هذا المستوى</div>
+            </div>
+
+            <div class="level-card" id="level3Card" onclick="selectLevel(3)">
+                <div class="level-badge-icon">🏆</div>
+                <div class="level-name">المستوى الثالث</div>
+                <div class="level-sub">شركة / منشأة</div>
+                <div class="level-features">
+                    <div class="level-feat">✅ كل ما في المستوى الثاني</div>
+                    <div class="level-feat">✅ السجل التجاري</div>
+                    <div class="level-feat">✅ وصول كامل</div>
+                    <div class="level-feat">✅ أولوية في الطلبات</div>
+                </div>
+                <div class="level-select-btn">اختر هذا المستوى</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- نموذج التسجيل -->
+    <div class="reg-form-section" id="regFormSection" style="display:none">
+
+        <div class="reg-form-card">
+
+            <div class="reg-form-title" id="regFormTitle">تسجيل المستوى الأول</div>
+
+            <!-- الحقول الأساسية (كل المستويات) -->
+            <div class="form-group">
+                <label>الاسم الكامل</label>
+                <input type="text" id="fullName" placeholder="أدخل اسمك الكامل"/>
+            </div>
+
+            <div class="form-group">
+                <label>رقم الجوال</label>
+                <div class="input-group">
+                    <span class="input-prefix">+966</span>
+                    <input type="number" id="phone" placeholder="5XXXXXXXX"/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>رقم الهوية / الإقامة</label>
+                <input type="number" id="idNumber" placeholder="أدخل رقم الهوية أو الإقامة"/>
+            </div>
+
+            <div class="form-group">
+                <label>رقم IBAN البنكي</label>
+                <input type="text" id="iban" placeholder="SA00 0000 0000 0000 0000 0000"/>
+            </div>
+
+            <div class="form-group">
+                <label>نوع الخدمة</label>
+                <select id="serviceType">
+                    <option value="">اختر نوع خدمتك</option>
+                    <option value="وايت ماء">وايت ماء</option>
+                    <option value="سطحة">سطحة</option>
+                    <option value="معدات ثقيلة">معدات ثقيلة</option>
+                    <option value="حاوية">حاوية</option>
+                    <option value="عمالة">عمالة</option>
+                </select>
+            </div>
+
+            <!-- حقول المستوى الثاني -->
+            <div id="level2Fields" style="display:none">
+                <div class="form-divider">📄 وثائق المستوى الثاني</div>
+                <div class="form-group">
+                    <label>رقم شهادة العمل الحر</label>
+                    <input type="text" id="freelanceNum" placeholder="أدخل رقم شهادة العمل الحر"/>
+                </div>
+            </div>
+
+            <!-- حقول المستوى الثالث -->
+            <div id="level3Fields" style="display:none">
+                <div class="form-divider">🏢 وثائق المستوى الثالث</div>
+                <div class="form-group">
+                    <label>رقم شهادة العمل الحر</label>
+                    <input type="text" id="freelanceNum3" placeholder="أدخل رقم شهادة العمل الحر"/>
+                </div>
+                <div class="form-group">
+                    <label>رقم السجل التجاري</label>
+                    <input type="text" id="crNumber" placeholder="أدخل رقم السجل التجاري"/>
+                </div>
+                <div class="form-group">
+                    <label>اسم الشركة / المنشأة</label>
+                    <input type="text" id="companyName" placeholder="أدخل اسم شركتك"/>
+                </div>
+            </div>
+
+            <!-- الموافقة على الشروط -->
+            <div class="terms-check">
+                <input type="checkbox" id="terms"/>
+                <label for="terms">أوافق على <a href="#">الشروط والأحكام</a> وسياسة الخصوصية</label>
+            </div>
+
+            <!-- زر التسجيل -->
+            <button class="btn btn-full" onclick="submitRegistration()">
+                إرسال الطلب 🚀
+            </button>
+
+        </div>
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
+    </div>
+
+    <script src="register-provider.js"></script>
+</body>
+</html>

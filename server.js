@@ -16,7 +16,6 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // ========== API المستخدمين ==========
 
-// إرسال OTP
 app.post('/api/auth/send-otp', (req, res) => {
     const { phone } = req.body;
 
@@ -39,7 +38,6 @@ app.post('/api/auth/send-otp', (req, res) => {
     res.json({ success: true, message: 'تم إرسال الرمز', otp });
 });
 
-// التحقق من OTP
 app.post('/api/auth/verify-otp', (req, res) => {
     const { phone, otp } = req.body;
 
@@ -56,7 +54,6 @@ app.post('/api/auth/verify-otp', (req, res) => {
 
 // ========== API الطلبات ==========
 
-// إنشاء طلب جديد
 app.post('/api/orders', (req, res) => {
     const { phone, service, address, price } = req.body;
 
@@ -78,13 +75,11 @@ app.post('/api/orders', (req, res) => {
     res.json({ success: true, order });
 });
 
-// جلب كل الطلبات
 app.get('/api/orders', (req, res) => {
     const orders = db.prepare('SELECT * FROM orders ORDER BY created_at DESC').all();
     res.json({ success: true, orders });
 });
 
-// جلب طلب محدد
 app.get('/api/orders/:id', (req, res) => {
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
 
@@ -95,7 +90,6 @@ app.get('/api/orders/:id', (req, res) => {
     res.json({ success: true, order });
 });
 
-// تحديث حالة الطلب
 app.put('/api/orders/:id/status', (req, res) => {
     const { status } = req.body;
 
@@ -106,10 +100,42 @@ app.put('/api/orders/:id/status', (req, res) => {
     res.json({ success: true, order });
 });
 
-// جلب كل المستخدمين
 app.get('/api/users', (req, res) => {
     const users = db.prepare('SELECT id, phone, verified, created_at FROM users').all();
     res.json({ success: true, users });
+});
+
+// ========== API تسجيل المزودين ==========
+
+app.post('/api/providers/register', (req, res) => {
+    const { fullName, phone, idNumber, iban, serviceType, level } = req.body;
+
+    if (!fullName || !phone || !idNumber || !iban || !serviceType) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const providerLevel = level === 1 ? 'basic' : level === 2 ? 'verified' : 'business';
+
+    // تحقق إذا الرقم موجود مسبقاً
+    const existing = db.prepare('SELECT * FROM providers WHERE phone = ?').get(phone);
+
+    if (existing) {
+        return res.json({ success: false, message: 'رقم الجوال مسجل مسبقاً' });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO providers (phone, name, service_type, level)
+        VALUES (?, ?, ?, ?)
+    `).run(phone, fullName, serviceType, providerLevel);
+
+    console.log(`✅ مزود جديد #${result.lastInsertRowid} — ${fullName} — ${serviceType}`);
+
+    res.json({ success: true, id: result.lastInsertRowid });
+});
+
+app.get('/api/providers', (req, res) => {
+    const providers = db.prepare('SELECT * FROM providers ORDER BY created_at DESC').all();
+    res.json({ success: true, providers });
 });
 
 // ========== تشغيل السيرفر ==========
