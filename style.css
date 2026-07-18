@@ -1629,4 +1629,44 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     padding: 14px;
     font-size: 17px;
     border-radius: 10px;
+}/* ══ تبويبات نوع المستخدم ══ */
+
+.user-type-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.type-tab {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1.5px solid #DDDDDD;
+    background: #FAFAFA;
+    color: #888888;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.type-tab.active {
+    border-color: #F5C518;
+    background: rgba(245,197,24,0.1);
+    color: #111111;
+}
+
+.login-register-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #888888;
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-register-link a {
+    color: #F5C518;
+    font-weight: 700;
+    text-decoration: none;
 }

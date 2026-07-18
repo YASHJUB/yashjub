@@ -11,51 +11,75 @@
 
     <!-- الهيدر -->
     <div class="header">
-        <div class="logo">يشجب ⚙️</div>
-        <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+        <div class="header-right">
+            <img src="images/logo.jpeg" alt="يشجب" class="logo-img">
+            <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
+        </div>
     </div>
 
     <!-- صفحة تسجيل الدخول -->
     <div class="login-container">
-
         <div class="login-card">
 
             <div class="login-icon">👷</div>
             <h2>أهلاً بك في يشجب</h2>
             <p class="login-sub">أدخل رقم جوالك للمتابعة</p>
 
+            <!-- اختيار نوع المستخدم -->
+            <div class="user-type-tabs">
+                <button class="type-tab active" id="clientTab" onclick="selectType('client')">
+                    👤 عميل
+                </button>
+                <button class="type-tab" id="providerTab" onclick="selectType('provider')">
+                    👷 مزود خدمة
+                </button>
+            </div>
+
             <!-- حقل رقم الجوال -->
             <div class="input-group">
                 <span class="input-prefix">+966</span>
-                <input 
-                    type="number" 
-                    id="phone" 
+                <input
+                    type="number"
+                    id="phone"
                     placeholder="5XXXXXXXX"
                     maxlength="9"
                 />
             </div>
 
             <!-- زر الدخول -->
-            <button class="btn" onclick="sendOTP()">
+            <button class="btn btn-full" onclick="sendOTP()">
                 إرسال رمز التحقق 📱
             </button>
 
-            <!-- قسم رمز OTP (مخفي في البداية) -->
+            <!-- قسم OTP -->
             <div class="otp-section" id="otpSection">
                 <p class="login-sub">أدخل الرمز المرسل لجوالك</p>
-                <input 
-                    type="number" 
-                    id="otp" 
+                <input
+                    type="number"
+                    id="otp"
                     placeholder="- - - - - -"
                     class="otp-input"
                 />
-                <button class="btn" onclick="verifyOTP()">
+                <button class="btn btn-full" onclick="verifyOTP()">
                     تحقق وادخل ✅
                 </button>
             </div>
 
-        </div>
+            <!-- رابط تسجيل المزود -->
+            <div class="login-register-link">
+                مزود جديد؟
+                <a href="register-provider.html">سجّل الآن مجاناً</a>
+            </div>
 
+        </div>
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
     </div>
 
     <script src="login.js"></script>

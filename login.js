@@ -1,7 +1,19 @@
-// كود تسجيل الدخول — متصل بالسيرفر
+// كود تسجيل الدخول في يشجب
 
 const API = window.location.origin + '/api';
 
+let correctOTP = "";
+let userType   = "client"; // client أو provider
+
+// اختيار نوع المستخدم
+function selectType(type) {
+    userType = type;
+
+    document.getElementById('clientTab').classList.toggle('active', type === 'client');
+    document.getElementById('providerTab').classList.toggle('active', type === 'provider');
+}
+
+// إرسال OTP
 async function sendOTP() {
     const phone = document.getElementById('phone').value;
 
@@ -11,7 +23,6 @@ async function sendOTP() {
     }
 
     try {
-        // إرسال الطلب للسيرفر
         const response = await fetch(`${API}/auth/send-otp`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -32,6 +43,7 @@ async function sendOTP() {
     }
 }
 
+// التحقق من OTP
 async function verifyOTP() {
     const phone = document.getElementById('phone').value;
     const otp   = document.getElementById('otp').value;
@@ -46,9 +58,19 @@ async function verifyOTP() {
         const data = await response.json();
 
         if (data.success) {
+            // حفظ بيانات المستخدم
             localStorage.setItem('yashjub_phone', phone);
+            localStorage.setItem('yashjub_type', userType);
+
             alert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في يشجب 👷");
-            window.location.href = 'index.html';
+
+            // توجيه حسب نوع المستخدم
+            if (userType === 'provider') {
+                window.location.href = 'provider.html';
+            } else {
+                window.location.href = 'index.html';
+            }
+
         } else {
             alert(`❌ ${data.message}`);
         }
