@@ -137,7 +137,14 @@ app.get('/api/providers', (req, res) => {
     const providers = db.prepare('SELECT * FROM providers ORDER BY created_at DESC').all();
     res.json({ success: true, providers });
 });
+// جلب طلبات مستخدم محدد
+app.get('/api/orders/user/:phone', (req, res) => {
+    const orders = db.prepare(
+        'SELECT * FROM orders WHERE phone = ? ORDER BY created_at DESC'
+    ).all(req.params.phone);
 
+    res.json({ success: true, orders });
+});
 // ========== تشغيل السيرفر ==========
 app.listen(PORT, () => {
     console.log(`

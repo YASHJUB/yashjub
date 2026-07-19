@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - طلباتي</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.jpeg" alt="يشجب" class="logo-img">
+            <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
+        </div>
+    </div>
+
+    <!-- رأس الصفحة -->
+    <div class="orders-hero">
+        <h1>طلباتي 📋</h1>
+        <p id="userPhoneHeader">جميع طلباتك في مكان واحد</p>
+    </div>
+
+    <!-- قسم الطلبات -->
+    <div class="my-orders-section">
+
+        <!-- حالة التحميل -->
+        <div id="loadingState" class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">جاري التحميل...</div>
+        </div>
+
+        <!-- لا يوجد طلبات -->
+        <div id="emptyState" class="empty-state" style="display:none">
+            <div class="empty-icon">📭</div>
+            <div class="empty-title">لا يوجد طلبات بعد</div>
+            <div class="empty-sub">اطلب خدمتك الأولى الآن!</div>
+            <button class="btn" onclick="window.location.href='index.html'" style="margin-top:20px">
+                اطلب الآن 🚀
+            </button>
+        </div>
+
+        <!-- قائمة الطلبات -->
+        <div id="ordersList" style="display:none">
+
+            <!-- إحصائيات سريعة -->
+            <div class="orders-stats">
+                <div class="orders-stat">
+                    <div class="orders-stat-num" id="totalOrders">0</div>
+                    <div class="orders-stat-label">إجمالي الطلبات</div>
+                </div>
+                <div class="orders-stat">
+                    <div class="orders-stat-num" id="completedOrders">0</div>
+                    <div class="orders-stat-label">مكتملة</div>
+                </div>
+                <div class="orders-stat">
+                    <div class="orders-stat-num" id="totalSpent">0</div>
+                    <div class="orders-stat-label">إجمالي المدفوع (ريال)</div>
+                </div>
+            </div>
+
+            <!-- بطاقات الطلبات -->
+            <div id="ordersCards" class="orders-cards"></div>
+
+        </div>
+
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
+    </div>
+
+    <script src="my-orders.js"></script>
+</body>
+</html>
