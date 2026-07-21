@@ -2145,4 +2145,178 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 .btn-outline:hover {
     background: #111111;
     color: #FFFFFF;
+}/* ══ الملف الشخصي ══ */
+
+.profile-hero {
+    background: #111111;
+    padding: 40px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 3px solid #F5C518;
+    justify-content: center;
+}
+
+.profile-avatar {
+    font-size: 64px;
+    width: 90px;
+    height: 90px;
+    background: rgba(245,197,24,0.1);
+    border: 2px solid #F5C518;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-hero-info h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 4px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.profile-hero-info p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 8px;
+    font-family: 'Cairo', sans-serif;
+    direction: ltr;
+}
+
+.profile-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8);
+    font-family: 'Cairo', sans-serif;
+}
+
+.profile-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.profile-card {
+    background: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+
+.profile-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #F5F5F5;
+    font-family: 'Cairo', sans-serif;
+}
+
+.profile-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #F5F5F5;
+}
+
+.profile-info-row:last-child {
+    border-bottom: none;
+}
+
+.profile-info-label {
+    font-size: 13px;
+    color: #888888;
+    font-family: 'Cairo', sans-serif;
+}
+
+.profile-info-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    text-align: center;
+}
+
+.profile-stat {
+    background: #FAFAFA;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.profile-stat-num {
+    font-size: 24px;
+    font-weight: 900;
+    color: #F5C518;
+    font-family: 'Cairo', sans-serif;
+}
+
+.profile-stat-label {
+    font-size: 11px;
+    color: #888888;
+    margin-top: 4px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.profile-action:hover {
+    background: #FAFAFA;
+}
+
+.profile-action.danger:hover {
+    background: rgba(239,68,68,0.05);
+}
+
+.profile-action.danger .profile-action-label {
+    color: #EF4444;
+}
+
+.profile-action-icon {
+    font-size: 20px;
+    width: 36px;
+    text-align: center;
+}
+
+.profile-action-label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.profile-action-arrow {
+    font-size: 16px;
+    color: #CCCCCC;
 }

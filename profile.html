@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - الملف الشخصي</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.jpeg" alt="يشجب" class="logo-img">
+            <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
+        </div>
+    </div>
+
+    <!-- رأس الصفحة -->
+    <div class="profile-hero">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-hero-info">
+            <h1 id="profileName">مستخدم يشجب</h1>
+            <p id="profilePhone">+966 5XXXXXXXX</p>
+            <span class="profile-badge" id="profileBadge">عميل</span>
+        </div>
+    </div>
+
+    <!-- المحتوى -->
+    <div class="profile-container">
+
+        <!-- بطاقة المعلومات -->
+        <div class="profile-card">
+            <div class="profile-card-title">معلوماتي</div>
+
+            <div class="profile-info-row">
+                <span class="profile-info-label">📱 رقم الجوال</span>
+                <span class="profile-info-value" id="infoPhone">—</span>
+            </div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">👤 نوع الحساب</span>
+                <span class="profile-info-value" id="infoType">—</span>
+            </div>
+            <div class="profile-info-row">
+                <span class="profile-info-label">📅 تاريخ الانضمام</span>
+                <span class="profile-info-value" id="infoDate">—</span>
+            </div>
+        </div>
+
+        <!-- إحصائيات سريعة -->
+        <div class="profile-card">
+            <div class="profile-card-title">إحصائياتي</div>
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="profile-stat-num" id="statOrders">0</div>
+                    <div class="profile-stat-label">طلباتي</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-num" id="statCompleted">0</div>
+                    <div class="profile-stat-label">مكتملة</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-num" id="statSpent">0</div>
+                    <div class="profile-stat-label">ريال مدفوع</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- الإجراءات -->
+        <div class="profile-card">
+            <div class="profile-card-title">إجراءات</div>
+            <div class="profile-actions">
+
+                <div class="profile-action" onclick="window.location.href='my-orders.html'">
+                    <span class="profile-action-icon">📋</span>
+                    <span class="profile-action-label">طلباتي</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+
+                <div class="profile-action" id="providerAction" style="display:none"
+                     onclick="window.location.href='provider.html'">
+                    <span class="profile-action-icon">👷</span>
+                    <span class="profile-action-label">لوحة المزود</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+
+                <div class="profile-action" onclick="window.location.href='about.html'">
+                    <span class="profile-action-icon">ℹ️</span>
+                    <span class="profile-action-label">من نحن</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+
+                <div class="profile-action" onclick="window.location.href='contact.html'">
+                    <span class="profile-action-icon">📞</span>
+                    <span class="profile-action-label">تواصل معنا</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+
+                <div class="profile-action" onclick="window.location.href='terms.html'">
+                    <span class="profile-action-icon">📄</span>
+                    <span class="profile-action-label">الشروط والأحكام</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+
+                <div class="profile-action danger" onclick="logoutProfile()">
+                    <span class="profile-action-icon">🚪</span>
+                    <span class="profile-action-label">تسجيل الخروج</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+            <a href="register-provider.html">انضم كمزود</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
+        </div>
+    </div>
+
+    <script src="profile.js"></script>
+</body>
+</html>
