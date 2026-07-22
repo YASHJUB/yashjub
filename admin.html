@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - لوحة الإدارة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo',sans-serif; }
+
+        :root {
+            --black: #0a0a0a;
+            --black2: #111111;
+            --black3: #1a1a1a;
+            --gold: #F5C518;
+            --gold2: #E6B800;
+            --white: #ffffff;
+            --gray: #f5f5f5;
+            --gray2: #eeeeee;
+            --text: #111111;
+            --text2: #666666;
+            --text3: #999999;
+            --green: #10B981;
+            --red: #EF4444;
+            --blue: #3B82F6;
+            --orange: #F59E0B;
+            --sidebar-w: 260px;
+        }
+
+        body { background:#f5f5f5; color:var(--text); }
+
+        /* ══ LOGIN ══ */
+        .login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--black);
+        }
+        .login-box {
+            background: var(--black2);
+            border: 1px solid rgba(245,197,24,0.2);
+            border-radius: 20px;
+            padding: 40px;
+            width: 380px;
+            text-align: center;
+        }
+        .login-box .logo { font-size: 40px; margin-bottom: 8px; }
+        .login-box h2 { font-size: 22px; font-weight: 800; color: var(--white); margin-bottom: 4px; }
+        .login-box p { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
+        .login-box input {
+            width: 100%; padding: 12px 16px; border-radius: 10px;
+            border: 1.5px solid #333; background: #1a1a1a; color: var(--white);
+            font-family: 'Cairo',sans-serif; font-size: 14px; margin-bottom: 14px; outline: none;
+        }
+        .login-box input:focus { border-color: var(--gold); }
+        .login-box button {
+            width: 100%; padding: 13px; border-radius: 10px; border: none;
+            background: var(--gold); color: var(--black); font-size: 15px;
+            font-weight: 700; font-family: 'Cairo',sans-serif; cursor: pointer;
+        }
+
+        /* ══ LAYOUT ══ */
+        .admin-layout { display: flex; min-height: 100vh; }
+
+        /* ══ SIDEBAR ══ */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--black);
+            position: fixed; top:0; right:0; bottom:0;
+            display: flex; flex-direction: column;
+            z-index: 100; overflow-y: auto;
+        }
+        .sidebar-logo {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sidebar-logo-img { font-size: 28px; }
+        .sidebar-logo-text { font-size: 20px; font-weight: 900; color: var(--gold); }
+        .sidebar-logo-sub { font-size: 10px; color: var(--text3); }
+
+        .sidebar-section-label {
+            font-size: 10px; font-weight: 600; color: var(--text3);
+            padding: 16px 20px 6px; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .sidebar-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 20px; cursor: pointer;
+            color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500;
+            transition: all 0.15s; border-right: 3px solid transparent;
+            text-decoration: none;
+        }
+        .sidebar-item:hover { background: rgba(255,255,255,0.04); color: var(--white); }
+        .sidebar-item.active {
+            background: rgba(245,197,24,0.08);
+            color: var(--gold);
+            border-right-color: var(--gold);
+        }
+        .sidebar-item .s-icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-badge {
+            margin-right: auto; background: var(--red); color: var(--white);
+            font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+        }
+        .sidebar-badge.gold { background: var(--gold); color: var(--black); }
+
+        .sidebar-bottom {
+            margin-top: auto; padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar-logout {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--red); font-size: 13px; cursor: pointer; padding: 8px 0;
+        }
+
+        /* ══ MAIN ══ */
+        .main {
+            margin-right: var(--sidebar-w);
+            flex: 1; display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* ══ TOPBAR ══ */
+        .topbar {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray2);
+            padding: 0 24px;
+            height: 64px;
+            display: flex; align-items: center; gap: 16px;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-search {
+            flex: 1; max-width: 420px;
+            display: flex; align-items: center; gap: 8px;
+            background: var(--gray); border-radius: 10px; padding: 8px 14px;
+        }
+        .topbar-search input {
+            background: none; border: none; outline: none;
+            font-family: 'Cairo',sans-serif; font-size: 13px; width: 100%;
+        }
+        .topbar-right { margin-right: auto; display: flex; align-items: center; gap: 12px; }
+        .topbar-icon-btn {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--gray); border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+            position: relative;
+        }
+        .notif-dot {
+            position: absolute; top: 6px; right: 6px;
+            width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+            border: 2px solid var(--white);
+        }
+        .topbar-admin {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--gray); border-radius: 10px; padding: 6px 12px; cursor: pointer;
+        }
+        .topbar-admin-avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--gold); display: flex; align-items: center;
+            justify-content: center; font-size: 14px; font-weight: 700; color: var(--black);
+        }
+        .topbar-admin-name { font-size: 13px; font-weight: 600; }
+
+        /* ══ PAGE CONTENT ══ */
+        .page-content { padding: 24px; flex: 1; }
+        .page-header { margin-bottom: 24px; }
+        .page-title { font-size: 22px; font-weight: 800; color: var(--text); }
+        .page-sub { font-size: 13px; color: var(--text3); margin-top: 2px; }
+
+        /* ══ STATS GRID ══ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--white); border-radius: 16px;
+            padding: 20px; border: 1px solid var(--gray2);
+        }
+        .stat-card-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .stat-card-label { font-size: 12px; color: var(--text3); font-weight: 500; }
+        .stat-card-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .stat-card-num { font-size: 26px; font-weight: 900; color: var(--text); }
+        .stat-card-change {
+            font-size: 11px; font-weight: 600; margin-top: 4px;
+            display: flex; align-items: center; gap: 3px;
+        }
+        .stat-card-change.up { color: var(--green); }
+        .stat-card-change.down { color: var(--red); }
+
+        /* ══ CHARTS ══ */
+        .charts-grid {
+            display: grid; grid-template-columns: 2fr 1fr;
+            gap: 16px; margin-bottom: 24px;
+        }
+        .chart-card {
+            background: var(--white); border-radius: 16px;
+            padding: 20px; border: 1px solid var(--gray2);
+        }
+        .chart-card-title {
+            font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .chart-card-title span { font-size: 11px; color: var(--text3); font-weight: 400; }
+
+        /* ══ ORDER STATUS CARDS ══ */
+        .status-cards {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 12px; margin-bottom: 24px;
+        }
+        .status-card {
+            background: var(--white); border-radius: 14px;
+            padding: 16px; border: 1px solid var(--gray2);
+            text-align: center;
+        }
+        .status-card-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            margin: 0 auto 8px; 
+        }
+        .status-card-num { font-size: 22px; font-weight: 900; }
+        .status-card-label { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+        /* ══ GRID 2 ══ */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+        /* ══ CARD ══ */
+        .card {
+            background: var(--white); border-radius: 16px;
+            padding: 20px; border: 1px solid var(--gray2);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700; color: var(--text);
+            margin-bottom: 16px; display: flex; align-items: center;
+            justify-content: space-between;
+        }
+        .card-title a { font-size: 12px; color: var(--gold); font-weight: 600; text-decoration: none; }
+
+        /* ══ TABLE ══ */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th {
+            background: var(--gray); padding: 10px 12px;
+            text-align: right; font-weight: 600; color: var(--text2);
+            border-bottom: 1px solid var(--gray2); white-space: nowrap;
+        }
+        td {
+            padding: 12px 12px; border-bottom: 1px solid var(--gray2);
+            color: var(--text); white-space: nowrap;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        /* ══ BADGE ══ */
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-pending  { background: rgba(245,158,11,0.1); color: var(--orange); }
+        .badge-active   { background: rgba(59,130,246,0.1); color: var(--blue); }
+        .badge-done     { background: rgba(16,185,129,0.1); color: var(--green); }
+        .badge-cancel   { background: rgba(239,68,68,0.1);  color: var(--red); }
+        .badge-gold     { background: rgba(245,197,24,0.12); color: #92700A; }
+
+        /* ══ ACTIVITY ══ */
+        .activity-item {
+            display: flex; gap: 12px; padding: 10px 0;
+            border-bottom: 1px solid var(--gray2);
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-dot {
+            width: 34px; height: 34px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; flex-shrink: 0;
+        }
+        .activity-text { font-size: 13px; color: var(--text); }
+        .activity-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+        /* ══ ALERT ══ */
+        .alert-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 10px; margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .alert-warn { background: rgba(245,158,11,0.08); color: #92700A; border: 1px solid rgba(245,158,11,0.2); }
+        .alert-red  { background: rgba(239,68,68,0.08);  color: #B91C1C; border: 1px solid rgba(239,68,68,0.2); }
+        .alert-blue { background: rgba(59,130,246,0.08); color: #1D4ED8; border: 1px solid rgba(59,130,246,0.2); }
+
+        /* ══ SERVICE CARD ══ */
+        .service-stat {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 0; border-bottom: 1px solid var(--gray2);
+        }
+        .service-stat:last-child { border-bottom: none; }
+        .service-stat-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--gray); display: flex; align-items: center;
+            justify-content: center; font-size: 18px; flex-shrink: 0;
+        }
+        .service-stat-name { font-size: 13px; font-weight: 600; color: var(--text); }
+        .service-stat-count { font-size: 11px; color: var(--text3); margin-top: 2px; }
+        .service-stat-right { margin-right: auto; text-align: left; }
+        .service-stat-pct { font-size: 13px; font-weight: 700; color: var(--green); }
+        .service-bar {
+            height: 4px; background: var(--gray2); border-radius: 4px;
+            margin-top: 3px; width: 80px;
+        }
+        .service-bar-fill { height: 100%; border-radius: 4px; background: var(--gold); }
+
+        /* ══ CITY ══ */
+        .city-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 0; border-bottom: 1px solid var(--gray2);
+        }
+        .city-item:last-child { border-bottom: none; }
+        .city-rank {
+            width: 24px; height: 24px; border-radius: 6px;
+            background: var(--gray); display: flex; align-items: center;
+            justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;
+        }
+        .city-name { font-size: 13px; font-weight: 600; flex: 1; }
+        .city-count { font-size: 13px; font-weight: 700; color: var(--gold); }
+
+        /* ══ QUICK ACTIONS ══ */
+        .quick-actions {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+        }
+        .quick-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            padding: 14px 10px; border-radius: 12px; border: 1.5px solid var(--gray2);
+            background: var(--white); cursor: pointer; transition: all 0.15s;
+            font-family: 'Cairo',sans-serif;
+        }
+        .quick-btn:hover { border-color: var(--gold); background: rgba(245,197,24,0.04); }
+        .quick-btn-icon { font-size: 22px; }
+        .quick-btn-label { font-size: 11px; font-weight: 600; color: var(--text2); }
+
+        /* ══ PAYMENT CARD ══ */
+        .payment-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 0; border-bottom: 1px solid var(--gray2);
+        }
+        .payment-row:last-child { border-bottom: none; }
+        .payment-label { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+        .payment-val { font-size: 14px; font-weight: 700; }
+
+        /* ══ COMMISSION CARD ══ */
+        .commission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .commission-item {
+            background: var(--gray); border-radius: 12px; padding: 14px; text-align: center;
+        }
+        .commission-period { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+        .commission-val { font-size: 18px; font-weight: 900; color: var(--gold); }
+        .commission-label { font-size: 10px; color: var(--text3); }
+
+        /* ══ REVIEW ══ */
+        .review-item {
+            padding: 12px 0; border-bottom: 1px solid var(--gray2);
+        }
+        .review-item:last-child { border-bottom: none; }
+        .review-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .review-stars { color: var(--gold); font-size: 12px; }
+        .review-name { font-size: 12px; font-weight: 600; }
+        .review-time { font-size: 11px; color: var(--text3); margin-right: auto; }
+        .review-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+        /* ══ TABLE CONTROLS ══ */
+        .table-controls {
+            display: flex; gap: 10px; margin-bottom: 14px; align-items: center;
+        }
+        .table-search {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--gray); border-radius: 8px; padding: 7px 12px; flex: 1;
+        }
+        .table-search input { background: none; border: none; outline: none; font-family: 'Cairo',sans-serif; font-size: 13px; width: 100%; }
+        .table-filter {
+            padding: 8px 14px; border-radius: 8px; border: 1px solid var(--gray2);
+            background: var(--white); font-family: 'Cairo',sans-serif; font-size: 13px; cursor: pointer;
+        }
+        .btn-detail {
+            padding: 5px 12px; border-radius: 7px; border: 1px solid var(--gray2);
+            background: var(--white); font-family: 'Cairo',sans-serif; font-size: 12px;
+            cursor: pointer; font-weight: 600; color: var(--text2);
+        }
+        .btn-detail:hover { border-color: var(--gold); color: var(--gold); }
+
+        /* ══ PAGINATION ══ */
+        .pagination {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; margin-top: 16px;
+        }
+        .page-btn {
+            width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--gray2);
+            background: var(--white); cursor: pointer; font-size: 13px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .page-btn.active { background: var(--gold); border-color: var(--gold); color: var(--black); }
+
+        /* ══ COMPLAINT ══ */
+        .complaint-item {
+            display: flex; gap: 12px; padding: 12px 0;
+            border-bottom: 1px solid var(--gray2);
+        }
+        .complaint-item:last-child { border-bottom: none; }
+        .complaint-info { flex: 1; }
+        .complaint-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+        .complaint-sub { font-size: 11px; color: var(--text3); }
+
+        /* ══ TOP PROVIDER ══ */
+        .provider-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 0; border-bottom: 1px solid var(--gray2);
+        }
+        .provider-row:last-child { border-bottom: none; }
+        .provider-avatar-sm {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--gray); display: flex; align-items: center;
+            justify-content: center; font-size: 16px; flex-shrink: 0;
+        }
+        .provider-info-sm { flex: 1; }
+        .provider-name-sm { font-size: 13px; font-weight: 600; }
+        .provider-meta-sm { font-size: 11px; color: var(--text3); }
+        .provider-revenue { font-size: 13px; font-weight: 700; color: var(--gold); }
+    </style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="loginScreen" class="login-screen">
+    <div class="login-box">
+        <div class="logo">⚙️</div>
+        <h2>لوحة إدارة يشجب</h2>
+        <p>للمسؤولين فقط</p>
+        <input type="text" id="adminUser" placeholder="اسم المستخدم"/>
+        <input type="password" id="adminPass" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <button onclick="doLogin()">دخول 🔐</button>
+    </div>
+</div>
+
+<!-- ══ ADMIN LAYOUT ══ -->
+<div id="adminLayout" class="admin-layout" style="display:none">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-img">⚙️</div>
+            <div>
+                <div class="sidebar-logo-text">يشجب</div>
+                <div class="sidebar-logo-sub">لوحة الإدارة</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">الرئيسية</div>
+        <a class="sidebar-item active" onclick="showPage('dashboard')">
+            <span class="s-icon">📊</span> لوحة التحكم
+        </a>
+        <a class="sidebar-item" onclick="showPage('operations')">
+            <span class="s-icon">🎯</span> مركز العمليات
+            <span class="sidebar-badge gold">مباشر</span>
+        </a>
+
+        <div class="sidebar-section-label">إدارة الطلبات</div>
+        <a class="sidebar-item" onclick="showPage('orders')">
+            <span class="s-icon">📋</span> الطلبات
+            <span class="sidebar-badge" id="pendingBadge">0</span>
+        </a>
+        <a class="sidebar-item" onclick="showPage('services')">
+            <span class="s-icon">🔧</span> الخدمات
+        </a>
+
+        <div class="sidebar-section-label">إدارة المستخدمين</div>
+        <a class="sidebar-item" onclick="showPage('clients')">
+            <span class="s-icon">👥</span> العملاء
+        </a>
+        <a class="sidebar-item" onclick="showPage('providers')">
+            <span class="s-icon">👷</span> الموردون
+        </a>
+        <a class="sidebar-item" onclick="showPage('verification')">
+            <span class="s-icon">✅</span> طلبات التوثيق
+            <span class="sidebar-badge" id="verifyBadge">0</span>
+        </a>
+
+        <div class="sidebar-section-label">المالية</div>
+        <a class="sidebar-item" onclick="showPage('payments')">
+            <span class="s-icon">💳</span> المدفوعات
+        </a>
+        <a class="sidebar-item" onclick="showPage('commissions')">
+            <span class="s-icon">💰</span> العمولات
+        </a>
+
+        <div class="sidebar-section-label">التواصل</div>
+        <a class="sidebar-item" onclick="showPage('chats')">
+            <span class="s-icon">💬</span> المحادثات
+        </a>
+        <a class="sidebar-item" onclick="showPage('notifications')">
+            <span class="s-icon">🔔</span> الإشعارات
+        </a>
+        <a class="sidebar-item" onclick="showPage('complaints')">
+            <span class="s-icon">🚨</span> البلاغات والشكاوى
+            <span class="sidebar-badge" id="complaintBadge">2</span>
+        </a>
+
+        <div class="sidebar-section-label">أخرى</div>
+        <a class="sidebar-item" onclick="showPage('reviews')">
+            <span class="s-icon">⭐</span> التقييمات
+        </a>
+        <a class="sidebar-item" onclick="showPage('cities')">
+            <span class="s-icon">🏙️</span> المدن
+        </a>
+        <a class="sidebar-item" onclick="showPage('coupons')">
+            <span class="s-icon">🎟️</span> كوبونات الخصم
+        </a>
+        <a class="sidebar-item" onclick="showPage('settings')">
+            <span class="s-icon">⚙️</span> الإعدادات
+        </a>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-logout" onclick="doLogout()">
+                <span>🚪</span> تسجيل الخروج
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="topbar-search">
+                <span>🔍</span>
+                <input type="text" placeholder="بحث عن طلب، عميل، مورد، جوال..."/>
+            </div>
+            <div class="topbar-right">
+                <button class="topbar-icon-btn">
+                    🔔
+                    <div class="notif-dot"></div>
+                </button>
+                <button class="topbar-icon-btn">💬</button>
+                <div class="topbar-admin">
+                    <div class="topbar-admin-avatar">م</div>
+                    <div class="topbar-admin-name">المدير العام</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGES -->
+        <div class="page-content">
+
+            <!-- ══ DASHBOARD ══ -->
+            <div id="page-dashboard">
+                <div class="page-header">
+                    <div class="page-title">لوحة التحكم 📊</div>
+                    <div class="page-sub">مرحباً بك — آخر تحديث: الآن</div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي الإيرادات</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)">💰</div>
+                        </div>
+                        <div class="stat-card-num" id="s-revenue">0 ر</div>
+                        <div class="stat-card-change up">↑ 12% هذا الشهر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي العمولات</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)">📈</div>
+                        </div>
+                        <div class="stat-card-num" id="s-commission">0 ر</div>
+                        <div class="stat-card-change up">↑ 8% هذا الشهر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">طلبات اليوم</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)">📋</div>
+                        </div>
+                        <div class="stat-card-num" id="s-today">0</div>
+                        <div class="stat-card-change up">↑ 5 عن أمس</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">الطلبات الجارية</div>
+                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)">⚡</div>
+                        </div>
+                        <div class="stat-card-num" id="s-active">0</div>
+                        <div class="stat-card-change down">↓ 2 عن أمس</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">الطلبات المكتملة</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)">✅</div>
+                        </div>
+                        <div class="stat-card-num" id="s-completed">0</div>
+                        <div class="stat-card-change up">↑ 18% هذا الشهر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">الموردون</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)">👷</div>
+                        </div>
+                        <div class="stat-card-num" id="s-providers">0</div>
+                        <div class="stat-card-change up">↑ 3 جدد هذا الأسبوع</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">العملاء</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)">👥</div>
+                        </div>
+                        <div class="stat-card-num" id="s-users">0</div>
+                        <div class="stat-card-change up">↑ 15 جدد هذا الأسبوع</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">متوسط التقييم</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)">⭐</div>
+                        </div>
+                        <div class="stat-card-num">4.8</div>
+                        <div class="stat-card-change up">↑ ممتاز</div>
+                    </div>
+                </div>
+
+                <!-- Status Cards -->
+                <div class="status-cards">
+                    <div class="status-card">
+                        <div class="status-card-dot" style="background:#3B82F6"></div>
+                        <div class="status-card-num" style="color:#3B82F6" id="sc-active">0</div>
+                        <div class="status-card-label">جارية</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-dot" style="background:#F59E0B"></div>
+                        <div class="status-card-num" style="color:#F59E0B" id="sc-pending">0</div>
+                        <div class="status-card-label">بانتظار القبول</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-dot" style="background:#10B981"></div>
+                        <div class="status-card-num" style="color:#10B981" id="sc-done">0</div>
+                        <div class="status-card-label">مكتملة</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-dot" style="background:#EF4444"></div>
+                        <div class="status-card-num" style="color:#EF4444" id="sc-cancel">0</div>
+                        <div class="status-card-label">ملغية</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-card-dot" style="background:#8B5CF6"></div>
+                        <div class="status-card-num" style="color:#8B5CF6">0</div>
+                        <div class="status-card-label">متأخرة</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-card-title">
+                            عدد الطلبات — آخر 30 يوم
+                            <span>تحديث تلقائي</span>
+                        </div>
+                        <canvas id="ordersChart" height="80"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-card-title">
+                            الإيرادات — آخر 12 شهر
+                            <span>بالريال</span>
+                        </div>
+                        <canvas id="revenueChart" height="160"></canvas>
+                    </div>
+                </div>
+
+                <!-- Grid 3 -->
+                <div class="grid-3">
+
+                    <!-- أكثر الخدمات طلباً -->
+                    <div class="card">
+                        <div class="card-title">أكثر الخدمات طلباً <a href="#">عرض الكل</a></div>
+                        <div class="service-stat">
+                            <div class="service-stat-icon">🚛</div>
+                            <div>
+                                <div class="service-stat-name">سطحة</div>
+                                <div class="service-stat-count">١٢٤ طلب</div>
+                            </div>
+                            <div class="service-stat-right">
+                                <div class="service-stat-pct">+12%</div>
+                                <div class="service-bar"><div class="service-bar-fill" style="width:85%"></div></div>
+                            </div>
+                        </div>
+                        <div class="service-stat">
+                            <div class="service-stat-icon">🚚</div>
+                            <div>
+                                <div class="service-stat-name">وايت ماء</div>
+                                <div class="service-stat-count">٩٨ طلب</div>
+                            </div>
+                            <div class="service-stat-right">
+                                <div class="service-stat-pct">+8%</div>
+                                <div class="service-bar"><div class="service-bar-fill" style="width:68%"></div></div>
+                            </div>
+                        </div>
+                        <div class="service-stat">
+                            <div class="service-stat-icon">🏗️</div>
+                            <div>
+                                <div class="service-stat-name">معدات ثقيلة</div>
+                                <div class="service-stat-count">٧٦ طلب</div>
+                            </div>
+                            <div class="service-stat-right">
+                                <div class="service-stat-pct">+5%</div>
+                                <div class="service-bar"><div class="service-bar-fill" style="width:52%"></div></div>
+                            </div>
+                        </div>
+                        <div class="service-stat">
+                            <div class="service-stat-icon">📦</div>
+                            <div>
+                                <div class="service-stat-name">حاوية</div>
+                                <div class="service-stat-count">٥٤ طلب</div>
+                            </div>
+                            <div class="service-stat-right">
+                                <div class="service-stat-pct">+3%</div>
+                                <div class="service-bar"><div class="service-bar-fill" style="width:37%"></div></div>
+                            </div>
+                        </div>
+                        <div class="service-stat">
+                            <div class="service-stat-icon">👷</div>
+                            <div>
+                                <div class="service-stat-name">عمالة</div>
+                                <div class="service-stat-count">٣٢ طلب</div>
+                            </div>
+                            <div class="service-stat-right">
+                                <div class="service-stat-pct">+2%</div>
+                                <div class="service-bar"><div class="service-bar-fill" style="width:22%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- أكثر المدن نشاطاً -->
+                    <div class="card">
+                        <div class="card-title">أكثر المدن نشاطاً</div>
+                        <div class="city-item">
+                            <div class="city-rank" style="background:#F5C518;color:#111">١</div>
+                            <div class="city-name">🏙️ الرياض</div>
+                            <div class="city-count">٢٤٨ طلب</div>
+                        </div>
+                        <div class="city-item">
+                            <div class="city-rank">٢</div>
+                            <div class="city-name">🏙️ جدة</div>
+                            <div class="city-count">١٣٦ طلب</div>
+                        </div>
+                        <div class="city-item">
+                            <div class="city-rank">٣</div>
+                            <div class="city-name">🏙️ الدمام</div>
+                            <div class="city-count">٨٩ طلب</div>
+                        </div>
+                        <div class="city-item">
+                            <div class="city-rank">٤</div>
+                            <div class="city-name">🏙️ مكة</div>
+                            <div class="city-count">٦٤ طلب</div>
+                        </div>
+                        <div class="city-item">
+                            <div class="city-rank">٥</div>
+                            <div class="city-name">🏙️ المدينة</div>
+                            <div class="city-count">٤٢ طلب</div>
+                        </div>
+                    </div>
+
+                    <!-- إجراءات سريعة -->
+                    <div class="card">
+                        <div class="card-title">إجراءات سريعة</div>
+                        <div class="quick-actions">
+                            <button class="quick-btn">
+                                <div class="quick-btn-icon">➕</div>
+                                <div class="quick-btn-label">إضافة خدمة</div>
+                            </button>
+                            <button class="quick-btn">
+                                <div class="quick-btn-icon">👷</div>
+                                <div class="quick-btn-label">إضافة مورد</div>
+                            </button>
+                            <button class="quick-btn">
+                                <div class="quick-btn-icon">🔔</div>
+                                <div class="quick-btn-label">إرسال إشعار</div>
+                            </button>
+                            <button class="quick-btn">
+                                <div class="quick-btn-icon">🎟️</div>
+                                <div class="quick-btn-label">إنشاء كوبون</div>
+                            </button>
+                            <button class="quick-btn">
+                                <div class="quick-btn-icon">💰</div>
+                                <div class="quick-btn-label">تعديل العمولة</div>
+                            </button>
+                            <button class="quick-btn">
+                                <div class="quick-btn-icon">🏙️</div>
+                                <div class="quick-btn-label">إضافة مدينة</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid 2 -->
+                <div class="grid-2">
+
+                    <!-- آخر الطلبات -->
+                    <div class="card">
+                        <div class="card-title">آخر الطلبات <a href="#" onclick="showPage('orders')">عرض الكل</a></div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>الخدمة</th>
+                                        <th>العميل</th>
+                                        <th>المبلغ</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentOrders"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- آخر النشاطات -->
+                    <div class="card">
+                        <div class="card-title">آخر النشاطات</div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background:rgba(16,185,129,0.1)">✅</div>
+                            <div>
+                                <div class="activity-text">تم تسجيل مورد جديد — محمد العتيبي</div>
+                                <div class="activity-time">منذ 5 دقائق</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background:rgba(59,130,246,0.1)">📋</div>
+                            <div>
+                                <div class="activity-text">تم إنشاء طلب جديد #١٠٢٣ — وايت ماء</div>
+                                <div class="activity-time">منذ 12 دقيقة</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background:rgba(245,197,24,0.1)">👷</div>
+                            <div>
+                                <div class="activity-text">تم قبول مورد — سطحة الرياض</div>
+                                <div class="activity-time">منذ 28 دقيقة</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background:rgba(239,68,68,0.1)">❌</div>
+                            <div>
+                                <div class="activity-text">تم رفض طلب توثيق — بدون وثائق</div>
+                                <div class="activity-time">منذ ساعة</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background:rgba(16,185,129,0.1)">💰</div>
+                            <div>
+                                <div class="activity-text">تم دفع مستحقات مورد — ٢٤٠٠ ريال</div>
+                                <div class="activity-time">منذ ساعتين</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid 2 -->
+                <div class="grid-2">
+
+                    <!-- التنبيهات -->
+                    <div class="card">
+                        <div class="card-title">التنبيهات 🔔</div>
+                        <div class="alert-item alert-warn">
+                            ⚠️ يوجد ٣ موردين بانتظار التوثيق
+                        </div>
+                        <div class="alert-item alert-red">
+                            🚨 توجد ٢ شكاوى جديدة بحاجة للمراجعة
+                        </div>
+                        <div class="alert-item alert-warn">
+                            ⏰ توجد ٤ طلبات متأخرة عن الموعد
+                        </div>
+                        <div class="alert-item alert-blue">
+                            📋 توجد ٦ طلبات بدون قبول من مورد
+                        </div>
+                    </div>
+
+                    <!-- المدفوعات والعمولات -->
+                    <div class="card">
+                        <div class="card-title">المدفوعات والعمولات 💳</div>
+                        <div class="payment-row">
+                            <div class="payment-label">✅ مدفوعات ناجحة</div>
+                            <div class="payment-val" style="color:var(--green)" id="p-success">0 ر</div>
+                        </div>
+                        <div class="payment-row">
+                            <div class="payment-label">⏳ مدفوعات معلقة</div>
+                            <div class="payment-val" style="color:var(--orange)">٠ ر</div>
+                        </div>
+                        <div class="payment-row">
+                            <div class="payment-label">↩️ مدفوعات مسترجعة</div>
+                            <div class="payment-val" style="color:var(--red)">٠ ر</div>
+                        </div>
+                        <div style="height:12px"></div>
+                        <div class="commission-grid">
+                            <div class="commission-item">
+                                <div class="commission-period">اليوم</div>
+                                <div class="commission-val" id="c-today">٠</div>
+                                <div class="commission-label">ريال</div>
+                            </div>
+                            <div class="commission-item">
+                                <div class="commission-period">هذا الأسبوع</div>
+                                <div class="commission-val" id="c-week">٠</div>
+                                <div class="commission-label">ريال</div>
+                            </div>
+                            <div class="commission-item">
+                                <div class="commission-period">هذا الشهر</div>
+                                <div class="commission-val" id="c-month">٠</div>
+                                <div class="commission-label">ريال</div>
+                            </div>
+                            <div class="commission-item">
+                                <div class="commission-period">هذه السنة</div>
+                                <div class="commission-val" id="c-year">٠</div>
+                                <div class="commission-label">ريال</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid 2 -->
+                <div class="grid-2">
+
+                    <!-- أكثر الموردين نشاطاً -->
+                    <div class="card">
+                        <div class="card-title">أكثر الموردين نشاطاً</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>المورد</th>
+                                    <th>الطلبات</th>
+                                    <th>التقييم</th>
+                                    <th>الإيرادات</th>
+                                    <th>الإلغاء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topProviders"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- آخر التقييمات -->
+                    <div class="card">
+                        <div class="card-title">آخر التقييمات ⭐</div>
+                        <div class="review-item">
+                            <div class="review-top">
+                                <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                                <div class="review-name">أحمد السالم</div>
+                                <div class="review-time">منذ ساعة</div>
+                            </div>
+                            <div class="review-text">خدمة ممتازة وسريعة، المورد محترف جداً</div>
+                        </div>
+                        <div class="review-item">
+                            <div class="review-top">
+                                <div class="review-stars">⭐⭐⭐⭐</div>
+                                <div class="review-name">محمد الغامدي</div>
+                                <div class="review-time">منذ 3 ساعات</div>
+                            </div>
+                            <div class="review-text">جيد بس تأخر شوي في الوصول</div>
+                        </div>
+                        <div class="review-item">
+                            <div class="review-top">
+                                <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                                <div class="review-name">خالد العتيبي</div>
+                                <div class="review-time">منذ 5 ساعات</div>
+                            </div>
+                            <div class="review-text">يشجب منصة رائعة، أنصح الجميع</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- آخر الشكاوى -->
+                <div class="card" style="margin-bottom:24px">
+                    <div class="card-title">آخر الشكاوى 🚨 <a href="#" onclick="showPage('complaints')">عرض الكل</a></div>
+                    <div class="complaint-item">
+                        <div class="activity-dot" style="background:rgba(239,68,68,0.1)">🚨</div>
+                        <div class="complaint-info">
+                            <div class="complaint-title">تأخر في التوصيل — طلب #١٠١٥</div>
+                            <div class="complaint-sub">العميل: أحمد السالم · منذ ساعتين</div>
+                        </div>
+                        <span class="badge badge-pending">قيد المراجعة</span>
+                    </div>
+                    <div class="complaint-item">
+                        <div class="activity-dot" style="background:rgba(239,68,68,0.1)">🚨</div>
+                        <div class="complaint-info">
+                            <div class="complaint-title">المورد لم يحضر — طلب #١٠٠٨</div>
+                            <div class="complaint-sub">العميل: محمد الزهراني · منذ 5 ساعات</div>
+                        </div>
+                        <span class="badge badge-cancel">مرفوع للإدارة</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══ ORDERS PAGE ══ -->
+            <div id="page-orders" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">الطلبات 📋</div>
+                    <div class="page-sub">إدارة جميع طلبات المنصة</div>
+                </div>
+                <div class="card">
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <span>🔍</span>
+                            <input type="text" placeholder="بحث برقم الطلب، العميل، المورد..."/>
+                        </div>
+                        <select class="table-filter" id="statusFilter">
+                            <option value="">كل الحالات</option>
+                            <option value="pending">انتظار</option>
+                            <option value="accepted">مقبول</option>
+                            <option value="completed">مكتمل</option>
+                            <option value="cancelled">ملغي</option>
+                        </select>
+                        <select class="table-filter">
+                            <option>كل الخدمات</option>
+                            <option>وايت ماء</option>
+                            <option>سطحة</option>
+                            <option>معدات ثقيلة</option>
+                            <option>حاوية</option>
+                            <option>عمالة</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>رقم الطلب</th>
+                                    <th>الخدمة</th>
+                                    <th>العميل</th>
+                                    <th>المدينة</th>
+                                    <th>السعر</th>
+                                    <th>العمولة</th>
+                                    <th>الحالة</th>
+                                    <th>التاريخ</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allOrdersTable"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <button class="page-btn">‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ PROVIDERS PAGE ══ -->
+            <div id="page-providers" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">الموردون 👷</div>
+                    <div class="page-sub">إدارة جميع موردي المنصة</div>
+                </div>
+                <div class="card">
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <span>🔍</span>
+                            <input type="text" placeholder="بحث باسم المورد أو الجوال..."/>
+                        </div>
+                        <select class="table-filter">
+                            <option>كل المستويات</option>
+                            <option>أساسي</option>
+                            <option>موثق</option>
+                            <option>شركة</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم</th>
+                                    <th>الجوال</th>
+                                    <th>الخدمة</th>
+                                    <th>المستوى</th>
+                                    <th>التقييم</th>
+                                    <th>الحالة</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allProvidersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ CLIENTS PAGE ══ -->
+            <div id="page-clients" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">العملاء 👥</div>
+                    <div class="page-sub">إدارة جميع عملاء المنصة</div>
+                </div>
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الجوال</th>
+                                    <th>الطلبات</th>
+                                    <th>إجمالي الإنفاق</th>
+                                    <th>موثق</th>
+                                    <th>تاريخ الانضمام</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allUsersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ VERIFICATION PAGE ══ -->
+            <div id="page-verification" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">طلبات التوثيق ✅</div>
+                    <div class="page-sub">مراجعة وثائق الموردين</div>
+                </div>
+                <div class="card">
+                    <p style="color:var(--text3);text-align:center;padding:40px">لا توجد طلبات توثيق معلقة حالياً</p>
+                </div>
+            </div>
+
+            <!-- ══ SETTINGS PAGE ══ -->
+            <div id="page-settings" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">الإعدادات ⚙️</div>
+                    <div class="page-sub">إعدادات المنصة العامة</div>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">إعدادات المنصة</div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">اسم المنصة</label>
+                            <input type="text" value="يشجب" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">نسبة العمولة %</label>
+                            <input type="number" value="7" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">رقم الدعم</label>
+                            <input type="text" placeholder="+966XXXXXXXXX" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">البريد الإلكتروني</label>
+                            <input type="email" placeholder="info@yashjub.sa" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <button style="background:var(--gold);color:var(--black);border:none;padding:11px 24px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer">حفظ الإعدادات</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">مفاتيح API</div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Google Maps API Key</label>
+                            <input type="text" placeholder="AIza..." style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Twilio SMS Key</label>
+                            <input type="text" placeholder="SK..." style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <div class="form-group" style="margin-bottom:14px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Firebase Key</label>
+                            <input type="text" placeholder="firebase..." style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <button style="background:var(--black);color:var(--white);border:none;padding:11px 24px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer">حفظ المفاتيح</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ OTHER PAGES ══ -->
+            <div id="page-operations" style="display:none">
+                <div class="page-header"><div class="page-title">مركز العمليات 🎯</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز العمليات المباشر</p></div>
+            </div>
+            <div id="page-services" style="display:none">
+                <div class="page-header"><div class="page-title">الخدمات 🔧</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الخدمات</p></div>
+            </div>
+            <div id="page-payments" style="display:none">
+                <div class="page-header"><div class="page-title">المدفوعات 💳</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة المدفوعات</p></div>
+            </div>
+            <div id="page-commissions" style="display:none">
+                <div class="page-header"><div class="page-title">العمولات 💰</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة العمولات</p></div>
+            </div>
+            <div id="page-chats" style="display:none">
+                <div class="page-header"><div class="page-title">المحادثات 💬</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز المحادثات</p></div>
+            </div>
+            <div id="page-notifications" style="display:none">
+                <div class="page-header"><div class="page-title">الإشعارات 🔔</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز الإشعارات</p></div>
+            </div>
+            <div id="page-complaints" style="display:none">
+                <div class="page-header"><div class="page-title">البلاغات والشكاوى 🚨</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الشكاوى</p></div>
+            </div>
+            <div id="page-reviews" style="display:none">
+                <div class="page-header"><div class="page-title">التقييمات ⭐</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة التقييمات</p></div>
+            </div>
+            <div id="page-cities" style="display:none">
+                <div class="page-header"><div class="page-title">المدن 🏙️</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة المدن</p></div>
+            </div>
+            <div id="page-coupons" style="display:none">
+                <div class="page-header"><div class="page-title">كوبونات الخصم 🎟️</div></div>
+                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الكوبونات</p></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
