@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - تواصل معنا</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.jpeg" alt="يشجب" class="logo-img">
+            <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
+        </div>
+    </div>
+
+    <!-- هيرو -->
+    <div class="contact-hero">
+        <h1>تواصل <span>معنا</span> 📞</h1>
+        <p>نحن هنا لمساعدتك في أي وقت — فريق الدعم متاح 24/7</p>
+    </div>
+
+    <!-- قسم التواصل -->
+    <div class="contact-section">
+        <div class="contact-container">
+
+            <!-- معلومات التواصل -->
+            <div class="contact-info">
+                <h2>طرق التواصل</h2>
+
+                <div class="contact-method">
+                    <div class="contact-method-icon">📱</div>
+                    <div class="contact-method-info">
+                        <div class="contact-method-title">الجوال / واتساب</div>
+                        <div class="contact-method-value" dir="ltr">+966 50 000 0000</div>
+                    </div>
+                </div>
+
+                <div class="contact-method">
+                    <div class="contact-method-icon">📧</div>
+                    <div class="contact-method-info">
+                        <div class="contact-method-title">البريد الإلكتروني</div>
+                        <div class="contact-method-value">info@yashjub.sa</div>
+                    </div>
+                </div>
+
+                <div class="contact-method">
+                    <div class="contact-method-icon">🏢</div>
+                    <div class="contact-method-info">
+                        <div class="contact-method-title">المقر الرئيسي</div>
+                        <div class="contact-method-value">الرياض، المملكة العربية السعودية</div>
+                    </div>
+                </div>
+
+                <div class="contact-method">
+                    <div class="contact-method-icon">🕐</div>
+                    <div class="contact-method-info">
+                        <div class="contact-method-title">ساعات العمل</div>
+                        <div class="contact-method-value">24/7 — على مدار الساعة</div>
+                    </div>
+                </div>
+
+                <!-- وسائل التواصل الاجتماعي -->
+                <div class="social-links">
+                    <div class="social-title">تابعنا على</div>
+                    <div class="social-btns">
+                        <button class="social-btn twitter">𝕏 تويتر</button>
+                        <button class="social-btn snapchat">👻 سناب شات</button>
+                        <button class="social-btn instagram">📸 انستقرام</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج التواصل -->
+            <div class="contact-form-card">
+                <h2>أرسل رسالة</h2>
+                <p class="contact-form-sub">سنرد عليك خلال 24 ساعة</p>
+
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="contactName" placeholder="أدخل اسمك الكامل"/>
+                </div>
+
+                <div class="form-group">
+                    <label>رقم الجوال</label>
+                    <div class="input-group">
+                        <span class="input-prefix">+966</span>
+                        <input type="number" id="contactPhone" placeholder="5XXXXXXXX"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>البريد الإلكتروني (اختياري)</label>
+                    <input type="email" id="contactEmail" placeholder="example@email.com"/>
+                </div>
+
+                <div class="form-group">
+                    <label>موضوع الرسالة</label>
+                    <select id="contactSubject">
+                        <option value="">اختر الموضوع</option>
+                        <option value="support">دعم فني</option>
+                        <option value="complaint">شكوى</option>
+                        <option value="suggestion">اقتراح</option>
+                        <option value="provider">الانضمام كمزود</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>الرسالة</label>
+                    <textarea id="contactMessage" rows="5" placeholder="اكتب رسالتك هنا..."></textarea>
+                </div>
+
+                <button class="btn btn-full" onclick="sendMessage()">
+                    إرسال الرسالة 📨
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section">
+        <h2>الأسئلة الشائعة</h2>
+        <div class="faq-list">
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>كيف أطلب خدمة؟</span>
+                    <span class="faq-icon">+</span>
+                </div>
+                <div class="faq-answer">
+                    سجّل دخولك، اختر الخدمة التي تريدها، حدد موقعك، وأكّد الطلب. المزود سيصل إليك في أقرب وقت!
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>كيف يعمل نظام الدفع؟</span>
+                    <span class="faq-icon">+</span>
+                </div>
+                <div class="faq-answer">
+                    ندفع مبلغ الخدمة عند التأكيد ويُحفظ في نظام الأمانة، ويُحرَّر للمزود فقط بعد اكتمال الخدمة وتأكيدك.
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>كم نسبة العمولة؟</span>
+                    <span class="faq-icon">+</span>
+                </div>
+                <div class="faq-answer">
+                    نسبة العمولة ٧٪ فقط من قيمة الطلب، تُخصم تلقائياً من مستحقات المزود.
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>كيف أنضم كمزود خدمة؟</span>
+                    <span class="faq-icon">+</span>
+                </div>
+                <div class="faq-answer">
+                    اضغط على "انضم كمزود" في الصفحة الرئيسية، اختر مستوى التسجيل المناسب، وأدخل بياناتك. سيتم مراجعة طلبك خلال 24 ساعة.
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>هل يشجب متاح في كل مناطق السعودية؟</span>
+                    <span class="faq-icon">+</span>
+                </div>
+                <div class="faq-answer">
+                    حالياً نعمل في الرياض ونوسّع نطاقنا تدريجياً لتشمل جميع مناطق المملكة قريباً.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+            <a href="register-provider.html">انضم كمزود</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2025 <span>يشجب</span> — منصة خدمات البناء في السعودية
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const name    = document.getElementById('contactName').value;
+            const phone   = document.getElementById('contactPhone').value;
+            const subject = document.getElementById('contactSubject').value;
+            const message = document.getElementById('contactMessage').value;
+
+            if (!name || !phone || !subject || !message) {
+                alert('❌ يرجى تعبئة جميع الحقول المطلوبة');
+                return;
+            }
+
+            alert(`✅ تم إرسال رسالتك بنجاح!\n\nسنتواصل معك على الرقم: +966${phone}\nخلال 24 ساعة 📱`);
+
+            document.getElementById('contactName').value    = '';
+            document.getElementById('contactPhone').value   = '';
+            document.getElementById('contactEmail').value   = '';
+            document.getElementById('contactSubject').value = '';
+            document.getElementById('contactMessage').value = '';
+        }
+
+        function toggleFaq(item) {
+            const answer = item.querySelector('.faq-answer');
+            const icon   = item.querySelector('.faq-icon');
+            const isOpen = answer.style.display === 'block';
+            answer.style.display = isOpen ? 'none' : 'block';
+            icon.textContent     = isOpen ? '+' : '−';
+        }
+    </script>
+</body>
+</html>
