@@ -1,12 +1,11 @@
 // كود صفحة الطلب — متصل بالسيرفر
 
 const API = window.location.origin + '/api';
+
 const servicesData = {
     "وايت ماء": { icon: "🚚", type: "فوري",   price: 200, time: "8 دقائق"        },
     "سطحة":     { icon: "🚛", type: "فوري",   price: 250, time: "12 دقيقة"       },
-    "بوكلين":   { icon: "🏗️", type: "مجدول", price: 800, time: "غداً 9 صباحاً"  },
     "حاوية":    { icon: "📦", type: "مجدول", price: 350, time: "غداً 11 صباحاً" },
-    "عمالة":    { icon: "👷", type: "مجدول", price: 500, time: "غداً 8 صباحاً"  },
 }
 
 function loadService() {
@@ -41,29 +40,51 @@ function loadService() {
     if (service.type === 'فوري') {
         document.getElementById('timeField').style.display = 'none';
     }
+
+    // إظهار حقل موقع التوصيل للسطحة فقط
+    if (serviceName === 'سطحة') {
+        document.getElementById('deliveryField').style.display = 'block';
+        document.getElementById('addressLabel').textContent = '📍 موقع السيارة الحالي';
+    } else {
+        document.getElementById('deliveryField').style.display = 'none';
+        document.getElementById('addressLabel').textContent = '📍 موقع التوصيل';
+    }
 }
 
 async function confirmOrder() {
-    const address     = document.getElementById('address').value;
-    const phone       = localStorage.getItem('yashjub_phone');
-    const params      = new URLSearchParams(window.location.search);
+    const address  = document.getElementById('address').value;
+    const phone    = localStorage.getItem('yashjub_phone');
+    const params   = new URLSearchParams(window.location.search);
     const serviceName = params.get('service');
-    const service     = servicesData[serviceName];
+    const service  = servicesData[serviceName];
 
     if (!address) {
-        alert("❌ يرجى إدخال موقع التوصيل");
+        alert("❌ يرجى إدخال الموقع");
         return;
     }
 
+    // التحقق من موقع التوصيل للسطحة
+    let deliveryAddress = '';
+    if (serviceName === 'سطحة') {
+        deliveryAddress = document.getElementById('deliveryAddress').value;
+        if (!deliveryAddress) {
+            alert("❌ يرجى إدخال موقع التوصيل");
+            return;
+        }
+    }
+
+    const fullAddress = serviceName === 'سطحة'
+        ? `من: ${address} — إلى: ${deliveryAddress}`
+        : address;
+
     try {
-        // إرسال الطلب للسيرفر
         const response = await fetch(`${API}/orders`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
                 phone,
                 service:  serviceName,
-                address,
+                address:  fullAddress,
                 price:    service.price,
             })
         });
@@ -73,19 +94,18 @@ async function confirmOrder() {
         if (data.success) {
             const order = data.order;
 
-            // حفظ الطلب محلياً للتتبع
             localStorage.setItem('yashjub_order', JSON.stringify({
                 id:        order.id,
                 service:   serviceName,
                 icon:      service.icon,
-                address:   order.address,
+                address:   fullAddress,
                 status:    order.status,
                 time:      service.time,
                 price:     order.price,
                 createdAt: new Date().toLocaleString('ar-SA'),
             }));
 
-            alert(`✅ تم تأكيد طلبك!\n\nرقم الطلب: #${order.id}\n${service.icon} ${serviceName}\n📍 ${address}`);
+            alert(`✅ تم تأكيد طلبك!\n\nرقم الطلب: #${order.id}\n${service.icon} ${serviceName}\n📍 ${fullAddress}`);
             window.location.href = 'tracking.html';
         } else {
             alert(`❌ ${data.message}`);

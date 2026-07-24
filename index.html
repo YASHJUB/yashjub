@@ -9,23 +9,68 @@
 </head>
 <body>
 
-    <!-- الهيدر -->
+   <!-- الهيدر -->
     <div class="header">
         <div class="header-right">
             <img src="images/logo.jpeg" alt="يشجب" class="logo-img">
             <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
         </div>
         <div class="header-left">
-            <div class="user-info" id="userInfo">
-                <span id="userName">👤 زائر</span>
+            <div id="userNotLogged">
                 <button class="btn-small" onclick="goToLogin()">دخول</button>
             </div>
-           <div class="user-logged" id="userLogged" style="display:none">
-    <span id="userPhone">👤</span>
-    <button class="btn-small" onclick="window.location.href='my-orders.html'">طلباتي</button>
-    <button class="btn-small" onclick="window.location.href='profile.html'">حسابي</button>
-    <button class="btn-small btn-logout" onclick="logout()">خروج</button>
-</div>
+          <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+<button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+    </div>
+
+    <!-- السايد بار -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="app-sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-user-icon">👤</div>
+            <div id="sidebarUserInfo">
+                <div class="sidebar-user-name">مرحباً بك</div>
+                <div class="sidebar-user-phone" id="sidebarPhone">سجّل دخولك</div>
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+        </div>
+
+        <div class="sidebar-menu">
+            <a class="sidebar-link" href="index.html">
+                <span>🏠</span> الرئيسية
+            </a>
+            <a class="sidebar-link" id="myOrdersLink" href="my-orders.html">
+                <span>📋</span> طلباتي
+            </a>
+            <a class="sidebar-link" id="profileLink" href="profile.html">
+                <span>👤</span> حسابي
+            </a>
+            <a class="sidebar-link" id="providerLink" href="provider.html" style="display:none">
+                <span>👷</span> لوحة المزود
+            </a>
+            <div class="sidebar-divider"></div>
+            <a class="sidebar-link" href="about.html">
+                <span>ℹ️</span> من نحن
+            </a>
+            <a class="sidebar-link" href="contact.html">
+                <span>📞</span> تواصل معنا
+            </a>
+            <a class="sidebar-link" href="terms.html">
+                <span>📄</span> الشروط والأحكام
+            </a>
+            <a class="sidebar-link" href="register-provider.html">
+                <span>👷</span> انضم كمزود
+            </a>
+        </div>
+
+        <div class="sidebar-footer" id="sidebarFooter">
+            <button class="btn-small" onclick="goToLogin()" id="sidebarLoginBtn">
+                تسجيل الدخول
+            </button>
+            <button class="btn-small btn-logout" onclick="logout()" id="sidebarLogoutBtn" style="display:none">
+                تسجيل الخروج 🚪
+            </button>
         </div>
     </div>
 
@@ -96,6 +141,7 @@
     <div class="services-new">
         <h2>خدماتنا</h2>
         <p class="services-subtitle">اختر الخدمة المناسبة لك</p>
+
         <div class="services-list">
 
             <div class="service-row" onclick="orderService('وايت ماء')">
@@ -126,20 +172,6 @@
                 </div>
             </div>
 
-            <div class="service-row" onclick="orderService('معدات ثقيلة')">
-                <div class="service-row-right">
-                    <div class="service-row-icon">🏗️</div>
-                    <div class="service-row-info">
-                        <div class="service-row-name">معدات ثقيلة</div>
-                        <div class="service-row-desc">بوكلينات، شيولات وقلابات</div>
-                    </div>
-                </div>
-                <div class="service-row-left">
-                    <span class="service-row-type scheduled">مجدول</span>
-                    <span class="service-row-arrow">←</span>
-                </div>
-            </div>
-
             <div class="service-row" onclick="orderService('حاوية')">
                 <div class="service-row-right">
                     <div class="service-row-icon">📦</div>
@@ -154,21 +186,53 @@
                 </div>
             </div>
 
-            <div class="service-row" onclick="orderService('عمالة')">
+            <div class="service-row soon" onclick="showHeavyEquipment()">
                 <div class="service-row-right">
-                    <div class="service-row-icon">👷</div>
+                    <div class="service-row-icon">🏗️</div>
                     <div class="service-row-info">
-                        <div class="service-row-name">عمالة</div>
-                        <div class="service-row-desc">عمال بناء ومقاولين</div>
+                        <div class="service-row-name">معدات ثقيلة</div>
+                        <div class="service-row-desc">بوكلينات، شيولات، قلابات، رافعات</div>
                     </div>
                 </div>
                 <div class="service-row-left">
-                    <span class="service-row-type scheduled">مجدول</span>
+                    <span class="service-row-type coming">قريباً</span>
                     <span class="service-row-arrow">←</span>
                 </div>
             </div>
 
         </div>
+
+        <!-- قائمة المعدات الثقيلة -->
+        <div class="heavy-equipment-panel" id="heavyEquipmentPanel" style="display:none">
+            <div class="heavy-panel-title">🏗️ اختر نوع المعدة</div>
+            <div class="heavy-grid">
+                <div class="heavy-item coming-soon">
+                    <div class="heavy-icon">🚜</div>
+                    <div class="heavy-name">بوكلين</div>
+                    <div class="heavy-badge">قريباً</div>
+                </div>
+                <div class="heavy-item coming-soon">
+                    <div class="heavy-icon">🚧</div>
+                    <div class="heavy-name">شيول</div>
+                    <div class="heavy-badge">قريباً</div>
+                </div>
+                <div class="heavy-item coming-soon">
+                    <div class="heavy-icon">🚚</div>
+                    <div class="heavy-name">قلابي</div>
+                    <div class="heavy-badge">قريباً</div>
+                </div>
+                <div class="heavy-item coming-soon">
+                    <div class="heavy-icon">🏗️</div>
+                    <div class="heavy-name">رافعة</div>
+                    <div class="heavy-badge">قريباً</div>
+                </div>
+            </div>
+            <p class="heavy-note">⏳ نعمل على إطلاق هذه الخدمات قريباً!</p>
+            <button class="btn" style="margin-top:12px" onclick="window.location.href='register-provider.html'">
+                أبلغني عند الإطلاق 🔔
+            </button>
+        </div>
+
     </div>
 
     <!-- قسم كيف يعمل -->
@@ -248,7 +312,7 @@
                     <div class="benefit">✅ دفع فوري لحسابك</div>
                     <div class="benefit">✅ تحكم كامل بجدولك</div>
                 </div>
-                <button class="btn provider-btn" onclick="window.location.href='provider.html'">
+                <button class="btn provider-btn" onclick="window.location.href='register-provider.html'">
                     انضم الآن كمزود 👷
                 </button>
             </div>
@@ -262,18 +326,18 @@
     </div>
 
     <!-- فوتر -->
-   <div class="footer">
-    <div class="footer-links">
-        <a href="index.html">الرئيسية</a>
-        <a href="about.html">من نحن</a>
-        <a href="contact.html">تواصل معنا</a>
-        <a href="terms.html">الشروط والأحكام</a>
-        <a href="register-provider.html">انضم كمزود</a>
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+            <a href="register-provider.html">انضم كمزود</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
+        </div>
     </div>
-    <div class="footer-copy">
-        جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
-    </div>
-</div>
 
     <script src="app.js"></script>
 </body>
