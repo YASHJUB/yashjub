@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -13,7 +12,7 @@
     <!-- الهيدر -->
     <div class="header">
         <div class="header-right">
-            <img src="images/logo.jpeg" alt="يشجب" class="logo-img">
+            <img src="images/logo.png" alt="يشجب" class="logo-img">
             <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
         </div>
         <div class="header-left">
@@ -25,7 +24,7 @@
     <div class="order-container">
         <div class="order-card">
 
-            <div class="order-service-header" id="serviceHeader">
+            <div class="order-service-header">
                 <div class="order-icon" id="orderIcon">🚚</div>
                 <div>
                     <h2 id="orderTitle">وايت ماء</h2>
@@ -35,37 +34,81 @@
 
             <div class="order-divider"></div>
 
-            <!-- موقع الخدمة / السيارة -->
+            <!-- موقع الخدمة -->
             <div class="order-field">
                 <label id="addressLabel">📍 موقع التوصيل</label>
-                <input
-                    type="text"
-                    id="address"
-                    placeholder="مثال: حي النرجس، شارع الأمير محمد"
-                />
+                <input type="text" id="address" placeholder="مثال: حي النرجس، شارع الأمير محمد"/>
             </div>
 
-            <!-- موقع التوصيل (للسطحة فقط) -->
+            <!-- موقع التوصيل للسطحة فقط -->
             <div class="order-field" id="deliveryField" style="display:none">
                 <label>🏁 موقع التوصيل</label>
-                <input
-                    type="text"
-                    id="deliveryAddress"
-                    placeholder="مثال: حي العليا، طريق الملك فهد"
-                />
+                <input type="text" id="deliveryAddress" placeholder="مثال: حي العليا، طريق الملك فهد"/>
             </div>
 
-            <!-- حقل الملاحظات -->
+            <!-- قسم الحاوية -->
+            <div id="containerSection" style="display:none">
+
+                <!-- اختيار الحجم -->
+                <div class="order-field">
+                    <label>📦 حجم الحاوية</label>
+                    <div class="container-sizes">
+
+                        <div class="size-card" onclick="selectSize('small', 150)" id="size-small">
+                            <div class="size-icon">📦</div>
+                            <div class="size-name">صغيرة</div>
+                            <div class="size-dim">3 متر</div>
+                            <div class="size-price">150 ريال/يوم</div>
+                        </div>
+
+                        <div class="size-card" onclick="selectSize('medium', 250)" id="size-medium">
+                            <div class="size-icon">📦</div>
+                            <div class="size-name">متوسطة</div>
+                            <div class="size-dim">6 متر</div>
+                            <div class="size-price">250 ريال/يوم</div>
+                        </div>
+
+                        <div class="size-card" onclick="selectSize('large', 400)" id="size-large">
+                            <div class="size-icon">📦</div>
+                            <div class="size-name">كبيرة</div>
+                            <div class="size-dim">12 متر</div>
+                            <div class="size-price">400 ريال/يوم</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- عدد الأيام -->
+                <div class="order-field">
+                    <label>📅 عدد الأيام <span style="color:#888;font-size:12px">(الحد الأدنى 10 أيام)</span></label>
+                    <div class="days-input">
+                        <button class="days-btn" onclick="changeDays(-1)">−</button>
+                        <input type="number" id="daysCount" value="10" min="10" onchange="updateContainerPrice()"/>
+                        <button class="days-btn" onclick="changeDays(1)">+</button>
+                    </div>
+                </div>
+
+                <!-- تاريخ البداية -->
+                <div class="order-field">
+                    <label>📅 تاريخ البداية</label>
+                    <input type="date" id="startDate" onchange="updateEndDate()"/>
+                </div>
+
+                <!-- تاريخ النهاية -->
+                <div class="order-field">
+                    <label>📅 تاريخ النهاية (تلقائي)</label>
+                    <input type="date" id="endDate" readonly style="background:#f5f5f5;cursor:not-allowed"/>
+                </div>
+
+            </div>
+
+            <!-- ملاحظات -->
             <div class="order-field">
                 <label>📝 ملاحظات إضافية</label>
-                <textarea
-                    id="notes"
-                    placeholder="أي تفاصيل إضافية تريد إضافتها..."
-                    rows="3"
-                ></textarea>
+                <textarea id="notes" rows="3" placeholder="أي تفاصيل إضافية..."></textarea>
             </div>
 
-            <!-- اختيار الوقت للخدمات المجدولة -->
+            <!-- وقت الخدمة للمجدول -->
             <div class="order-field" id="timeField">
                 <label>🕐 وقت الخدمة</label>
                 <input type="datetime-local" id="scheduledTime"/>
@@ -75,21 +118,29 @@
 
             <!-- ملخص السعر -->
             <div class="price-summary">
+                <div class="price-row" id="containerPriceRow" style="display:none">
+                    <span id="containerPriceLabel">سعر اليوم</span>
+                    <span id="containerDailyPrice">—</span>
+                </div>
+                <div class="price-row" id="containerDaysRow" style="display:none">
+                    <span id="containerDaysLabel">عدد الأيام</span>
+                    <span id="containerDaysValue">—</span>
+                </div>
                 <div class="price-row">
                     <span>سعر الخدمة</span>
-                    <span id="servicePrice">200 ريال</span>
+                    <span id="servicePrice">0 ريال</span>
                 </div>
                 <div class="price-row">
                     <span>رسوم المنصة (7%)</span>
-                    <span id="platformFee">14 ريال</span>
+                    <span id="platformFee">0 ريال</span>
                 </div>
                 <div class="price-row total">
                     <span>الإجمالي</span>
-                    <span id="totalPrice">214 ريال</span>
+                    <span id="totalPrice">0 ريال</span>
                 </div>
             </div>
 
-            <!-- زر تأكيد الطلب -->
+            <!-- زر تأكيد -->
             <button class="btn btn-order" onclick="confirmOrder()">
                 تأكيد الطلب والدفع 💳
             </button>
@@ -113,5 +164,4 @@
 
     <script src="order.js"></script>
 </body>
-</html>
 </html>

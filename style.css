@@ -45,9 +45,10 @@ body {
 
 /* لوقو الصورة */
 .logo-img {
-    height: 50px;
+    height: 110px;
     width: auto;
     margin-bottom: 2px;
+    filter: brightness(1);
 }
 
 .tagline {
@@ -3140,4 +3141,105 @@ body.dark-mode .sidebar-divider {
 
 body.dark-mode .sidebar-footer {
     border-top-color: #333333;
+}/* ══ نظام الحاوية ══ */
+
+.container-sizes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.size-card {
+    border: 2px solid #EEEEEE;
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #FAFAFA;
+}
+
+.size-card:hover {
+    border-color: #F5C518;
+}
+
+.size-card.selected {
+    border-color: #F5C518;
+    background: rgba(245,197,24,0.08);
+}
+
+.size-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+.size-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 2px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.size-dim {
+    font-size: 12px;
+    color: #888888;
+    margin-bottom: 4px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.size-price {
+    font-size: 12px;
+    font-weight: 700;
+    color: #F5C518;
+    background: #111111;
+    padding: 3px 8px;
+    border-radius: 8px;
+    display: inline-block;
+    font-family: 'Cairo', sans-serif;
+}
+
+.days-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.days-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1.5px solid #DDDDDD;
+    background: #FAFAFA;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: #111111;
+}
+
+.days-btn:hover {
+    border-color: #F5C518;
+    background: rgba(245,197,24,0.08);
+}
+
+.days-input input {
+    width: 80px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1.5px solid #DDDDDD;
+    font-family: 'Cairo', sans-serif;
+    outline: none;
+}
+
+.days-input input:focus {
+    border-color: #F5C518;
 }
