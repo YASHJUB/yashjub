@@ -3242,4 +3242,239 @@ body.dark-mode .sidebar-footer {
 
 .days-input input:focus {
     border-color: #F5C518;
+}/* ══ صفحة تسجيل الدخول الجديدة ══ */
+
+.login-page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+.login-left {
+    background: #111111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    border-left: 3px solid #F5C518;
+}
+
+.login-left-content {
+    max-width: 400px;
+}
+
+.login-logo {
+    height: 80px;
+    margin-bottom: 30px;
+}
+
+.login-left h2 {
+    font-size: 28px;
+    font-weight: 900;
+    color: #FFFFFF;
+    margin-bottom: 12px;
+    line-height: 1.4;
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-left p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 32px;
+    line-height: 1.7;
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-features {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 36px;
+}
+
+.login-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-feature-icon {
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    background: rgba(245,197,24,0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.login-stats {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 16px 20px;
+}
+
+.login-stat { text-align: center; }
+
+.login-stat-num {
+    font-size: 20px;
+    font-weight: 900;
+    color: #F5C518;
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-stat-divider {
+    width: 1px;
+    height: 36px;
+    background: rgba(255,255,255,0.1);
+}
+
+/* الجانب الأيمن */
+
+.login-right {
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.login-form-wrap {
+    width: 100%;
+    max-width: 380px;
+}
+
+.login-back {
+    background: none;
+    border: none;
+    color: #888888;
+    font-size: 13px;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    margin-bottom: 32px;
+    display: block;
+    transition: color 0.2s;
+}
+
+.login-back:hover { color: #111111; }
+
+.login-title {
+    font-size: 30px;
+    font-weight: 900;
+    color: #111111;
+    margin-bottom: 6px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-desc {
+    font-size: 14px;
+    color: #888888;
+    margin-bottom: 24px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-field-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 7px;
+    margin-top: 16px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.otp-info {
+    background: rgba(245,197,24,0.08);
+    border: 1px solid rgba(245,197,24,0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #92700A;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 14px;
+    margin-top: 20px;
+}
+
+.resend-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    color: #F5C518;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    margin-top: 10px;
+    padding: 8px;
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: #CCCCCC;
+    font-size: 13px;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #EEEEEE;
+}
+
+.login-register-link {
+    text-align: center;
+    font-size: 14px;
+    color: #666666;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 16px;
+}
+
+.login-register-link a {
+    color: #F5C518;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.login-terms {
+    text-align: center;
+    font-size: 11px;
+    color: #AAAAAA;
+    font-family: 'Cairo', sans-serif;
+    line-height: 1.6;
+}
+
+.login-terms a {
+    color: #888888;
+    text-decoration: underline;
+}
+
+/* الجوال */
+@media (max-width: 768px) {
+    .login-page {
+        grid-template-columns: 1fr;
+    }
+    .login-left {
+        display: none;
+    }
+    .login-right {
+        padding: 30px 20px;
+    }
 }

@@ -5,94 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>يشجب - تسجيل الدخول</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="manifest" href="/site.webmanifest"></head>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+</head>
 <body>
 
-    <!-- الهيدر -->
-    <div class="header">
-        <div class="header-right">
-            <img src="images/logo.png" alt="يشجب" class="logo-img">
-            <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+    <!-- صفحة تسجيل الدخول الكاملة -->
+    <div class="login-page">
+
+        <!-- الجانب الأيمن — معلومات -->
+        <div class="login-left">
+            <div class="login-left-content">
+                <img src="images/logo.png" alt="يشجب" class="login-logo">
+                <h2>منصة خدمات البناء<br>والبنية التحتية</h2>
+                <p>اطلب خدمتك بضغطة واحدة — وايت ماء، سطحة، حاويات ومعدات ثقيلة</p>
+
+                <div class="login-features">
+                    <div class="login-feature">
+                        <span class="login-feature-icon">⚡</span>
+                        <span>خدمة فورية في دقائق</span>
+                    </div>
+                    <div class="login-feature">
+                        <span class="login-feature-icon">🔒</span>
+                        <span>دفع آمن بنظام الأمانة</span>
+                    </div>
+                    <div class="login-feature">
+                        <span class="login-feature-icon">✅</span>
+                        <span>مزودون موثقون ومعتمدون</span>
+                    </div>
+                    <div class="login-feature">
+                        <span class="login-feature-icon">📡</span>
+                        <span>تتبع فوري للخدمة</span>
+                    </div>
+                </div>
+
+                <div class="login-stats">
+                    <div class="login-stat">
+                        <div class="login-stat-num">+500</div>
+                        <div class="login-stat-label">مزود</div>
+                    </div>
+                    <div class="login-stat-divider"></div>
+                    <div class="login-stat">
+                        <div class="login-stat-num">+10K</div>
+                        <div class="login-stat-label">طلب</div>
+                    </div>
+                    <div class="login-stat-divider"></div>
+                    <div class="login-stat">
+                        <div class="login-stat-num">4.8⭐</div>
+                        <div class="login-stat-label">تقييم</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="header-left">
-            <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
+
+        <!-- الجانب الأيسر — نموذج الدخول -->
+        <div class="login-right">
+            <div class="login-form-wrap">
+
+                <!-- رجوع -->
+                <button class="login-back" onclick="window.location.href='index.html'">
+                    → رجوع للرئيسية
+                </button>
+
+                <h1 class="login-title">أهلاً بك 👋</h1>
+                <p class="login-desc">أدخل رقم جوالك للمتابعة</p>
+
+                <!-- اختيار نوع المستخدم -->
+                <div class="user-type-tabs">
+                    <button class="type-tab active" id="clientTab" onclick="selectType('client')">
+                        👤 عميل
+                    </button>
+                    <button class="type-tab" id="providerTab" onclick="selectType('provider')">
+                        👷 مزود خدمة
+                    </button>
+                </div>
+
+                <!-- حقل رقم الجوال -->
+                <div class="login-field-label">رقم الجوال</div>
+                <div class="input-group">
+                    <span class="input-prefix">+966</span>
+                    <input
+                        type="number"
+                        id="phone"
+                        placeholder="5XXXXXXXX"
+                        maxlength="9"
+                    />
+                </div>
+
+                <!-- زر الإرسال -->
+                <button class="btn btn-full" onclick="sendOTP()">
+                    إرسال رمز التحقق 📱
+                </button>
+
+                <!-- قسم OTP -->
+                <div class="otp-section" id="otpSection">
+                    <div class="otp-info">
+                        📱 تم إرسال رمز التحقق لجوالك
+                    </div>
+                    <div class="login-field-label">رمز التحقق</div>
+                    <input
+                        type="number"
+                        id="otp"
+                        placeholder="- - - - - -"
+                        class="otp-input"
+                    />
+                    <button class="btn btn-full" onclick="verifyOTP()">
+                        تحقق وادخل ✅
+                    </button>
+                    <button class="resend-btn" onclick="sendOTP()">
+                        إعادة إرسال الرمز
+                    </button>
+                </div>
+
+                <!-- فاصل -->
+                <div class="login-divider">
+                    <span>أو</span>
+                </div>
+
+                <!-- رابط تسجيل المزود -->
+                <div class="login-register-link">
+                    مزود جديد؟
+                    <a href="register-provider.html">سجّل الآن مجاناً 👷</a>
+                </div>
+
+                <!-- الشروط -->
+                <div class="login-terms">
+                    بتسجيل دخولك أنت توافق على
+                    <a href="terms.html">الشروط والأحكام</a>
+                    و
+                    <a href="terms.html">سياسة الخصوصية</a>
+                </div>
+
+            </div>
         </div>
+
     </div>
-
-    <!-- صفحة تسجيل الدخول -->
-    <div class="login-container">
-        <div class="login-card">
-
-            <div class="login-icon">👷</div>
-            <h2>أهلاً بك في يشجب</h2>
-            <p class="login-sub">أدخل رقم جوالك للمتابعة</p>
-
-            <!-- اختيار نوع المستخدم -->
-            <div class="user-type-tabs">
-                <button class="type-tab active" id="clientTab" onclick="selectType('client')">
-                    👤 عميل
-                </button>
-                <button class="type-tab" id="providerTab" onclick="selectType('provider')">
-                    👷 مزود خدمة
-                </button>
-            </div>
-
-            <!-- حقل رقم الجوال -->
-            <div class="input-group">
-                <span class="input-prefix">+966</span>
-                <input
-                    type="number"
-                    id="phone"
-                    placeholder="5XXXXXXXX"
-                    maxlength="9"
-                />
-            </div>
-
-            <!-- زر الدخول -->
-            <button class="btn btn-full" onclick="sendOTP()">
-                إرسال رمز التحقق 📱
-            </button>
-
-            <!-- قسم OTP -->
-            <div class="otp-section" id="otpSection">
-                <p class="login-sub">أدخل الرمز المرسل لجوالك</p>
-                <input
-                    type="number"
-                    id="otp"
-                    placeholder="- - - - - -"
-                    class="otp-input"
-                />
-                <button class="btn btn-full" onclick="verifyOTP()">
-                    تحقق وادخل ✅
-                </button>
-            </div>
-
-            <!-- رابط تسجيل المزود -->
-            <div class="login-register-link">
-                مزود جديد؟
-                <a href="register-provider.html">سجّل الآن مجاناً</a>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- فوتر -->
-    <div class="footer">
-    <div class="footer-links">
-        <a href="index.html">الرئيسية</a>
-        <a href="about.html">من نحن</a>
-        <a href="contact.html">تواصل معنا</a>
-        <a href="terms.html">الشروط والأحكام</a>
-        <a href="register-provider.html">انضم كمزود</a>
-    </div>
-    <div class="footer-copy">
-        جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
-    </div>
-</div>
 
     <script src="login.js"></script>
 </body>
