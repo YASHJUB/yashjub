@@ -67,7 +67,7 @@ function loadService() {
 
 // تحديث السعر العادي
 function updateNormalPrice(price) {
-    const fee   = Math.round(price * 0.07);
+    const fee = Math.round(price * 0.05);
     const total = price + fee;
     document.getElementById('servicePrice').textContent = `${price} ريال`;
     document.getElementById('platformFee').textContent  = `${fee} ريال`;
@@ -126,7 +126,7 @@ function updateContainerPrice() {
     }
 
     const totalBase = selectedDayPrice * days;
-    const fee       = Math.round(totalBase * 0.07);
+   const fee = Math.round(totalBase * 0.05);
     const total     = totalBase + fee;
 
     const sizeNames = { small: 'صغيرة', medium: 'متوسطة', large: 'كبيرة' };

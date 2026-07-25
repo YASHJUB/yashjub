@@ -61,7 +61,7 @@ app.post('/api/orders', (req, res) => {
         return res.json({ success: false, message: 'بيانات ناقصة' });
     }
 
-    const commission = Math.round(price * 0.07);
+    const commission = Math.round(price * 0.05);
 
     const result = db.prepare(`
         INSERT INTO orders (phone, service, address, price, commission)
