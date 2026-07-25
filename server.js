@@ -145,7 +145,10 @@ app.get('/api/orders/user/:phone', (req, res) => {
 
     res.json({ success: true, orders });
 });
-// ========== تشغيل السيرفر ==========
+// صفحة 404
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, '404.html'));
+});// ========== تشغيل السيرفر ==========
 app.listen(PORT, () => {
     console.log(`
 🚀 سيرفر يشجب شغال!
