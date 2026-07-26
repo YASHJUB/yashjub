@@ -3477,4 +3477,145 @@ body.dark-mode .sidebar-footer {
     .login-right {
         padding: 30px 20px;
     }
+/* ══ تحسينات الجوال ══ */
+
+@media (max-width: 768px) {
+
+    /* الهيدر */
+    .header {
+        padding: 10px 16px;
+        flex-wrap: wrap;
+    }
+
+    .logo-img { height: 65px; }
+    .tagline { font-size: 10px; }
+
+    /* الهيرو */
+    .hero-new { min-height: 280px; padding: 20px 16px; }
+    .hero-content h1 { font-size: 28px !important; }
+    .hero-content p { font-size: 13px; margin-bottom: 20px; }
+    .hero-btn { padding: 12px 28px; font-size: 15px; }
+    .hero-corner-tl, .hero-corner-tr, .hero-gold-corner { display: none; }
+
+    /* الإحصائيات */
+    .stat-num { font-size: 16px !important; }
+    .stat-label { font-size: 10px !important; }
+
+    /* الخدمات */
+    .services-new { padding: 30px 16px; }
+    .services-new h2 { font-size: 22px; }
+    .service-row { padding: 12px 14px; }
+    .service-row-icon { width: 44px; height: 44px; font-size: 26px; }
+    .service-row-name { font-size: 14px; }
+    .service-row-desc { font-size: 11px; }
+
+    /* كيف يعمل */
+    .how-section { padding: 30px 16px; }
+    .how-section h2 { font-size: 22px !important; }
+    .how-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        flex-wrap: unset !important;
+        flex-direction: unset !important;
+    }
+    .how-card { width: 100% !important; padding: 14px 10px; }
+    .how-icon { font-size: 26px; margin-bottom: 6px; }
+    .how-title { font-size: 12px; }
+    .how-desc { font-size: 10px; }
+    .how-arrow { display: none !important; }
+
+    /* لماذا يشجب */
+    .why-section { padding: 30px 16px; }
+    .why-section h2 { font-size: 22px !important; }
+    .why-grid { grid-template-columns: 1fr !important; gap: 10px; }
+    .why-card { padding: 14px 12px; }
+    .why-icon { font-size: 22px; }
+    .why-title { font-size: 13px; }
+    .why-desc { font-size: 11px; }
+
+    /* قسم المزود */
+    .provider-section { padding: 30px 16px; }
+    .provider-content {
+        flex-direction: column !important;
+        text-align: center;
+        gap: 20px;
+    }
+    .provider-text h2 { font-size: 22px; }
+    .provider-text p { font-size: 13px; }
+    .provider-benefits { grid-template-columns: 1fr 1fr !important; gap: 6px; }
+    .benefit { font-size: 12px; }
+    .provider-visual { margin: 0 auto; }
+    .provider-badge { width: 110px; height: 110px; }
+    .badge-num { font-size: 24px; }
+
+    /* الطلب */
+    .order-container { padding: 0 12px; margin: 16px auto; }
+    .order-card { padding: 16px; }
+    .container-sizes { grid-template-columns: 1fr !important; }
+
+    /* التتبع */
+    .tracking-container { padding: 0 12px; margin: 16px auto; }
+    .tracking-card { padding: 16px; }
+
+    /* طلباتي */
+    .my-orders-section { padding: 16px 12px; }
+    .orders-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .orders-stat-num { font-size: 18px; }
+    .orders-stat-label { font-size: 10px; }
+
+    /* الملف الشخصي */
+    .profile-hero { flex-direction: column !important; text-align: center; padding: 24px 16px; }
+    .profile-container { padding: 0 12px; margin: 16px auto; }
+
+    /* من نحن */
+    .about-hero h1 { font-size: 28px; }
+    .about-container { grid-template-columns: 1fr !important; }
+    .about-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .team-grid { grid-template-columns: 1fr !important; }
+    .about-cta-btns { flex-direction: column; align-items: center; }
+
+    /* تواصل معنا */
+    .contact-hero h1 { font-size: 28px; }
+    .contact-container { grid-template-columns: 1fr !important; }
+
+    /* الشروط */
+    .terms-hero h1 { font-size: 28px; }
+    .terms-container { grid-template-columns: 1fr !important; }
+    .terms-index { position: static; }
+
+    /* تسجيل المزود */
+    .reg-hero h1 { font-size: 26px; }
+    .levels-grid { grid-template-columns: 1fr !important; }
+    .reg-form-card { padding: 20px 16px; }
+
+    /* السايد بار */
+    .app-sidebar { width: 85%; right: -85%; }
+
+    /* الفوتر */
+    .footer-links { gap: 10px; font-size: 11px; }
+
+    /* المعدات */
+    .heavy-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* الإدارة */
+    .admin-stats { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* القيم */
+    .values-grid { grid-template-columns: 1fr !important; }
+
+    /* تسجيل الدخول */
+    .login-page { grid-template-columns: 1fr !important; }
+    .login-left { display: none !important; }
+    .login-right { padding: 24px 16px; min-height: 100vh; }
+}
+
+/* شاشات صغيرة جداً */
+@media (max-width: 380px) {
+    .hero-content h1 { font-size: 22px !important; }
+    .logo-img { height: 55px !important; }
+    .service-row-name { font-size: 13px; }
+    .stat-num { font-size: 14px !important; }
+    .how-grid { grid-template-columns: 1fr !important; }
+    .provider-benefits { grid-template-columns: 1fr !important; }
 }
