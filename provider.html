@@ -5,132 +5,205 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>يشجب - لوحة المزود</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="manifest" href="/site.webmanifest"></head>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+</head>
 <body>
 
     <!-- الهيدر -->
     <div class="header">
         <div class="header-right">
-            <div class="logo">يشجب ⚙️</div>
+            <img src="images/logo.png" alt="يشجب" class="logo-img">
             <div class="tagline">لوحة تحكم المزود</div>
         </div>
         <div class="header-left">
-            <button class="btn-small" onclick="window.location.href='index.html'">
-                → الرئيسية
-            </button>
+            <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
         </div>
     </div>
 
-    <!-- لوحة التحكم -->
-    <div class="provider-container">
+    <!-- السايد بار -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="app-sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-user-icon">👷</div>
+            <div>
+                <div class="sidebar-user-name" id="providerNameSidebar">مزود خدمة</div>
+                <div class="sidebar-user-phone" id="providerPhoneSidebar">+966XXXXXXXXX</div>
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="sidebar-menu">
+            <a class="sidebar-link" href="index.html"><span>🏠</span> الرئيسية</a>
+            <a class="sidebar-link active" href="provider.html"><span>👷</span> لوحة المزود</a>
+            <a class="sidebar-link" href="profile.html"><span>👤</span> حسابي</a>
+            <div class="sidebar-divider"></div>
+            <a class="sidebar-link" href="about.html"><span>ℹ️</span> من نحن</a>
+            <a class="sidebar-link" href="contact.html"><span>📞</span> تواصل معنا</a>
+            <a class="sidebar-link" href="terms.html"><span>📄</span> الشروط والأحكام</a>
+        </div>
+        <div class="sidebar-footer">
+            <button class="btn-small btn-logout" onclick="providerLogout()">تسجيل الخروج 🚪</button>
+        </div>
+    </div>
 
+    <!-- المحتوى الرئيسي -->
+   <div class="provider-page">
         <!-- بطاقة المزود -->
-        <div class="provider-profile">
-            <div class="provider-avatar">👷</div>
-            <div class="provider-info">
-                <h2 id="providerName">أحمد المزود</h2>
-                <div class="provider-rating">⭐⭐⭐⭐⭐ 4.8</div>
-                <div class="provider-level">🥇 مزود موثق</div>
-            </div>
-            <!-- زر التوفر -->
-            <div class="availability-toggle">
-                <span id="statusLabel">متاح</span>
-                <label class="toggle">
-                    <input type="checkbox" id="availableToggle" checked onchange="toggleAvailability()">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        </div>
-
-        <!-- إحصائيات سريعة -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="todayOrders">٠</div>
-                <div class="stat-label">طلبات اليوم</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="todayEarnings">٠</div>
-                <div class="stat-label">أرباح اليوم (ريال)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">٤.٨</div>
-                <div class="stat-label">التقييم</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">٩٣٪</div>
-                <div class="stat-label">نسبة الإتمام</div>
-            </div>
-        </div>
-
-        <!-- طلب وارد جديد -->
-        <div class="new-order-card" id="newOrderCard">
-            <div class="new-order-badge">🔔 طلب جديد!</div>
-            <div class="new-order-details">
-                <div class="new-order-service" id="newOrderService">🚚 وايت ماء</div>
-                <div class="new-order-info">
-                    <span>📍 <span id="newOrderAddress">حي النرجس</span></span>
-                    <span>💰 <span id="newOrderPrice">186 ريال</span></span>
+        <div class="provider-hero-card">
+            <div class="provider-hero-right">
+                <div class="provider-hero-avatar">👷</div>
+                <div class="provider-hero-info">
+                    <div class="provider-hero-name" id="providerName">مزود خدمة</div>
+                    <div class="provider-hero-phone" id="providerPhone">+966XXXXXXXXX</div>
+                    <div class="provider-hero-rating">⭐⭐⭐⭐⭐ <span>4.8</span></div>
+                    <div class="provider-hero-badge" id="providerBadge">🥇 مزود موثق</div>
                 </div>
             </div>
-            <div class="new-order-actions">
-                <button class="btn-accept" onclick="acceptOrder()">قبول ✅</button>
-                <button class="btn-reject" onclick="rejectOrder()">رفض ❌</button>
+            <div class="provider-hero-left">
+                <div class="availability-toggle">
+                    <span class="avail-label" id="availLabel">متاح</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="availToggle" checked onchange="toggleAvailability()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
-            <!-- عداد تنازلي -->
-            <div class="countdown">
-                <div class="countdown-bar" id="countdownBar"></div>
-                <span id="countdownText">60 ثانية للرد</span>
+        </div>
+
+        <!-- الإحصائيات -->
+        <div class="provider-stats-grid">
+            <div class="provider-stat-card">
+                <div class="provider-stat-icon" style="background:rgba(245,197,24,0.1)">📋</div>
+                <div class="provider-stat-num" id="statToday">0</div>
+                <div class="provider-stat-label">طلبات اليوم</div>
+            </div>
+            <div class="provider-stat-card">
+                <div class="provider-stat-icon" style="background:rgba(16,185,129,0.1)">💰</div>
+                <div class="provider-stat-num" id="statWeek">0</div>
+                <div class="provider-stat-label">أرباح الأسبوع (ر)</div>
+            </div>
+            <div class="provider-stat-card">
+                <div class="provider-stat-icon" style="background:rgba(59,130,246,0.1)">⭐</div>
+                <div class="provider-stat-num">4.8</div>
+                <div class="provider-stat-label">التقييم</div>
+            </div>
+            <div class="provider-stat-card">
+                <div class="provider-stat-icon" style="background:rgba(139,92,246,0.1)">✅</div>
+                <div class="provider-stat-num">93%</div>
+                <div class="provider-stat-label">نسبة الإتمام</div>
+            </div>
+        </div>
+
+        <!-- الطلب الوارد -->
+        <div class="new-order-section" id="newOrderSection">
+            <div class="new-order-header">
+                <div class="new-order-pulse"></div>
+                <div class="new-order-title">🔔 طلب جديد وارد!</div>
+            </div>
+
+            <div class="new-order-body">
+                <div class="new-order-service" id="newOrderService">🚚 وايت ماء</div>
+                <div class="new-order-details-grid">
+                    <div class="new-order-detail">
+                        <span class="new-order-detail-label">📍 الموقع</span>
+                        <span class="new-order-detail-value" id="newOrderAddress">الرياض</span>
+                    </div>
+                    <div class="new-order-detail">
+                        <span class="new-order-detail-label">💰 المبلغ</span>
+                        <span class="new-order-detail-value" id="newOrderAmount">0 ريال</span>
+                    </div>
+                    <div class="new-order-detail">
+                        <span class="new-order-detail-label">📱 العميل</span>
+                        <span class="new-order-detail-value" id="newOrderClient">+966XXXXXXXXX</span>
+                    </div>
+                    <div class="new-order-detail">
+                        <span class="new-order-detail-label">⏱️ النوع</span>
+                        <span class="new-order-detail-value" id="newOrderType">فوري</span>
+                    </div>
+                </div>
+
+                <div class="new-order-actions">
+                    <button class="btn-accept-order" onclick="acceptOrder()">✅ قبول الطلب</button>
+                    <button class="btn-reject-order" onclick="rejectOrder()">❌ رفض</button>
+                </div>
+
+                <div class="countdown-wrap">
+                    <div class="countdown-bar-wrap">
+                        <div class="countdown-bar-fill" id="countdownFill"></div>
+                    </div>
+                    <div class="countdown-text">⏳ <span id="countdownNum">60</span> ثانية للرد</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- المحفظة -->
+        <div class="wallet-card">
+            <div class="wallet-header">
+                <div class="wallet-title">💳 محفظتي</div>
+                <button class="wallet-withdraw-btn" onclick="requestWithdraw()">طلب سحب</button>
+            </div>
+            <div class="wallet-balance-wrap">
+                <div class="wallet-balance-label">الرصيد المتاح</div>
+                <div class="wallet-balance" id="walletBalance">0 ريال</div>
+            </div>
+            <div class="wallet-stats">
+                <div class="wallet-stat">
+                    <div class="wallet-stat-num" id="walletTotal">0</div>
+                    <div class="wallet-stat-label">إجمالي الأرباح</div>
+                </div>
+                <div class="wallet-stat-divider"></div>
+                <div class="wallet-stat">
+                    <div class="wallet-stat-num" id="walletPending">0</div>
+                    <div class="wallet-stat-label">معلق</div>
+                </div>
+                <div class="wallet-stat-divider"></div>
+                <div class="wallet-stat">
+                    <div class="wallet-stat-num" id="walletWithdrawn">0</div>
+                    <div class="wallet-stat-label">تم السحب</div>
+                </div>
             </div>
         </div>
 
         <!-- الطلبات السابقة -->
-        <div class="orders-history">
-            <h3>📋 آخر الطلبات</h3>
-            <div class="history-list" id="historyList">
+        <div class="provider-orders-card">
+            <div class="provider-orders-header">
+                <div class="provider-orders-title">📋 سجل الطلبات</div>
+                <div class="provider-orders-count" id="ordersCount">0 طلب</div>
+            </div>
 
-                <div class="history-item">
-                    <div class="history-icon">🚚</div>
-                    <div class="history-info">
-                        <div class="history-service">وايت ماء</div>
-                        <div class="history-address">حي العليا</div>
-                    </div>
-                    <div class="history-right">
-                        <div class="history-price">186 ريال</div>
-                        <div class="history-status done">مكتمل</div>
-                    </div>
+            <!-- فلتر -->
+            <div class="orders-filter">
+                <button class="filter-btn active" onclick="filterOrders('all', this)">الكل</button>
+                <button class="filter-btn" onclick="filterOrders('completed', this)">مكتملة</button>
+                <button class="filter-btn" onclick="filterOrders('pending', this)">انتظار</button>
+                <button class="filter-btn" onclick="filterOrders('cancelled', this)">ملغية</button>
+            </div>
+
+            <div id="providerOrdersList">
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-title">لا يوجد طلبات بعد</div>
+                    <div class="empty-sub">ابدأ باستقبال الطلبات الآن!</div>
                 </div>
-
-                <div class="history-item">
-                    <div class="history-icon">🚛</div>
-                    <div class="history-info">
-                        <div class="history-service">سطحة</div>
-                        <div class="history-address">حي النرجس</div>
-                    </div>
-                    <div class="history-right">
-                        <div class="history-price">232 ريال</div>
-                        <div class="history-status done">مكتمل</div>
-                    </div>
-                </div>
-
-                <div class="history-item">
-                    <div class="history-icon">📦</div>
-                    <div class="history-info">
-                        <div class="history-service">حاوية</div>
-                        <div class="history-address">حي الملقا</div>
-                    </div>
-                    <div class="history-right">
-                        <div class="history-price">325 ريال</div>
-                        <div class="history-status cancelled">ملغي</div>
-                    </div>
-                </div>
-
             </div>
         </div>
 
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
+        </div>
     </div>
 
     <script src="provider.js"></script>
