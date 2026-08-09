@@ -1640,6 +1640,18 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     font-family: 'Cairo', sans-serif;
 }
 
+.form-note {
+    font-size: 13px;
+    color: #666666;
+    background: #FAFAFA;
+    border: 1px solid #EEEEEE;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-family: 'Cairo', sans-serif;
+    line-height: 1.6;
+}
+
 .terms-check {
     display: flex;
     align-items: center;
@@ -4192,4 +4204,312 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     .provider-stats-grid { grid-template-columns: repeat(2, 1fr); }
     .new-order-details-grid { grid-template-columns: 1fr; }
     .new-order-actions { grid-template-columns: 1fr 1fr; }
+}
+
+/* ══ خطوات اختيار مزود الحاوية ══ */
+
+.container-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.container-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.container-step-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #F5F5F5;
+    color: #888888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+}
+
+.container-step-label {
+    font-size: 11px;
+    color: #888888;
+    font-family: 'Cairo', sans-serif;
+}
+
+.container-step.active .container-step-num {
+    background: #F5C518;
+    color: #111111;
+}
+
+.container-step.active .container-step-label {
+    color: #111111;
+    font-weight: 700;
+}
+
+.container-step.done .container-step-num {
+    background: #10B981;
+    color: #FFFFFF;
+}
+
+.container-step-line {
+    width: 40px;
+    height: 2px;
+    background: #EEEEEE;
+}
+
+/* ملخص الموقع / المزود المختار */
+.location-summary,
+.selected-provider-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FAFAFA;
+    border: 1px solid #EEEEEE;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 16px;
+}
+
+.location-change-link {
+    color: #F5C518;
+    font-weight: 700;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.location-change-link:hover { text-decoration: underline; }
+
+/* بطاقة المنتج المختار (صفحة الطلب) */
+.selected-product-card {
+    background: #FFFDF0;
+    border: 1.5px solid #F5C518;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.selected-product-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 4px;
+}
+
+.selected-product-desc {
+    font-size: 12px;
+    color: #888888;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 10px;
+}
+
+.selected-product-details {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+/* قائمة بطاقات المزودين */
+.provider-select-list {
+    max-width: 680px;
+    margin: 16px auto 0;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.provider-select-card {
+    background: #FFFFFF;
+    border: 2px solid #EEEEEE;
+    border-radius: 18px;
+    padding: 18px;
+    transition: all 0.2s;
+}
+
+.provider-select-card:hover {
+    border-color: #F5C518;
+    box-shadow: 0 6px 20px rgba(245,197,24,0.12);
+}
+
+.provider-select-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.provider-select-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 4px;
+}
+
+.provider-select-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.provider-select-rating {
+    font-size: 12px;
+    color: #F5C518;
+    font-weight: 700;
+}
+
+.provider-select-badge {
+    font-size: 11px;
+    color: #666666;
+    background: #F5F5F5;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.provider-select-prices {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    border-top: 1px solid #F5F5F5;
+    padding-top: 14px;
+}
+
+.provider-price-item {
+    text-align: center;
+}
+
+.provider-price-label {
+    display: block;
+    font-size: 11px;
+    color: #888888;
+    margin-bottom: 4px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.provider-price-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+@media (max-width: 480px) {
+    .provider-select-prices { grid-template-columns: 1fr; gap: 6px; }
+    .provider-select-top { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+
+/* ══ منتجاتي (مزود الحاوية) ══ */
+
+.my-products-section {
+    background: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.my-products-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.my-products-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.product-form {
+    background: #FAFAFA;
+    border: 1px solid #EEEEEE;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.product-item {
+    border: 1px solid #EEEEEE;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+}
+
+.product-item:hover {
+    border-color: #F5C518;
+    box-shadow: 0 2px 12px rgba(245,197,24,0.1);
+}
+
+.product-item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.product-item-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.product-item-desc {
+    font-size: 12px;
+    color: #888888;
+    margin-top: 2px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.product-item-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    font-family: 'Cairo', sans-serif;
+}
+
+.product-item-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: #666666;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 12px;
+}
+
+.product-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-delete-product {
+    background: transparent;
+    color: #EF4444;
+    border: 1.5px solid #EF4444;
+}
+
+.btn-delete-product:hover {
+    background: rgba(239,68,68,0.1);
 }

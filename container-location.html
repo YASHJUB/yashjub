@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>يشجب - اختر موقعك</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest"></head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.png" alt="يشجب" class="logo-img">
+            <div class="tagline">منصة خدمات البناء والبنية التحتية</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">→ رجوع</button>
+        </div>
+    </div>
+
+    <!-- خطوات الحاوية -->
+    <div class="order-container">
+        <div class="order-card">
+
+            <div class="container-steps">
+                <div class="container-step active">
+                    <div class="container-step-num">1</div>
+                    <div class="container-step-label">الموقع</div>
+                </div>
+                <div class="container-step-line"></div>
+                <div class="container-step">
+                    <div class="container-step-num">2</div>
+                    <div class="container-step-label">المنتج</div>
+                </div>
+                <div class="container-step-line"></div>
+                <div class="container-step">
+                    <div class="container-step-num">3</div>
+                    <div class="container-step-label">الطلب</div>
+                </div>
+            </div>
+
+            <div class="order-service-header">
+                <div class="order-icon">📦</div>
+                <div>
+                    <h2>حاوية</h2>
+                    <span class="service-type">مجدول</span>
+                </div>
+            </div>
+
+            <div class="order-divider"></div>
+
+            <div class="order-field">
+                <label>🏙️ المدينة</label>
+                <select id="city">
+                    <option value="">اختر المدينة</option>
+                    <option value="الرياض">الرياض</option>
+                    <option value="جدة">جدة</option>
+                    <option value="الدمام">الدمام</option>
+                    <option value="مكة">مكة</option>
+                    <option value="المدينة المنورة">المدينة المنورة</option>
+                </select>
+            </div>
+
+            <div class="order-field">
+                <label>📍 الحي</label>
+                <input type="text" id="neighborhood" placeholder="مثال: حي النرجس"/>
+            </div>
+
+            <button class="btn btn-order" onclick="goToProviders()">
+                التالي — عرض المنتجات ⬅️
+            </button>
+
+        </div>
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+            <a href="register-provider.html">انضم كمزود</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>يشجب</span> — منصة خدمات البناء في السعودية
+        </div>
+    </div>
+
+    <script src="container-location.js"></script>
+</body>
+</html>

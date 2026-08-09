@@ -55,7 +55,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
 // ========== API الطلبات ==========
 
 app.post('/api/orders', (req, res) => {
-    const { phone, service, address, price } = req.body;
+    const { phone, service, address, price, providerId, providerName, productId } = req.body;
 
     if (!phone || !service || !address) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
@@ -64,9 +64,9 @@ app.post('/api/orders', (req, res) => {
     const commission = Math.round(price * 0.05);
 
     const result = db.prepare(`
-        INSERT INTO orders (phone, service, address, price, commission)
-        VALUES (?, ?, ?, ?, ?)
-    `).run(phone, service, address, price, commission);
+        INSERT INTO orders (phone, service, address, price, commission, provider_id, provider_name, product_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(phone, service, address, price, commission, providerId || null, providerName || null, productId || null);
 
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(result.lastInsertRowid);
 
@@ -145,6 +145,77 @@ app.get('/api/orders/user/:phone', (req, res) => {
 
     res.json({ success: true, orders });
 });
+// ========== API منتجات مزود الحاوية ==========
+
+app.post('/api/products', (req, res) => {
+    const { providerId, name, description, size, price, city, neighborhood, minDays } = req.body;
+
+    if (!providerId || !name || !size || !price || !city || !neighborhood || !minDays) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO products (provider_id, name, description, size, price, city, neighborhood, min_days)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(providerId, name, description || '', size, price, city, neighborhood, minDays);
+
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
+
+    res.json({ success: true, product });
+});
+
+app.get('/api/products/available', (req, res) => {
+    const { city } = req.query;
+
+    if (!city) {
+        return res.json({ success: false, message: 'المدينة مطلوبة' });
+    }
+
+    const products = db.prepare(`
+        SELECT products.*,
+               providers.name   AS provider_name,
+               providers.rating AS provider_rating,
+               providers.level  AS provider_level
+        FROM products
+        JOIN providers ON providers.id = products.provider_id
+        WHERE products.city = ? AND products.is_available = 1 AND providers.is_available = 1
+        ORDER BY providers.rating DESC
+    `).all(city);
+
+    res.json({ success: true, products });
+});
+
+app.get('/api/products/provider/:providerId', (req, res) => {
+    const products = db.prepare(
+        'SELECT * FROM products WHERE provider_id = ? ORDER BY created_at DESC'
+    ).all(req.params.providerId);
+
+    res.json({ success: true, products });
+});
+
+app.put('/api/products/:id', (req, res) => {
+    const { name, description, size, price, city, neighborhood, isAvailable, minDays } = req.body;
+
+    if (!name || !size || !price || !city || !neighborhood || !minDays) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    db.prepare(`
+        UPDATE products
+        SET name = ?, description = ?, size = ?, price = ?, city = ?, neighborhood = ?, is_available = ?, min_days = ?
+        WHERE id = ?
+    `).run(name, description || '', size, price, city, neighborhood, isAvailable ? 1 : 0, minDays, req.params.id);
+
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
+
+    res.json({ success: true, product });
+});
+
+app.delete('/api/products/:id', (req, res) => {
+    db.prepare('DELETE FROM products WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
 // صفحة 404
 app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, '404.html'));

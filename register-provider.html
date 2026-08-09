@@ -112,7 +112,7 @@
 
             <div class="form-group">
                 <label>نوع الخدمة</label>
-                <select id="serviceType">
+                <select id="serviceType" onchange="toggleContainerNote()">
                     <option value="">اختر نوع خدمتك</option>
                     <option value="وايت ماء">وايت ماء</option>
                     <option value="سطحة">سطحة</option>
@@ -120,6 +120,11 @@
                     <option value="حاوية">حاوية</option>
                     <option value="عمالة">عمالة</option>
                 </select>
+            </div>
+
+            <!-- تنويه لمزود الحاوية -->
+            <div id="containerNote" class="form-note" style="display:none">
+                📦 بعد قبول تسجيلك، بتقدر تضيف منتجاتك (المدينة، الحي، الحجم، السعر) من "منتجاتي" بلوحة تحكم المزود.
             </div>
 
             <!-- حقول المستوى الثاني -->

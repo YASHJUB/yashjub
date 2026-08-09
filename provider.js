@@ -5,6 +5,8 @@ const API = window.location.origin + '/api';
 let countdownInterval;
 let countdownSeconds = 60;
 let allOrders = [];
+let currentProviderId = null;
+let editingProductId   = null;
 
 // تحميل الصفحة
 function loadProvider() {
@@ -26,8 +28,32 @@ function loadProvider() {
     // تحميل الطلبات
     loadOrders(phone);
 
+    // تحميل بيانات المزود (لمعرفة نوع الخدمة وإظهار قسم المنتجات)
+    loadProviderProfile(phone);
+
     // محاكاة طلب وارد
     simulateIncomingOrder();
+}
+
+// تحميل بيانات المزود الحالي
+async function loadProviderProfile(phone) {
+    try {
+        const res  = await fetch(`${API}/providers`);
+        const data = await res.json();
+
+        if (!data.success) return;
+
+        const me = data.providers.find(p => p.phone === phone);
+        if (!me) return;
+
+        if (me.service_type === 'حاوية') {
+            currentProviderId = me.id;
+            document.getElementById('myProductsSection').style.display = 'block';
+            loadProducts();
+        }
+    } catch (e) {
+        console.log('خطأ في تحميل بيانات المزود');
+    }
 }
 
 // تحميل الطلبات
@@ -272,6 +298,164 @@ function providerLogout() {
 function toggleSidebar() {
     document.getElementById('appSidebar').classList.toggle('active');
     document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+
+// ══ منتجات مزود الحاوية ══
+
+const productSizeLabels = { small: 'صغيرة (3م)', medium: 'متوسطة (6م)', large: 'كبيرة (12م)' };
+
+// تحميل المنتجات
+async function loadProducts() {
+    try {
+        const res  = await fetch(`${API}/products/provider/${currentProviderId}`);
+        const data = await res.json();
+
+        if (data.success) {
+            renderProducts(data.products);
+        }
+    } catch (e) {
+        console.log('خطأ في تحميل المنتجات');
+    }
+}
+
+// عرض المنتجات
+function renderProducts(products) {
+    const container = document.getElementById('productsList');
+
+    if (products.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-title">لا يوجد منتجات بعد</div>
+                <div class="empty-sub">أضف أول منتج لك الآن!</div>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = products.map(p => `
+        <div class="product-item">
+            <div class="product-item-top">
+                <div>
+                    <div class="product-item-name">${p.name}</div>
+                    <div class="product-item-desc">${p.description || ''}</div>
+                </div>
+                <span class="product-item-status" style="${p.is_available
+                    ? 'color:#10B981;background:rgba(16,185,129,0.1)'
+                    : 'color:#EF4444;background:rgba(239,68,68,0.1)'}">
+                    ${p.is_available ? 'متاح' : 'غير متاح'}
+                </span>
+            </div>
+            <div class="product-item-details">
+                <span>📦 ${productSizeLabels[p.size] || p.size}</span>
+                <span>💰 ${p.price} ريال / ${p.min_days} أيام على الأقل</span>
+                <span>📍 ${p.city} — ${p.neighborhood}</span>
+            </div>
+            <div class="product-item-actions">
+                <button class="btn-small" onclick='editProduct(${JSON.stringify(p)})'>✏️ تعديل</button>
+                <button class="btn-small btn-delete-product" onclick="deleteProduct(${p.id})">🗑️ حذف</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// إظهار/إخفاء فورم المنتج
+function toggleProductForm() {
+    const form = document.getElementById('productForm');
+    const isHidden = form.style.display === 'none';
+
+    if (isHidden) {
+        form.style.display = 'block';
+    } else {
+        form.style.display = 'none';
+        resetProductForm();
+    }
+}
+
+// تفريغ الفورم
+function resetProductForm() {
+    editingProductId = null;
+    document.getElementById('productName').value = '';
+    document.getElementById('productDescription').value = '';
+    document.getElementById('productSize').value = 'small';
+    document.getElementById('productPrice').value = '';
+    document.getElementById('productMinDays').value = '10';
+    document.getElementById('productCity').value = '';
+    document.getElementById('productNeighborhood').value = '';
+    document.getElementById('productAvailable').value = '1';
+    document.getElementById('saveProductBtn').textContent = 'حفظ المنتج';
+}
+
+// حفظ منتج (إضافة أو تعديل)
+async function saveProduct() {
+    const name         = document.getElementById('productName').value.trim();
+    const description  = document.getElementById('productDescription').value.trim();
+    const size         = document.getElementById('productSize').value;
+    const price        = document.getElementById('productPrice').value;
+    const minDays      = document.getElementById('productMinDays').value;
+    const city         = document.getElementById('productCity').value;
+    const neighborhood = document.getElementById('productNeighborhood').value.trim();
+    const isAvailable  = document.getElementById('productAvailable').value === '1';
+
+    if (!name || !size || !price || !minDays || !city || !neighborhood) {
+        alert('❌ يرجى تعبئة جميع الحقول المطلوبة');
+        return;
+    }
+
+    try {
+        const url    = editingProductId ? `${API}/products/${editingProductId}` : `${API}/products`;
+        const method = editingProductId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                providerId: currentProviderId,
+                name, description, size, price, minDays, city, neighborhood, isAvailable,
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('productForm').style.display = 'none';
+            resetProductForm();
+            loadProducts();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// تعديل منتج
+function editProduct(product) {
+    editingProductId = product.id;
+
+    document.getElementById('productName').value         = product.name;
+    document.getElementById('productDescription').value  = product.description || '';
+    document.getElementById('productSize').value         = product.size;
+    document.getElementById('productPrice').value        = product.price;
+    document.getElementById('productMinDays').value      = product.min_days;
+    document.getElementById('productCity').value         = product.city;
+    document.getElementById('productNeighborhood').value = product.neighborhood;
+    document.getElementById('productAvailable').value    = product.is_available ? '1' : '0';
+    document.getElementById('saveProductBtn').textContent = 'تحديث المنتج';
+
+    document.getElementById('productForm').style.display = 'block';
+    document.getElementById('productForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+// حذف منتج
+async function deleteProduct(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+
+    try {
+        await fetch(`${API}/products/${id}`, { method: 'DELETE' });
+        loadProducts();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
 }
 
 // تشغيل

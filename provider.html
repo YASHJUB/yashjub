@@ -97,6 +97,68 @@
             </div>
         </div>
 
+        <!-- منتجاتي (لمزودي الحاوية فقط) -->
+        <div class="my-products-section" id="myProductsSection" style="display:none">
+            <div class="my-products-header">
+                <div class="my-products-title">📦 منتجاتي</div>
+                <button class="btn-small" onclick="toggleProductForm()">+ إضافة منتج جديد</button>
+            </div>
+
+            <!-- فورم إضافة/تعديل منتج -->
+            <div class="product-form" id="productForm" style="display:none">
+                <div class="order-field">
+                    <label>اسم المنتج</label>
+                    <input type="text" id="productName" placeholder="مثال: حاوية صغيرة 3 متر"/>
+                </div>
+                <div class="order-field">
+                    <label>وصف المنتج</label>
+                    <textarea id="productDescription" rows="2" placeholder="مثال: مناسبة للمنازل والمشاريع الصغيرة"></textarea>
+                </div>
+                <div class="order-field">
+                    <label>الحجم</label>
+                    <select id="productSize">
+                        <option value="small">صغيرة (3م)</option>
+                        <option value="medium">متوسطة (6م)</option>
+                        <option value="large">كبيرة (12م)</option>
+                    </select>
+                </div>
+                <div class="order-field">
+                    <label>سعر الحزمة (ريال)</label>
+                    <input type="number" id="productPrice" placeholder="مثال: 600"/>
+                </div>
+                <div class="order-field">
+                    <label>الحد الأدنى للأيام</label>
+                    <input type="number" id="productMinDays" min="1" placeholder="مثال: 10"/>
+                    <span style="color:#888;font-size:12px">السعر أعلاه مقابل هذا العدد من الأيام — أي أيام إضافية تُحسب بنفس السعر اليومي تلقائياً</span>
+                </div>
+                <div class="order-field">
+                    <label>المدينة</label>
+                    <select id="productCity">
+                        <option value="">اختر المدينة</option>
+                        <option value="الرياض">الرياض</option>
+                        <option value="جدة">جدة</option>
+                        <option value="الدمام">الدمام</option>
+                        <option value="مكة">مكة</option>
+                        <option value="المدينة المنورة">المدينة المنورة</option>
+                    </select>
+                </div>
+                <div class="order-field">
+                    <label>الحي</label>
+                    <input type="text" id="productNeighborhood" placeholder="مثال: حي النرجس"/>
+                </div>
+                <div class="order-field">
+                    <label>حالة المنتج</label>
+                    <select id="productAvailable">
+                        <option value="1">متاح</option>
+                        <option value="0">غير متاح</option>
+                    </select>
+                </div>
+                <button class="btn btn-full" onclick="saveProduct()" id="saveProductBtn">حفظ المنتج</button>
+            </div>
+
+            <div id="productsList"></div>
+        </div>
+
         <!-- الطلب الوارد -->
         <div class="new-order-section" id="newOrderSection">
             <div class="new-order-header">

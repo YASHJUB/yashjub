@@ -52,38 +52,25 @@
             <!-- قسم الحاوية -->
             <div id="containerSection" style="display:none">
 
-                <!-- اختيار الحجم -->
-                <div class="order-field">
-                    <label>📦 حجم الحاوية</label>
-                    <div class="container-sizes">
+                <!-- المزود المختار -->
+                <div class="selected-provider-bar">
+                    <span id="selectedProviderText">📦 —</span>
+                    <a href="container-providers.html" class="location-change-link">تغيير المنتج</a>
+                </div>
 
-                        <div class="size-card" onclick="selectSize('small', 150)" id="size-small">
-                            <div class="size-icon">📦</div>
-                            <div class="size-name">صغيرة</div>
-                            <div class="size-dim">3 متر</div>
-                            <div class="size-price">150 ريال/يوم</div>
-                        </div>
-
-                        <div class="size-card" onclick="selectSize('medium', 250)" id="size-medium">
-                            <div class="size-icon">📦</div>
-                            <div class="size-name">متوسطة</div>
-                            <div class="size-dim">6 متر</div>
-                            <div class="size-price">250 ريال/يوم</div>
-                        </div>
-
-                        <div class="size-card" onclick="selectSize('large', 400)" id="size-large">
-                            <div class="size-icon">📦</div>
-                            <div class="size-name">كبيرة</div>
-                            <div class="size-dim">12 متر</div>
-                            <div class="size-price">400 ريال/يوم</div>
-                        </div>
-
+                <!-- المنتج المختار -->
+                <div class="selected-product-card">
+                    <div class="selected-product-name" id="productName">—</div>
+                    <div class="selected-product-desc" id="productDescription"></div>
+                    <div class="selected-product-details">
+                        <span>📦 <span id="productSize">—</span></span>
+                        <span>💰 <span id="productPrice">—</span> ريال / <span id="productMinDaysText">—</span> أيام</span>
                     </div>
                 </div>
 
                 <!-- عدد الأيام -->
                 <div class="order-field">
-                    <label>📅 عدد الأيام <span style="color:#888;font-size:12px">(الحد الأدنى 10 أيام)</span></label>
+                    <label>📅 عدد الأيام <span style="color:#888;font-size:12px">(الحد الأدنى <span id="minDaysLabel">10</span> أيام)</span></label>
                     <div class="days-input">
                         <button class="days-btn" onclick="changeDays(-1)">−</button>
                         <input type="number" id="daysCount" value="10" min="10" onchange="updateContainerPrice()"/>

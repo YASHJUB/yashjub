@@ -65,6 +65,11 @@ function orderService(name) {
         return;
     }
 
+    if (name === 'حاوية') {
+        window.location.href = 'container-location.html';
+        return;
+    }
+
     window.location.href = `order.html?service=${encodeURIComponent(name)}`;
 }
 

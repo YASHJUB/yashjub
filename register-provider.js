@@ -31,6 +31,12 @@ function selectLevel(level) {
     document.getElementById('regFormSection').scrollIntoView({ behavior: 'smooth' });
 }
 
+// إظهار/إخفاء تنويه مزود الحاوية حسب نوع الخدمة
+function toggleContainerNote() {
+    const serviceType = document.getElementById('serviceType').value;
+    document.getElementById('containerNote').style.display = serviceType === 'حاوية' ? 'block' : 'none';
+}
+
 // إرسال التسجيل
 async function submitRegistration() {
     const fullName    = document.getElementById('fullName').value;

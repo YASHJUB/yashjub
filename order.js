@@ -8,9 +8,8 @@ const servicesData = {
     "حاوية":    { icon: "📦", type: "مجدول", price: 0,    time: "غداً 11 صباحاً" },
 }
 
-let selectedSize      = null;
-let selectedDayPrice  = 0;
-let currentService    = '';
+let currentService   = '';
+let selectedProduct  = null;
 
 function loadService() {
     const phone = localStorage.getItem('yashjub_phone');
@@ -48,10 +47,33 @@ function loadService() {
 
     // الحاوية — قسم خاص
     if (serviceName === 'حاوية') {
+        const productRaw = localStorage.getItem('yashjub_selected_product');
+        if (!productRaw) {
+            window.location.href = 'container-location.html';
+            return;
+        }
+        selectedProduct = JSON.parse(productRaw);
+
         document.getElementById('containerSection').style.display = 'block';
         document.getElementById('containerPriceRow').style.display = 'flex';
         document.getElementById('containerDaysRow').style.display  = 'flex';
         document.getElementById('timeField').style.display         = 'none';
+
+        const sizeNames = { small: 'صغيرة (3م)', medium: 'متوسطة (6م)', large: 'كبيرة (12م)' };
+
+        document.getElementById('selectedProviderText').textContent =
+            `📦 ${selectedProduct.providerName} — ⭐ ${selectedProduct.providerRating}`;
+
+        document.getElementById('productName').textContent        = selectedProduct.name;
+        document.getElementById('productDescription').textContent = selectedProduct.description || '';
+        document.getElementById('productSize').textContent         = sizeNames[selectedProduct.size] || selectedProduct.size;
+        document.getElementById('productPrice').textContent        = selectedProduct.price;
+        document.getElementById('productMinDaysText').textContent  = selectedProduct.minDays;
+
+        // ضبط الحد الأدنى للأيام حسب المنتج المختار
+        document.getElementById('minDaysLabel').textContent = selectedProduct.minDays;
+        document.getElementById('daysCount').min   = selectedProduct.minDays;
+        document.getElementById('daysCount').value = selectedProduct.minDays;
 
         // تعيين تاريخ اليوم كحد أدنى
         const today = new Date().toISOString().split('T')[0];
@@ -74,23 +96,12 @@ function updateNormalPrice(price) {
     document.getElementById('totalPrice').textContent   = `${total} ريال`;
 }
 
-// اختيار حجم الحاوية
-function selectSize(size, pricePerDay) {
-    selectedSize     = size;
-    selectedDayPrice = pricePerDay;
-
-    // إزالة التحديد من الكل
-    document.querySelectorAll('.size-card').forEach(c => c.classList.remove('selected'));
-    document.getElementById(`size-${size}`).classList.add('selected');
-
-    updateContainerPrice();
-}
-
 // تغيير عدد الأيام
 function changeDays(delta) {
+    const minDays = selectedProduct ? selectedProduct.minDays : 10;
     const input   = document.getElementById('daysCount');
-    const current = parseInt(input.value) || 10;
-    const newVal  = Math.max(10, current + delta);
+    const current = parseInt(input.value) || minDays;
+    const newVal  = Math.max(minDays, current + delta);
     input.value   = newVal;
     updateEndDate();
     updateContainerPrice();
@@ -98,8 +109,9 @@ function changeDays(delta) {
 
 // تحديث تاريخ النهاية
 function updateEndDate() {
+    const minDays   = selectedProduct ? selectedProduct.minDays : 10;
     const startDate = document.getElementById('startDate').value;
-    const days      = parseInt(document.getElementById('daysCount').value) || 10;
+    const days      = parseInt(document.getElementById('daysCount').value) || minDays;
 
     if (startDate) {
         const end = new Date(startDate);
@@ -109,30 +121,25 @@ function updateEndDate() {
     updateContainerPrice();
 }
 
-// تحديث سعر الحاوية
+// تحديث سعر الحاوية (السعر يُحسب خطياً من سعر الحزمة: سعر الحزمة ÷ حد أدنى الأيام × عدد الأيام الفعلي)
 function updateContainerPrice() {
-    const days = parseInt(document.getElementById('daysCount').value) || 10;
+    if (!selectedProduct) return;
 
-    if (days < 10) {
-        document.getElementById('daysCount').value = 10;
+    const minDays = selectedProduct.minDays;
+    const days    = parseInt(document.getElementById('daysCount').value) || minDays;
+
+    if (days < minDays) {
+        document.getElementById('daysCount').value = minDays;
         return;
     }
 
-    if (!selectedDayPrice) {
-        document.getElementById('servicePrice').textContent = '0 ريال';
-        document.getElementById('platformFee').textContent  = '0 ريال';
-        document.getElementById('totalPrice').textContent   = '0 ريال';
-        return;
-    }
-
-    const totalBase = selectedDayPrice * days;
-   const fee = Math.round(totalBase * 0.05);
+    const dailyRate = selectedProduct.price / minDays;
+    const totalBase = Math.round(dailyRate * days);
+    const fee       = Math.round(totalBase * 0.05);
     const total     = totalBase + fee;
 
-    const sizeNames = { small: 'صغيرة', medium: 'متوسطة', large: 'كبيرة' };
-
-    document.getElementById('containerDailyPrice').textContent = `${selectedDayPrice} ريال/يوم`;
-    document.getElementById('containerDaysLabel').textContent  = `${days} يوم × ${selectedDayPrice} ريال`;
+    document.getElementById('containerDailyPrice').textContent = `${selectedProduct.price} ريال / ${minDays} أيام`;
+    document.getElementById('containerDaysLabel').textContent  = `${days} يوم`;
     document.getElementById('containerDaysValue').textContent  = `${totalBase} ريال`;
     document.getElementById('servicePrice').textContent        = `${totalBase} ريال`;
     document.getElementById('platformFee').textContent         = `${fee} ريال`;
@@ -164,22 +171,19 @@ async function confirmOrder() {
     // التحقق من الحاوية
     let finalPrice = service.price;
     if (currentService === 'حاوية') {
-        if (!selectedSize) {
-            alert("❌ يرجى اختيار حجم الحاوية");
-            return;
-        }
-        const days  = parseInt(document.getElementById('daysCount').value) || 10;
-        const start = document.getElementById('startDate').value;
-        const end   = document.getElementById('endDate').value;
+        const minDays = selectedProduct.minDays;
+        const days    = parseInt(document.getElementById('daysCount').value) || minDays;
+        const start   = document.getElementById('startDate').value;
+        const end     = document.getElementById('endDate').value;
 
-        if (days < 10) {
-            alert("❌ الحد الأدنى للإيجار 10 أيام");
+        if (days < minDays) {
+            alert(`❌ الحد الأدنى للإيجار ${minDays} أيام`);
             return;
         }
 
-        finalPrice  = selectedDayPrice * days;
-        const sizeNames = { small: 'صغيرة', medium: 'متوسطة', large: 'كبيرة' };
-        fullAddress = `${address} | حجم: ${sizeNames[selectedSize]} | من: ${start} إلى: ${end} (${days} يوم)`;
+        const dailyRate = selectedProduct.price / minDays;
+        finalPrice  = Math.round(dailyRate * days);
+        fullAddress = `${address} | ${selectedProduct.name} | من: ${start} إلى: ${end} (${days} يوم)`;
     }
 
     try {
@@ -188,9 +192,12 @@ async function confirmOrder() {
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
                 phone,
-                service:  currentService,
-                address:  fullAddress,
-                price:    finalPrice,
+                service:      currentService,
+                address:      fullAddress,
+                price:        finalPrice,
+                providerId:   selectedProduct ? selectedProduct.providerId   : null,
+                providerName: selectedProduct ? selectedProduct.providerName : null,
+                productId:    selectedProduct ? selectedProduct.id           : null,
             })
         });
 
@@ -209,6 +216,9 @@ async function confirmOrder() {
                 price:     finalPrice,
                 createdAt: new Date().toLocaleString('ar-SA'),
             }));
+
+            localStorage.removeItem('yashjub_selected_product');
+            localStorage.removeItem('yashjub_container_location');
 
             alert(`✅ تم تأكيد طلبك!\n\nرقم الطلب: #${order.id}\n${service.icon} ${currentService}\n📍 ${address}`);
             window.location.href = 'tracking.html';

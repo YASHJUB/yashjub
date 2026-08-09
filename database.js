@@ -39,7 +39,41 @@ db.exec(`
         created_at   TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول منتجات مزودي الحاوية
+    CREATE TABLE IF NOT EXISTS products (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        provider_id  INTEGER NOT NULL,
+        name         TEXT NOT NULL,
+        description  TEXT,
+        size         TEXT NOT NULL,
+        price        INTEGER NOT NULL,
+        city         TEXT NOT NULL,
+        neighborhood TEXT NOT NULL,
+        is_available INTEGER DEFAULT 1,
+        created_at   TEXT DEFAULT (datetime('now'))
+    );
+
 `);
+
+// ترقية الجداول القديمة (migrations بسيطة — تتجاهل الخطأ لو العمود موجود مسبقاً)
+const migrations = [
+    'ALTER TABLE providers ADD COLUMN city TEXT',
+    'ALTER TABLE providers ADD COLUMN price_small INTEGER',
+    'ALTER TABLE providers ADD COLUMN price_medium INTEGER',
+    'ALTER TABLE providers ADD COLUMN price_large INTEGER',
+    'ALTER TABLE orders ADD COLUMN provider_id INTEGER',
+    'ALTER TABLE orders ADD COLUMN provider_name TEXT',
+    'ALTER TABLE orders ADD COLUMN product_id INTEGER',
+    'ALTER TABLE products ADD COLUMN min_days INTEGER DEFAULT 10',
+];
+
+for (const sql of migrations) {
+    try {
+        db.exec(sql);
+    } catch (err) {
+        // العمود موجود مسبقاً — تجاهل
+    }
+}
 
 console.log('✅ قاعدة البيانات جاهزة!');
 

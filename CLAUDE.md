@@ -15,8 +15,23 @@
 | حاوية 📦 | مجدول | 150–400 ريال/يوم (حد أدنى 10 أيام) |
 | معدات ثقيلة 🏗️ | مرحباً | — |
 
-- الحاوية: صغيرة (3م) 150، متوسطة (6م) 250، كبيرة (12م) 400 ريال/يوم، حد أدنى 10 أيام
+- الحاوية: صغيرة (3م)، متوسطة (6م)، كبيرة (12م) — كل منتج حاوية (يضيفه المزود) له حجم وسعر حزمة وحد أدنى أيام خاص فيه (المزود هو اللي يحدد الحد الأدنى، مو ثابت 10 للجميع)
 - السطحة: تحتاج موقعين — موقع السيارة الحالي + موقع التوصيل
+
+### تدفق طلب الحاوية (3 خطوات) — مبني على جدول `products`
+خدمة الحاوية فقط (دون باقي الخدمات) تمر بخطوتين قبل صفحة الطلب. العميل يختار **منتج محدد** (لا مزود عام) — كل منتج له حجم وسعر ثابتين له مسبقاً، فما فيه اختيار حجم لاحق بصفحة الطلب:
+1. **الموقع** (`container-location.html`): اختيار مدينة (الرياض/جدة/الدمام/مكة/المدينة المنورة) + كتابة الحي → يُحفظ في `localStorage` كـ `yashjub_container_location`
+2. **المنتج** (`container-providers.html`): يجلب منتجات الحاوية المتاحة بنفس المدينة من `GET /api/products/available?city=...` (JOIN بين `products` و`providers`)، ويعرض بطاقة لكل **منتج** (اسم، وصف، حجم، سعر الحزمة + عدد أيامها، + اسم وتقييم المزود صاحبه) — عند الاختيار يُحفظ في `localStorage` كـ `yashjub_selected_product`
+3. **الطلب** (`order.html?service=حاوية`): يقرأ المنتج المختار ويعرض معلوماته مباشرة (بدون خطوة اختيار حجم)، الحد الأدنى لعدد الأيام يُضبط تلقائياً من `selectedProduct.minDays`. يكمل الطلب بالأيام والتاريخ — يُرسل `providerId`/`providerName`/`productId` مع الطلب. لو حاول المستخدم فتح `order.html?service=حاوية` مباشرة بدون اختيار منتج، يُعاد توجيهه لخطوة الموقع.
+
+**حساب السعر:** كل منتج سعره "حزمة" مقابل `min_days` (مثلاً 600 ريال / 10 أيام)، مو سعر يومي مباشر. السعر اليومي الفعلي = `price ÷ min_days`، والإجمالي لأي عدد أيام (لازم يكون ≥ `min_days`) = ذاك السعر اليومي × عدد الأيام المطلوب (تقسيم خطي، مُقرَّب لأقرب ريال) — نفس المنطق مكرر في `updateContainerPrice()` و`confirmOrder()` بـ `order.js`.
+
+مزود خدمة الحاوية **لا** يحدد مدينة/أسعار عند التسجيل — التسجيل بسيط لكل الخدمات. يضيف منتجاته (كل واحد بمدينته وحيّه وحجمه وسعر حزمته وحد أدنى أيامه الخاص) لاحقاً من قسم "منتجاتي" بلوحة تحكم المزود.
+
+### قسم "منتجاتي" بلوحة المزود
+مزود الحاوية (فقط) عنده قسم "📦 منتجاتي" بـ `provider.html` — إدارة كتالوج منتجات (اسم، وصف، حجم، سعر الحزمة، الحد الأدنى للأيام، مدينة، حي، حالة متاح/غير متاح) بعمليات إضافة/تعديل/حذف كاملة، مخزّنة بجدول `products`. **هذا هو المصدر الوحيد** اللي يعتمد عليه تدفق العميل بالكامل (خطوة 2 أعلاه) — أي مزود حاوية بدون منتجات مُضافة **لن يظهر للعملاء أبداً**.
+
+**ملاحظة تاريخية:** أعمدة `providers.city/price_small/medium/large` كانت تُستخدم بنسخة سابقة (سعر ثابت واحد للمزود عند التسجيل) — صارت **غير مستخدمة (deprecated)** بعد التحول لنظام المنتجات، وباقية بالـ schema فقط لعدم كسر بيانات قديمة محلياً. أي مزود حاوية مسجَّل من قبل هالتحديث لازم يضيف منتجاته يدوياً من "منتجاتي" عشان يرجع يظهر.
 
 ## نظام المالية
 
@@ -43,7 +58,9 @@
 yashjub/
 ├── index.html / app.js              الصفحة الرئيسية
 ├── login.html / login.js            تسجيل الدخول
-├── order.html / order.js            صفحة الطلب
+├── order.html / order.js            صفحة الطلب (خطوة 3 للحاوية)
+├── container-location.html / .js    اختيار مدينة/حي الحاوية (خطوة 1)
+├── container-providers.html / .js   اختيار مزود الحاوية (خطوة 2)
 ├── tracking.html / tracking.js      تتبع الطلب
 ├── my-orders.html / my-orders.js    طلباتي
 ├── provider.html / provider.js      لوحة المزوّد
@@ -67,22 +84,29 @@ yashjub/
 **قاعدة البيانات (SQLite):**
 ```sql
 users       -- phone, otp, verified
-orders      -- phone, service, address, price, commission, status
-providers   -- phone, name, service_type, level, rating
+orders      -- phone, service, address, price, commission, status, provider_id, provider_name, product_id
+providers   -- phone, name, service_type, level, rating, city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
+products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available
 ```
+`price` بجدول `products` هو سعر حزمة كاملة (مو سعر يومي) — دايماً يُقرأ مع `min_days` المرافق له. `provider_id`/`provider_name`/`product_id` بالطلبات اختيارية (تُملأ فقط لطلبات الحاوية). أعمدة `providers.city/price_*`، `orders.provider_id/provider_name/product_id`، و`products.min_days` أُضيفت عبر `ALTER TABLE` مغلّفة بـ try/catch في `database.js` (migration بسيط بدون ORM).
 
 **API Endpoints:**
 ```
 POST /api/auth/send-otp
 POST /api/auth/verify-otp
-POST /api/orders
+POST /api/orders                              body إضافي اختياري: providerId, providerName, productId
 GET  /api/orders
 GET  /api/orders/:id
 GET  /api/orders/user/:phone
 PUT  /api/orders/:id/status
 GET  /api/users
-POST /api/providers/register
-GET  /api/providers
+POST /api/providers/register                  fullName, phone, idNumber, iban, serviceType, level (+حقول المستوى 2/3)
+GET  /api/providers                           كل المزودين (بدون فلترة)
+POST /api/products                            body: providerId, name, description, size, price, minDays, city, neighborhood
+GET  /api/products/provider/:providerId       منتجات مزود معيّن (لوحة المزود)
+GET  /api/products/available?city=..          منتجات الحاوية المتاحة بمدينة معيّنة + بيانات المزود (JOIN) — يستخدمها تدفق العميل
+PUT  /api/products/:id                        تعديل (نفس الحقول + isAvailable)
+DELETE /api/products/:id
 ```
 
 ## هوية التصميم
@@ -131,7 +155,7 @@ git push
 
 ## الميزات المنجزة
 
-OTP دخول (محاكاة)، تمييز عميل/مزوّد، نظام طلبات كامل، صفحات طلب مخصصة لكل خدمة، نظام حاوية (حجم+أيام+تاريخ)، نظام سطحة (موقعين)، تتبع الطلب بالمراحل، لوحة مزوّد (إحصائيات+محفظة+طلبات)، تسجيل مزوّد (3 مستويات)، صفحة طلباتي، ملف شخصي، لوحة إدارة، صفحات عن/تواصل/شروط/404، وضع ليلي/نهاري، Responsive، رفع على Railway وGitHub.
+OTP دخول (محاكاة)، تمييز عميل/مزوّد، نظام طلبات كامل، صفحات طلب مخصصة لكل خدمة، نظام حاوية مبني على كتالوج منتجات فعلي (اختيار موقع → اختيار منتج حقيقي من مزود → أيام+تاريخ)، نظام سطحة (موقعين)، تتبع الطلب بالمراحل، لوحة مزوّد (إحصائيات+محفظة+طلبات)، تسجيل مزوّد (3 مستويات)، إدارة منتجات مزود الحاوية (إضافة/تعديل/حذف)، صفحة طلباتي، ملف شخصي، لوحة إدارة، صفحات عن/تواصل/شروط/404، وضع ليلي/نهاري، Responsive، رفع على Railway وGitHub.
 
 ## الميزات القادمة (غير مُنفَّذة بعد)
 
