@@ -3603,7 +3603,7 @@ body.dark-mode .sidebar-footer {
     .reg-form-card { padding: 20px 16px; }
 
     /* السايد بار */
-    .app-sidebar { width: 85%; right: -85%; }
+    .app-sidebar { width: 85%; left: -85%; }
 
     /* الفوتر */
     .footer-links { gap: 10px; font-size: 11px; }
