@@ -2892,19 +2892,19 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 .app-sidebar {
     position: fixed;
-    top: 0; right: -300px;
+    top: 0; left: -300px;
     width: 280px;
     height: 100vh;
     background: #FFFFFF;
     z-index: 999;
-    transition: right 0.3s ease;
+    transition: left 0.3s ease;
     display: flex;
     flex-direction: column;
-    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
 }
 
 .app-sidebar.active {
-    right: 0;
+    left: 0;
 }
 
 .sidebar-header {
