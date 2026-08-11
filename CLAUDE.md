@@ -43,14 +43,15 @@
 
 **العميل:** تسجيل دخول برقم الجوال + OTP، يطلب الخدمات، يتتبع الطلب، يقيّم المزوّد بعد الاكتمال.
 
-**المزوّد (3 مستويات):**
+**المزوّد (مستويان — المستوى الأساسي حُذف):**
 | المستوى | المتطلبات | المميزات |
 |---|---|---|
-| أساسي | هوية + جوال + IBAN | ظهور محدود |
-| موثّق | + شهادة العمل الحر | ظهور أعلى + شارة توثيق |
-| شركة | + سجل تجاري | ظهور كامل + أولوية |
+| موثّق (2) | هوية + جوال + IBAN + شهادة العمل الحر | ظهور أعلى + شارة توثيق |
+| شركة (3) | + سجل تجاري | ظهور كامل + أولوية |
 
-**المدير (Admin):** `admin` / `yashjub2025` — رابط `/admin.html`
+كل تسجيل يتطلب رفع فعلي (ملف صورة أو PDF، ≤5MB) لصورة الهوية/الإقامة (إلزامي دائماً)، وملف شهادة العمل الحر (مستوى 2) أو السجل التجاري (مستوى 3). الملفات تُخزَّن محلياً بمجلد `uploads/` (عبر `multer`، مستثنى من git بـ `.gitignore`) وتُقدَّم كملفات ثابتة على `/uploads/...`. **تنبيه:** استضافة Railway الحالية بدون تخزين دائم — أي ملف مرفوع ينمحي مع أي `git push`/rebuild جديد للموقع الحي. قرار مقبول مؤقتاً؛ لو احتجنا استمرارية حقيقية لازم ننتقل لتخزين سحابي (مثل Cloudinary).
+
+**المدير (Admin):** `admin` / `yashjub2025` — رابط `/admin.html` — صفحة الموردين فيها روابط تفتح مستندات كل مزود (الهوية/الشهادة) بتبويب جديد للمراجعة.
 
 ## هيكل الملفات
 
@@ -79,13 +80,13 @@ yashjub/
 
 **Frontend:** HTML5, CSS3, JavaScript (Vanilla) — خط Cairo من Google Fonts — RTL دائماً (عربي أولاً) — Responsive (جوال أولاً)
 
-**Backend:** Node.js + Express.js, better-sqlite3, CORS + dotenv
+**Backend:** Node.js + Express.js, better-sqlite3, CORS + dotenv, multer (رفع الملفات)
 
 **قاعدة البيانات (SQLite):**
 ```sql
 users       -- phone, otp, verified
 orders      -- phone, service, address, price, commission, status, provider_id, provider_name, product_id
-providers   -- phone, name, service_type, level, rating, city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
+providers   -- phone, name, service_type, level, rating, id_document_path, certificate_path, city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
 products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available
 ```
 `price` بجدول `products` هو سعر حزمة كاملة (مو سعر يومي) — دايماً يُقرأ مع `min_days` المرافق له. `provider_id`/`provider_name`/`product_id` بالطلبات اختيارية (تُملأ فقط لطلبات الحاوية). أعمدة `providers.city/price_*`، `orders.provider_id/provider_name/product_id`، و`products.min_days` أُضيفت عبر `ALTER TABLE` مغلّفة بـ try/catch في `database.js` (migration بسيط بدون ORM).
@@ -100,7 +101,7 @@ GET  /api/orders/:id
 GET  /api/orders/user/:phone
 PUT  /api/orders/:id/status
 GET  /api/users
-POST /api/providers/register                  fullName, phone, idNumber, iban, serviceType, level (+حقول المستوى 2/3)
+POST /api/providers/register                  multipart/form-data: fullName, phone, idNumber, idDocument(ملف), iban, serviceType, level (2/3) + حقول المستوى + certificateDocument(ملف)
 GET  /api/providers                           كل المزودين (بدون فلترة)
 POST /api/products                            body: providerId, name, description, size, price, minDays, city, neighborhood
 GET  /api/products/provider/:providerId       منتجات مزود معيّن (لوحة المزود)

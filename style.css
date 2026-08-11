@@ -1470,10 +1470,10 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 }
 
 .levels-grid {
-    max-width: 900px;
+    max-width: 640px;
     margin: 30px auto 0;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 

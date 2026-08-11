@@ -241,6 +241,10 @@ async function loadProvidersPage() {
                 <td>⭐ ${p.rating}</td>
                 <td>${p.is_available ? '<span class="badge badge-done">متاح</span>' : '<span class="badge badge-cancel">مشغول</span>'}</td>
                 <td>
+                    ${p.id_document_path ? `<a href="${p.id_document_path}" target="_blank">🪪 الهوية</a>` : '—'}
+                    ${p.certificate_path ? ` &nbsp;<a href="${p.certificate_path}" target="_blank">📄 الشهادة</a>` : ''}
+                </td>
+                <td>
                     <button class="btn-detail" style="background:#10B981;color:#fff;border-color:#10B981">قبول</button>
                     <button class="btn-detail" style="background:#EF4444;color:#fff;border-color:#EF4444;margin-right:4px">رفض</button>
                 </td>

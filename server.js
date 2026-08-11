@@ -3,6 +3,8 @@
 const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
+const fs      = require('fs');
+const multer  = require('multer');
 const db      = require('./database');
 
 const app  = express();
@@ -13,6 +15,27 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 app.use('/images', express.static(path.join(__dirname, 'images')));
+
+// ========== رفع مستندات المزودين ==========
+
+const uploadsDir = path.join(__dirname, 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+app.use('/uploads', express.static(uploadsDir));
+
+const upload = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => cb(null, uploadsDir),
+        filename: (req, file, cb) => {
+            const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            cb(null, unique + path.extname(file.originalname));
+        },
+    }),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowed = /^image\/|^application\/pdf$/.test(file.mimetype);
+        cb(allowed ? null : new Error('نوع ملف غير مسموح'), allowed);
+    },
+});
 
 // ========== API المستخدمين ==========
 
@@ -107,14 +130,29 @@ app.get('/api/users', (req, res) => {
 
 // ========== API تسجيل المزودين ==========
 
-app.post('/api/providers/register', (req, res) => {
+app.post('/api/providers/register', upload.fields([
+    { name: 'idDocument', maxCount: 1 },
+    { name: 'certificateDocument', maxCount: 1 },
+]), (req, res) => {
     const { fullName, phone, idNumber, iban, serviceType, level } = req.body;
+    const levelNum = parseInt(level, 10);
 
     if (!fullName || !phone || !idNumber || !iban || !serviceType) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
     }
 
-    const providerLevel = level === 1 ? 'basic' : level === 2 ? 'verified' : 'business';
+    const idDocFile = req.files?.idDocument?.[0];
+    const certDocFile = req.files?.certificateDocument?.[0];
+
+    if (!idDocFile) {
+        return res.json({ success: false, message: 'يرجى إرفاق صورة الهوية أو الإقامة' });
+    }
+
+    if (levelNum >= 2 && !certDocFile) {
+        return res.json({ success: false, message: 'يرجى إرفاق شهادة العمل الحر أو السجل التجاري' });
+    }
+
+    const providerLevel = levelNum === 2 ? 'verified' : 'business';
 
     // تحقق إذا الرقم موجود مسبقاً
     const existing = db.prepare('SELECT * FROM providers WHERE phone = ?').get(phone);
@@ -124,9 +162,13 @@ app.post('/api/providers/register', (req, res) => {
     }
 
     const result = db.prepare(`
-        INSERT INTO providers (phone, name, service_type, level)
-        VALUES (?, ?, ?, ?)
-    `).run(phone, fullName, serviceType, providerLevel);
+        INSERT INTO providers (phone, name, service_type, level, id_document_path, certificate_path)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+        phone, fullName, serviceType, providerLevel,
+        `/uploads/${idDocFile.filename}`,
+        certDocFile ? `/uploads/${certDocFile.filename}` : null,
+    );
 
     console.log(`✅ مزود جديد #${result.lastInsertRowid} — ${fullName} — ${serviceType}`);
 
@@ -214,6 +256,14 @@ app.put('/api/products/:id', (req, res) => {
 app.delete('/api/products/:id', (req, res) => {
     db.prepare('DELETE FROM products WHERE id = ?').run(req.params.id);
     res.json({ success: true });
+});
+
+// أخطاء رفع الملفات (نوع غير مسموح، حجم كبير)
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError || err) {
+        return res.json({ success: false, message: 'تعذّر رفع الملف — تأكد إنه صورة أو PDF أقل من 5MB' });
+    }
+    next();
 });
 
 // صفحة 404

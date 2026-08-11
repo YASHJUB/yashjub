@@ -2,3 +2,4 @@ node_modules/
 yashjub.db
 .env
 .claude/
+uploads/

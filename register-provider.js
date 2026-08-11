@@ -17,7 +17,6 @@ function selectLevel(level) {
 
     // تحديث عنوان النموذج
     const titles = {
-        1: '📝 تسجيل المستوى الأول — مزود أساسي',
         2: '📝 تسجيل المستوى الثاني — مزود موثق',
         3: '📝 تسجيل المستوى الثالث — شركة / منشأة'
     };
@@ -42,6 +41,7 @@ async function submitRegistration() {
     const fullName    = document.getElementById('fullName').value;
     const phone       = document.getElementById('phone').value;
     const idNumber    = document.getElementById('idNumber').value;
+    const idDocument  = document.getElementById('idDocument').files[0];
     const iban        = document.getElementById('iban').value;
     const serviceType = document.getElementById('serviceType').value;
     const terms       = document.getElementById('terms').checked;
@@ -57,45 +57,72 @@ async function submitRegistration() {
         return;
     }
 
+    if (!idDocument) {
+        alert('❌ يرجى إرفاق صورة الهوية أو الإقامة');
+        return;
+    }
+
     if (!terms) {
         alert('❌ يرجى الموافقة على الشروط والأحكام');
         return;
     }
 
     // بيانات التسجيل
-    const data = {
-        fullName,
-        phone,
-        idNumber,
-        iban,
-        serviceType,
-        level: selectedLevel,
-    };
+    const data = new FormData();
+    data.append('fullName', fullName);
+    data.append('phone', phone);
+    data.append('idNumber', idNumber);
+    data.append('idDocument', idDocument);
+    data.append('iban', iban);
+    data.append('serviceType', serviceType);
+    data.append('level', selectedLevel);
 
     // إضافة بيانات المستوى الثاني
     if (selectedLevel >= 2) {
-        data.freelanceNum = document.getElementById('freelanceNum').value;
-        if (!data.freelanceNum) {
+        const freelanceNum = document.getElementById('freelanceNum').value;
+        const freelanceDoc = document.getElementById('freelanceDoc').files[0];
+
+        if (!freelanceNum) {
             alert('❌ يرجى إدخال رقم شهادة العمل الحر');
             return;
+        }
+
+        data.append('freelanceNum', freelanceNum);
+
+        if (selectedLevel === 2) {
+            if (!freelanceDoc) {
+                alert('❌ يرجى إرفاق ملف شهادة العمل الحر');
+                return;
+            }
+            data.append('certificateDocument', freelanceDoc);
         }
     }
 
     // إضافة بيانات المستوى الثالث
     if (selectedLevel === 3) {
-        data.crNumber    = document.getElementById('crNumber').value;
-        data.companyName = document.getElementById('companyName').value;
-        if (!data.crNumber || !data.companyName) {
+        const crNumber    = document.getElementById('crNumber').value;
+        const crDoc       = document.getElementById('crDoc').files[0];
+        const companyName = document.getElementById('companyName').value;
+
+        if (!crNumber || !companyName) {
             alert('❌ يرجى إدخال بيانات الشركة');
             return;
         }
+
+        if (!crDoc) {
+            alert('❌ يرجى إرفاق ملف السجل التجاري');
+            return;
+        }
+
+        data.append('crNumber', crNumber);
+        data.append('companyName', companyName);
+        data.append('certificateDocument', crDoc);
     }
 
     try {
        const response = await fetch(window.location.origin + '/api/providers/register', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(data)
+            method: 'POST',
+            body:   data
         });
 
         const result = await response.json();

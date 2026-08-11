@@ -36,26 +36,13 @@
 
         <div class="levels-grid">
 
-            <div class="level-card" id="level1Card" onclick="selectLevel(1)">
-                <div class="level-badge-icon">🥈</div>
-                <div class="level-name">المستوى الأول</div>
-                <div class="level-sub">مزود أساسي</div>
-                <div class="level-features">
-                    <div class="level-feat">✅ هوية / إقامة</div>
-                    <div class="level-feat">✅ رقم الجوال</div>
-                    <div class="level-feat">✅ IBAN البنكي</div>
-                    <div class="level-feat grey">⬜ وصول محدود</div>
-                </div>
-                <div class="level-select-btn">اختر هذا المستوى</div>
-            </div>
-
             <div class="level-card recommended" id="level2Card" onclick="selectLevel(2)">
                 <div class="recommended-badge">الأكثر طلباً</div>
                 <div class="level-badge-icon">🥇</div>
                 <div class="level-name">المستوى الثاني</div>
                 <div class="level-sub">مزود موثق</div>
                 <div class="level-features">
-                    <div class="level-feat">✅ كل ما في المستوى الأول</div>
+                    <div class="level-feat">✅ هوية / إقامة + IBAN</div>
                     <div class="level-feat">✅ شهادة العمل الحر</div>
                     <div class="level-feat">✅ ظهور أعلى في النتائج</div>
                     <div class="level-feat">✅ شارة التوثيق</div>
@@ -84,7 +71,7 @@
 
         <div class="reg-form-card">
 
-            <div class="reg-form-title" id="regFormTitle">تسجيل المستوى الأول</div>
+            <div class="reg-form-title" id="regFormTitle">تسجيل المستوى الثاني</div>
 
             <!-- الحقول الأساسية (كل المستويات) -->
             <div class="form-group">
@@ -103,6 +90,11 @@
             <div class="form-group">
                 <label>رقم الهوية / الإقامة</label>
                 <input type="number" id="idNumber" placeholder="أدخل رقم الهوية أو الإقامة"/>
+            </div>
+
+            <div class="form-group">
+                <label>صورة الهوية / الإقامة</label>
+                <input type="file" id="idDocument" accept="image/*,.pdf"/>
             </div>
 
             <div class="form-group">
@@ -134,6 +126,10 @@
                     <label>رقم شهادة العمل الحر</label>
                     <input type="text" id="freelanceNum" placeholder="أدخل رقم شهادة العمل الحر"/>
                 </div>
+                <div class="form-group">
+                    <label>ملف شهادة العمل الحر</label>
+                    <input type="file" id="freelanceDoc" accept="image/*,.pdf"/>
+                </div>
             </div>
 
             <!-- حقول المستوى الثالث -->
@@ -146,6 +142,10 @@
                 <div class="form-group">
                     <label>رقم السجل التجاري</label>
                     <input type="text" id="crNumber" placeholder="أدخل رقم السجل التجاري"/>
+                </div>
+                <div class="form-group">
+                    <label>ملف السجل التجاري</label>
+                    <input type="file" id="crDoc" accept="image/*,.pdf"/>
                 </div>
                 <div class="form-group">
                     <label>اسم الشركة / المنشأة</label>
