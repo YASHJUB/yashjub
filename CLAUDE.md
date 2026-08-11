@@ -43,6 +43,11 @@
 
 **العميل:** تسجيل دخول برقم الجوال + OTP، يطلب الخدمات، يتتبع الطلب، يقيّم المزوّد بعد الاكتمال.
 
+### مطابقة المزود بالطلب + التواصل (`tracking.html`)
+كل طلب (بما فيها وايت ماء/سطحة، مو بس الحاوية) يرتبط بمزود حقيقي وقت `POST /api/orders`: لو الطلب ما حدد `providerId` صراحة (حالة الحاوية اللي يحدده العميل بنفسه)، السيرفر يطابق تلقائياً أفضل مزود متاح (`is_available=1`) بنفس نوع الخدمة (الأعلى تقييماً) من جدول `providers`. لو ماكو أي مزود مسجّل لهذي الخدمة، الطلب يكمل بدون مزود (`provider_id=null`) بدون أخطاء.
+
+صفحة `tracking.html` تعرض قسم "التواصل مع المزود" (اسم + تقييم) فقط لو فيه مزود مرتبط فعلياً — زر اتصال مباشر (`tel:+966...`) وزر محادثة يفتح شات بسيط. رسائل الشات تُحفظ محلياً بـ `localStorage` تحت `chat_<orderId>` (بدون رد آلي من المزود — تواصل بجهة واحدة حالياً)، وتُمسح تلقائياً مع القسم كامل عند اكتمال محاكاة الخدمة.
+
 **المزوّد (مستويان — المستوى الأساسي حُذف):**
 | المستوى | المتطلبات | المميزات |
 |---|---|---|
@@ -85,7 +90,7 @@ yashjub/
 **قاعدة البيانات (SQLite):**
 ```sql
 users       -- phone, otp, verified
-orders      -- phone, service, address, price, commission, status, provider_id, provider_name, product_id
+orders      -- phone, service, address, price, commission, status, provider_id, provider_name, provider_phone, product_id
 providers   -- phone, name, service_type, level, rating, id_document_path, certificate_path, city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
 products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available
 ```
@@ -95,7 +100,7 @@ products    -- provider_id, name, description, size, price, min_days, city, neig
 ```
 POST /api/auth/send-otp
 POST /api/auth/verify-otp
-POST /api/orders                              body إضافي اختياري: providerId, providerName, productId
+POST /api/orders                              body إضافي اختياري: providerId, providerName, productId — لو providerId غايب يُطابَق مزود تلقائياً حسب service
 GET  /api/orders
 GET  /api/orders/:id
 GET  /api/orders/user/:phone

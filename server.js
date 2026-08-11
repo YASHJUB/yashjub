@@ -78,20 +78,46 @@ app.post('/api/auth/verify-otp', (req, res) => {
 // ========== API الطلبات ==========
 
 app.post('/api/orders', (req, res) => {
-    const { phone, service, address, price, providerId, providerName, productId } = req.body;
+    const { phone, service, address, price, productId } = req.body;
+    let   { providerId, providerName } = req.body;
 
     if (!phone || !service || !address) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
     }
 
+    // لو ما انبعث مزود محدد (وايت ماء/سطحة) — مطابقة تلقائية لأفضل مزود متاح لنفس الخدمة
+    if (!providerId) {
+        const match = db.prepare(`
+            SELECT * FROM providers WHERE service_type = ? AND is_available = 1
+            ORDER BY rating DESC LIMIT 1
+        `).get(service);
+
+        if (match) {
+            providerId   = match.id;
+            providerName = match.name;
+        }
+    }
+
+    // جلب هاتف وتقييم المزود (المُختار صراحة أو المُطابَق تلقائياً)
+    let providerPhone  = null;
+    let providerRating = null;
+    if (providerId) {
+        const provider = db.prepare('SELECT phone, rating FROM providers WHERE id = ?').get(providerId);
+        if (provider) {
+            providerPhone  = provider.phone;
+            providerRating = provider.rating;
+        }
+    }
+
     const commission = Math.round(price * 0.05);
 
     const result = db.prepare(`
-        INSERT INTO orders (phone, service, address, price, commission, provider_id, provider_name, product_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(phone, service, address, price, commission, providerId || null, providerName || null, productId || null);
+        INSERT INTO orders (phone, service, address, price, commission, provider_id, provider_name, provider_phone, product_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(phone, service, address, price, commission, providerId || null, providerName || null, providerPhone, productId || null);
 
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(result.lastInsertRowid);
+    order.provider_rating = providerRating;
 
     console.log(`✅ طلب جديد #${order.id} — ${service} — ${address}`);
 

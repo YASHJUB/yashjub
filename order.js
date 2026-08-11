@@ -207,14 +207,17 @@ async function confirmOrder() {
             const order = data.order;
 
             localStorage.setItem('yashjub_order', JSON.stringify({
-                id:        order.id,
-                service:   currentService,
-                icon:      service.icon,
-                address:   fullAddress,
-                status:    order.status,
-                time:      service.time,
-                price:     finalPrice,
-                createdAt: new Date().toLocaleString('ar-SA'),
+                id:             order.id,
+                service:        currentService,
+                icon:           service.icon,
+                address:        fullAddress,
+                status:         order.status,
+                time:           service.time,
+                price:          finalPrice,
+                createdAt:      new Date().toLocaleString('ar-SA'),
+                providerName:   order.provider_name,
+                providerPhone:  order.provider_phone,
+                providerRating: order.provider_rating,
             }));
 
             localStorage.removeItem('yashjub_selected_product');

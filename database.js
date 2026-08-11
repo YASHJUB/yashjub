@@ -67,6 +67,7 @@ const migrations = [
     'ALTER TABLE products ADD COLUMN min_days INTEGER DEFAULT 10',
     'ALTER TABLE providers ADD COLUMN id_document_path TEXT',
     'ALTER TABLE providers ADD COLUMN certificate_path TEXT',
+    'ALTER TABLE orders ADD COLUMN provider_phone TEXT',
 ];
 
 for (const sql of migrations) {

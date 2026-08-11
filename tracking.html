@@ -106,6 +106,32 @@
                 </div>
             </div>
 
+            <!-- التواصل مع المزود -->
+            <div id="contactProviderSection" style="display:none">
+                <div class="order-divider"></div>
+
+                <div class="contact-provider-section">
+                    <div class="contact-provider-title">📞 التواصل مع المزود</div>
+                    <div class="contact-provider-info">
+                        <span class="contact-provider-name" id="providerNameText">—</span>
+                        <span class="contact-provider-rating">⭐ <span id="providerRatingText">—</span></span>
+                    </div>
+                    <div class="contact-provider-actions">
+                        <button class="btn-call" onclick="callProvider()">📞 اتصال مباشر</button>
+                        <button class="btn-chat" onclick="toggleChat()">💬 محادثة</button>
+                    </div>
+
+                    <!-- لوحة الشات -->
+                    <div class="chat-panel" id="chatPanel" style="display:none">
+                        <div class="chat-messages" id="chatMessages"></div>
+                        <div class="chat-input-row">
+                            <input type="text" id="chatInput" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter') sendChatMessage()"/>
+                            <button class="btn-small" onclick="sendChatMessage()">إرسال</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="order-divider"></div>
 
             <!-- زر إلغاء -->

@@ -1,5 +1,7 @@
 // كود تتبع الطلب في يشجب
 
+let currentOrder = null;
+
 // تحميل بيانات الطلب
 function loadOrder() {
     const orderData = localStorage.getItem('yashjub_order');
@@ -10,6 +12,7 @@ function loadOrder() {
     }
 
     const order = JSON.parse(orderData);
+    currentOrder = order;
 
     // تحديث الصفحة ببيانات الطلب
     document.getElementById('trackingIcon').textContent   = order.icon;
@@ -20,8 +23,74 @@ function loadOrder() {
     document.getElementById('trackingPrice').textContent  = `${order.price} ريال`;
     document.getElementById('trackingDate').textContent   = order.createdAt;
 
+    // قسم التواصل مع المزود (يظهر فقط لو فيه مزود مرتبط فعلياً بالطلب)
+    if (order.providerName) {
+        document.getElementById('providerNameText').textContent   = order.providerName;
+        document.getElementById('providerRatingText').textContent = order.providerRating;
+        document.getElementById('contactProviderSection').style.display = 'block';
+        loadChatMessages();
+    }
+
     // تشغيل محاكاة التتبع
     simulateTracking();
+}
+
+// اتصال مباشر بالمزود
+function callProvider() {
+    if (!currentOrder || !currentOrder.providerPhone) return;
+    window.location.href = `tel:+966${currentOrder.providerPhone}`;
+}
+
+// إظهار/إخفاء لوحة الشات
+function toggleChat() {
+    const panel = document.getElementById('chatPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+// تحميل رسائل الشات المحفوظة
+function loadChatMessages() {
+    const messages = JSON.parse(localStorage.getItem(`chat_${currentOrder.id}`) || '[]');
+    renderChatMessages(messages);
+}
+
+// عرض رسائل الشات
+function renderChatMessages(messages) {
+    const container = document.getElementById('chatMessages');
+
+    if (messages.length === 0) {
+        container.innerHTML = '<div class="chat-empty">ابدأ المحادثة مع المزود...</div>';
+        return;
+    }
+
+    container.innerHTML = messages.map(m => `
+        <div class="chat-bubble">
+            <div class="chat-bubble-text">${m.text}</div>
+            <div class="chat-bubble-time">${m.time}</div>
+        </div>
+    `).join('');
+
+    container.scrollTop = container.scrollHeight;
+}
+
+// إرسال رسالة شات
+function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const text  = input.value.trim();
+
+    if (!text || !currentOrder) return;
+
+    const key      = `chat_${currentOrder.id}`;
+    const messages = JSON.parse(localStorage.getItem(key) || '[]');
+
+    messages.push({
+        text,
+        time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+    });
+
+    localStorage.setItem(key, JSON.stringify(messages));
+    renderChatMessages(messages);
+
+    input.value = '';
 }
 
 // محاكاة مراحل الطلب
@@ -53,6 +122,12 @@ function simulateTracking() {
 // إظهار رسالة الاكتمال
 function showComplete() {
     setTimeout(() => {
+        // إغلاق قسم التواصل والشات تلقائياً عند اكتمال الخدمة
+        document.getElementById('contactProviderSection').style.display = 'none';
+        if (currentOrder) {
+            localStorage.removeItem(`chat_${currentOrder.id}`);
+        }
+
         alert('🎉 تم اكتمال الخدمة بنجاح!\nشكراً لاستخدامك يشجب');
         localStorage.removeItem('yashjub_order');
         window.location.href = 'index.html';
