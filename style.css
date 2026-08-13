@@ -4654,3 +4654,45 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 @media (max-width: 480px) {
     .contact-provider-actions { grid-template-columns: 1fr; }
 }
+
+/* ══ خرائط الموقع (Leaflet) ══ */
+
+.location-map {
+    height: 250px;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #EEEEEE;
+    margin: 10px 0;
+    z-index: 1;
+}
+
+@media (min-width: 768px) {
+    .location-map { height: 300px; }
+}
+
+.btn-locate {
+    display: block;
+    width: 100%;
+    background: #111111;
+    color: #F5C518;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+}
+
+.btn-locate:hover {
+    background: #222222;
+}
+
+.leaflet-popup-content {
+    font-family: 'Cairo', sans-serif;
+    text-align: right;
+    font-size: 13px;
+}

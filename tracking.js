@@ -31,6 +31,20 @@ function loadOrder() {
         loadChatMessages();
     }
 
+    // خريطة الموقع (تظهر فقط لو الطلب فيه إحداثيات محفوظة)
+    if (order.lat && order.lng) {
+        document.getElementById('trackingMapSection').style.display = 'block';
+
+        const map = L.map('trackingMap', { zoomControl: true, dragging: true, scrollWheelZoom: false })
+            .setView([order.lat, order.lng], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+        }).addTo(map);
+
+        L.marker([order.lat, order.lng]).addTo(map);
+    }
+
     // تشغيل محاكاة التتبع
     simulateTracking();
 }

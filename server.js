@@ -78,7 +78,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
 // ========== API الطلبات ==========
 
 app.post('/api/orders', (req, res) => {
-    const { phone, service, address, price, productId } = req.body;
+    const { phone, service, address, price, productId, lat, lng } = req.body;
     let   { providerId, providerName } = req.body;
 
     if (!phone || !service || !address) {
@@ -112,9 +112,9 @@ app.post('/api/orders', (req, res) => {
     const commission = Math.round(price * 0.05);
 
     const result = db.prepare(`
-        INSERT INTO orders (phone, service, address, price, commission, provider_id, provider_name, provider_phone, product_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(phone, service, address, price, commission, providerId || null, providerName || null, providerPhone, productId || null);
+        INSERT INTO orders (phone, service, address, price, commission, provider_id, provider_name, provider_phone, product_id, lat, lng)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(phone, service, address, price, commission, providerId || null, providerName || null, providerPhone, productId || null, lat || null, lng || null);
 
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(result.lastInsertRowid);
     order.provider_rating = providerRating;
@@ -216,16 +216,16 @@ app.get('/api/orders/user/:phone', (req, res) => {
 // ========== API منتجات مزود الحاوية ==========
 
 app.post('/api/products', (req, res) => {
-    const { providerId, name, description, size, price, city, neighborhood, minDays } = req.body;
+    const { providerId, name, description, size, price, city, neighborhood, minDays, lat, lng } = req.body;
 
     if (!providerId || !name || !size || !price || !city || !neighborhood || !minDays) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
     }
 
     const result = db.prepare(`
-        INSERT INTO products (provider_id, name, description, size, price, city, neighborhood, min_days)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(providerId, name, description || '', size, price, city, neighborhood, minDays);
+        INSERT INTO products (provider_id, name, description, size, price, city, neighborhood, min_days, lat, lng)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(providerId, name, description || '', size, price, city, neighborhood, minDays, lat || null, lng || null);
 
     const product = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
 
@@ -262,7 +262,7 @@ app.get('/api/products/provider/:providerId', (req, res) => {
 });
 
 app.put('/api/products/:id', (req, res) => {
-    const { name, description, size, price, city, neighborhood, isAvailable, minDays } = req.body;
+    const { name, description, size, price, city, neighborhood, isAvailable, minDays, lat, lng } = req.body;
 
     if (!name || !size || !price || !city || !neighborhood || !minDays) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
@@ -270,9 +270,9 @@ app.put('/api/products/:id', (req, res) => {
 
     db.prepare(`
         UPDATE products
-        SET name = ?, description = ?, size = ?, price = ?, city = ?, neighborhood = ?, is_available = ?, min_days = ?
+        SET name = ?, description = ?, size = ?, price = ?, city = ?, neighborhood = ?, is_available = ?, min_days = ?, lat = ?, lng = ?
         WHERE id = ?
-    `).run(name, description || '', size, price, city, neighborhood, isAvailable ? 1 : 0, minDays, req.params.id);
+    `).run(name, description || '', size, price, city, neighborhood, isAvailable ? 1 : 0, minDays, lat || null, lng || null, req.params.id);
 
     const product = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
 

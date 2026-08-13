@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>يشجب - لوحة المزود</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -147,6 +148,13 @@
                     <input type="text" id="productNeighborhood" placeholder="مثال: حي النرجس"/>
                 </div>
                 <div class="order-field">
+                    <label>الموقع على الخريطة (اختياري — يساعد العملاء يشوفون موقعك بالضبط)</label>
+                    <button type="button" class="btn-locate" onclick="useMyLocationForProduct()">📍 استخدم موقعي الحالي</button>
+                    <div id="productMap" class="location-map"></div>
+                    <input type="hidden" id="productLat"/>
+                    <input type="hidden" id="productLng"/>
+                </div>
+                <div class="order-field">
                     <label>حالة المنتج</label>
                     <select id="productAvailable">
                         <option value="1">متاح</option>
@@ -268,6 +276,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="provider.js"></script>
 </body>
 </html>

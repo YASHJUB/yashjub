@@ -10,6 +10,8 @@ const servicesData = {
 
 let currentService   = '';
 let selectedProduct  = null;
+let addressMap       = null;
+let addressMarker    = null;
 
 function loadService() {
     const phone = localStorage.getItem('yashjub_phone');
@@ -85,6 +87,66 @@ function loadService() {
         // تحديث السعر للخدمات العادية
         updateNormalPrice(service.price);
     }
+
+    initAddressMap();
+}
+
+// ══ خريطة تحديد الموقع ══
+
+function initAddressMap() {
+    addressMap = L.map('addressMap').setView([24.7136, 46.6753], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+    }).addTo(addressMap);
+
+    addressMap.on('click', (e) => {
+        setAddressMarker(e.latlng.lat, e.latlng.lng);
+    });
+}
+
+function setAddressMarker(lat, lng) {
+    if (addressMarker) {
+        addressMarker.setLatLng([lat, lng]);
+    } else {
+        addressMarker = L.marker([lat, lng]).addTo(addressMap);
+    }
+
+    document.getElementById('addressLat').value = lat;
+    document.getElementById('addressLng').value = lng;
+
+    reverseGeocode(lat, lng);
+}
+
+async function reverseGeocode(lat, lng) {
+    document.getElementById('address').value = 'جاري تحديد اسم الموقع...';
+
+    try {
+        const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`);
+        const data = await res.json();
+        document.getElementById('address').value = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    } catch (error) {
+        document.getElementById('address').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    }
+}
+
+// استخدام الموقع الحالي عبر GPS
+function useMyLocation() {
+    if (!navigator.geolocation) {
+        alert('❌ المتصفح ما يدعم تحديد الموقع');
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            addressMap.setView([latitude, longitude], 15);
+            setAddressMarker(latitude, longitude);
+        },
+        () => {
+            alert('❌ ما قدرنا نحدد موقعك — تأكد من تفعيل صلاحية الموقع بالمتصفح');
+        }
+    );
 }
 
 // تحديث السعر العادي
@@ -186,6 +248,9 @@ async function confirmOrder() {
         fullAddress = `${address} | ${selectedProduct.name} | من: ${start} إلى: ${end} (${days} يوم)`;
     }
 
+    const lat = document.getElementById('addressLat').value || null;
+    const lng = document.getElementById('addressLng').value || null;
+
     try {
         const response = await fetch(`${API}/orders`, {
             method:  'POST',
@@ -198,6 +263,7 @@ async function confirmOrder() {
                 providerId:   selectedProduct ? selectedProduct.providerId   : null,
                 providerName: selectedProduct ? selectedProduct.providerName : null,
                 productId:    selectedProduct ? selectedProduct.id           : null,
+                lat, lng,
             })
         });
 
@@ -218,6 +284,8 @@ async function confirmOrder() {
                 providerName:   order.provider_name,
                 providerPhone:  order.provider_phone,
                 providerRating: order.provider_rating,
+                lat:            order.lat,
+                lng:            order.lng,
             }));
 
             localStorage.removeItem('yashjub_selected_product');

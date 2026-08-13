@@ -7,6 +7,8 @@ let countdownSeconds = 60;
 let allOrders = [];
 let currentProviderId = null;
 let editingProductId   = null;
+let productMap    = null;
+let productMarker = null;
 
 // تحميل الصفحة
 function loadProvider() {
@@ -365,10 +367,57 @@ function toggleProductForm() {
 
     if (isHidden) {
         form.style.display = 'block';
+        initProductMap();
     } else {
         form.style.display = 'none';
         resetProductForm();
     }
+}
+
+// ══ خريطة اختيار موقع المنتج ══
+
+function initProductMap() {
+    if (!productMap) {
+        productMap = L.map('productMap').setView([24.7136, 46.6753], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+        }).addTo(productMap);
+
+        productMap.on('click', (e) => setProductMarker(e.latlng.lat, e.latlng.lng));
+    }
+
+    // الخريطة كانت مخفية (display:none) — لازم نحدّث حجمها بعد ما تظهر
+    setTimeout(() => productMap.invalidateSize(), 100);
+}
+
+function setProductMarker(lat, lng) {
+    if (productMarker) {
+        productMarker.setLatLng([lat, lng]);
+    } else {
+        productMarker = L.marker([lat, lng]).addTo(productMap);
+    }
+
+    document.getElementById('productLat').value = lat;
+    document.getElementById('productLng').value = lng;
+}
+
+function useMyLocationForProduct() {
+    if (!navigator.geolocation) {
+        alert('❌ المتصفح ما يدعم تحديد الموقع');
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            productMap.setView([latitude, longitude], 15);
+            setProductMarker(latitude, longitude);
+        },
+        () => {
+            alert('❌ ما قدرنا نحدد موقعك — تأكد من تفعيل صلاحية الموقع بالمتصفح');
+        }
+    );
 }
 
 // تفريغ الفورم
@@ -382,7 +431,14 @@ function resetProductForm() {
     document.getElementById('productCity').value = '';
     document.getElementById('productNeighborhood').value = '';
     document.getElementById('productAvailable').value = '1';
+    document.getElementById('productLat').value = '';
+    document.getElementById('productLng').value = '';
     document.getElementById('saveProductBtn').textContent = 'حفظ المنتج';
+
+    if (productMarker) {
+        productMap.removeLayer(productMarker);
+        productMarker = null;
+    }
 }
 
 // حفظ منتج (إضافة أو تعديل)
@@ -395,6 +451,8 @@ async function saveProduct() {
     const city         = document.getElementById('productCity').value;
     const neighborhood = document.getElementById('productNeighborhood').value.trim();
     const isAvailable  = document.getElementById('productAvailable').value === '1';
+    const lat          = document.getElementById('productLat').value || null;
+    const lng          = document.getElementById('productLng').value || null;
 
     if (!name || !size || !price || !minDays || !city || !neighborhood) {
         alert('❌ يرجى تعبئة جميع الحقول المطلوبة');
@@ -410,7 +468,7 @@ async function saveProduct() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 providerId: currentProviderId,
-                name, description, size, price, minDays, city, neighborhood, isAvailable,
+                name, description, size, price, minDays, city, neighborhood, isAvailable, lat, lng,
             })
         });
 
@@ -444,6 +502,14 @@ function editProduct(product) {
 
     document.getElementById('productForm').style.display = 'block';
     document.getElementById('productForm').scrollIntoView({ behavior: 'smooth' });
+
+    initProductMap();
+    if (product.lat && product.lng) {
+        setTimeout(() => {
+            productMap.setView([product.lat, product.lng], 14);
+            setProductMarker(product.lat, product.lng);
+        }, 150);
+    }
 }
 
 // حذف منتج

@@ -42,6 +42,7 @@ async function loadProducts() {
         }
 
         renderProducts(data.products);
+        renderProductsMap(data.products);
 
     } catch (error) {
         document.getElementById('providersLoading').style.display = 'none';
@@ -81,6 +82,33 @@ function renderProducts(products) {
             </div>
         `;
     }).join('');
+}
+
+// خريطة مواقع المنتجات المتاحة (pins)
+function renderProductsMap(products) {
+    const withLocation = products.filter(p => p.lat && p.lng);
+
+    if (withLocation.length === 0) return;
+
+    document.getElementById('productsMapWrap').style.display = 'block';
+
+    const map = L.map('productsMap');
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
+
+    withLocation.forEach(p => {
+        L.marker([p.lat, p.lng])
+            .addTo(map)
+            .bindPopup(`<b>${p.name}</b><br>${p.price} ريال / ${p.min_days} أيام<br>${p.provider_name}`);
+    });
+
+    if (withLocation.length === 1) {
+        map.setView([withLocation[0].lat, withLocation[0].lng], 13);
+    } else {
+        map.fitBounds(withLocation.map(p => [p.lat, p.lng]), { padding: [30, 30] });
+    }
 }
 
 function selectProduct(product) {

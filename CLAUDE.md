@@ -58,6 +58,18 @@
 
 **المدير (Admin):** `admin` / `yashjub2025` — رابط `/admin.html` — صفحة الموردين فيها روابط تفتح مستندات كل مزود (الهوية/الشهادة) بتبويب جديد للمراجعة.
 
+### الخرائط (Leaflet + OpenStreetMap — مجاني بالكامل، بدون مفتاح API)
+تحديد المواقع بالمشروع يعتمد على خرائط Leaflet مع بلاطات OpenStreetMap، تُحمَّل عبر CDN (`unpkg.com/leaflet@1.9.4`) بكل صفحة معنية — بدون حزمة npm. مركز الخريطة الافتراضي: الرياض `[24.7136, 46.6753]`.
+
+- **`order.html`**: خريطة تفاعلية بدل حقل العنوان النصي القديم — الضغط عليها (أو زر "استخدم موقعي الحالي" عبر `navigator.geolocation`) يحط pin ويعبّي حقل العنوان تلقائياً عبر **Geocoding عكسي بـ Nominatim** (`nominatim.openstreetmap.org/reverse`)، ويخزّن الإحداثيات بحقلين مخفيين (`lat`/`lng`) تُرسل مع الطلب. **حقل عنوان التوصيل الثاني الخاص بالسطحة يبقى نص عادي** (لم يتحول لخريطة).
+- **`tracking.html`**: خريطة ثابتة (بدون تفاعل) بـ pin على موقع الطلب — تظهر فقط لو الطلب فيه إحداثيات محفوظة (طلبات قبل هالتحديث تُستثنى بهدوء).
+- **`provider.html`** (فورم "منتجاتي"): نفس مكوّن اختيار الموقع (خريطة + GPS) — هذا هو **المصدر الوحيد** لإحداثيات المنتجات؛ بدونه ما تظهر أي pins بصفحة اختيار المنتج للعميل.
+- **`container-providers.html`**: خريطة تعرض pin لكل منتج عنده إحداثيات (مع فقاعة اسم/سعر/مزود عند الضغط) — المنتجات بدون إحداثيات تبقى بالقائمة النصية تحتها بس بدون pin.
+
+**قيد مهم:** Nominatim مجاني لكن بسياسة استخدام عادلة (~طلب واحد/ثانية، بدون استخدام مكثف) — مناسب لحجم المشروع الحالي. لو فشل الطلب أو تأخر، الكود يرجع للإحداثيات الخام كنص بدل ما يكسر التدفق.
+
+الكود مكرر يدوياً بكل ملف JS معني (`order.js`, `tracking.js`, `provider.js`, `container-providers.js`) — المشروع ما فيه ملف JS مشترك أصلاً، فهذا يحافظ على نفس الأسلوب البسيط الحالي.
+
 ## هيكل الملفات
 
 ```
@@ -83,16 +95,16 @@ yashjub/
 
 ## التقنيات
 
-**Frontend:** HTML5, CSS3, JavaScript (Vanilla) — خط Cairo من Google Fonts — RTL دائماً (عربي أولاً) — Responsive (جوال أولاً)
+**Frontend:** HTML5, CSS3, JavaScript (Vanilla) — خط Cairo من Google Fonts — RTL دائماً (عربي أولاً) — Responsive (جوال أولاً) — Leaflet.js + OpenStreetMap للخرائط (CDN، بدون مفتاح API)
 
 **Backend:** Node.js + Express.js, better-sqlite3, CORS + dotenv, multer (رفع الملفات)
 
 **قاعدة البيانات (SQLite):**
 ```sql
 users       -- phone, otp, verified
-orders      -- phone, service, address, price, commission, status, provider_id, provider_name, provider_phone, product_id
+orders      -- phone, service, address, price, commission, status, provider_id, provider_name, provider_phone, product_id, lat, lng
 providers   -- phone, name, service_type, level, rating, id_document_path, certificate_path, city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
-products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available
+products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available, lat, lng
 ```
 `price` بجدول `products` هو سعر حزمة كاملة (مو سعر يومي) — دايماً يُقرأ مع `min_days` المرافق له. `provider_id`/`provider_name`/`product_id` بالطلبات اختيارية (تُملأ فقط لطلبات الحاوية). أعمدة `providers.city/price_*`، `orders.provider_id/provider_name/product_id`، و`products.min_days` أُضيفت عبر `ALTER TABLE` مغلّفة بـ try/catch في `database.js` (migration بسيط بدون ORM).
 
@@ -100,7 +112,7 @@ products    -- provider_id, name, description, size, price, min_days, city, neig
 ```
 POST /api/auth/send-otp
 POST /api/auth/verify-otp
-POST /api/orders                              body إضافي اختياري: providerId, providerName, productId — لو providerId غايب يُطابَق مزود تلقائياً حسب service
+POST /api/orders                              body إضافي اختياري: providerId, providerName, productId, lat, lng — لو providerId غايب يُطابَق مزود تلقائياً حسب service
 GET  /api/orders
 GET  /api/orders/:id
 GET  /api/orders/user/:phone
@@ -108,7 +120,7 @@ PUT  /api/orders/:id/status
 GET  /api/users
 POST /api/providers/register                  multipart/form-data: fullName, phone, idNumber, idDocument(ملف), iban, serviceType, level (2/3) + حقول المستوى + certificateDocument(ملف)
 GET  /api/providers                           كل المزودين (بدون فلترة)
-POST /api/products                            body: providerId, name, description, size, price, minDays, city, neighborhood
+POST /api/products                            body: providerId, name, description, size, price, minDays, city, neighborhood, lat, lng
 GET  /api/products/provider/:providerId       منتجات مزود معيّن (لوحة المزود)
 GET  /api/products/available?city=..          منتجات الحاوية المتاحة بمدينة معيّنة + بيانات المزود (JOIN) — يستخدمها تدفق العميل
 PUT  /api/products/:id                        تعديل (نفس الحقول + isAvailable)
@@ -161,11 +173,11 @@ git push
 
 ## الميزات المنجزة
 
-OTP دخول (محاكاة)، تمييز عميل/مزوّد، نظام طلبات كامل، صفحات طلب مخصصة لكل خدمة، نظام حاوية مبني على كتالوج منتجات فعلي (اختيار موقع → اختيار منتج حقيقي من مزود → أيام+تاريخ)، نظام سطحة (موقعين)، تتبع الطلب بالمراحل، لوحة مزوّد (إحصائيات+محفظة+طلبات)، تسجيل مزوّد (3 مستويات)، إدارة منتجات مزود الحاوية (إضافة/تعديل/حذف)، صفحة طلباتي، ملف شخصي، لوحة إدارة، صفحات عن/تواصل/شروط/404، وضع ليلي/نهاري، Responsive، رفع على Render وGitHub.
+OTP دخول (محاكاة)، تمييز عميل/مزوّد، نظام طلبات كامل، صفحات طلب مخصصة لكل خدمة، نظام حاوية مبني على كتالوج منتجات فعلي (اختيار موقع → اختيار منتج حقيقي من مزود → أيام+تاريخ)، نظام سطحة (موقعين)، تتبع الطلب بالمراحل، لوحة مزوّد (إحصائيات+محفظة+طلبات)، تسجيل مزوّد (3 مستويات)، إدارة منتجات مزود الحاوية (إضافة/تعديل/حذف)، خرائط Leaflet/OpenStreetMap لتحديد المواقع (طلب، تتبع، منتجات المزودين)، صفحة طلباتي، ملف شخصي، لوحة إدارة، صفحات عن/تواصل/شروط/404، وضع ليلي/نهاري، Responsive، رفع على Render وGitHub.
 
 ## الميزات القادمة (غير مُنفَّذة بعد)
 
-SMS حقيقي (Twilio)، خرائط Google Maps للتتبع، بوابة دفع حقيقية (STC Pay)، دومين yashjub.sa، تطبيق جوال (iOS/Android)، تقييم بعد اكتمال الطلب، إشعارات Push، نظام Escrow حقيقي، فواتير PDF، رد المزود بالشات (حالياً بجهة واحدة من العميل فقط — راجع قسم "مطابقة المزود بالطلب + التواصل")، SMS إشعار للمزوّد عند طلب جديد، تخزين دائم لقاعدة البيانات والملفات المرفوعة (راجع قسم "الاستضافة").
+SMS حقيقي (Twilio)، بوابة دفع حقيقية (STC Pay)، دومين yashjub.sa، تطبيق جوال (iOS/Android)، تقييم بعد اكتمال الطلب، إشعارات Push، نظام Escrow حقيقي، فواتير PDF، رد المزود بالشات (حالياً بجهة واحدة من العميل فقط — راجع قسم "مطابقة المزود بالطلب + التواصل")، SMS إشعار للمزوّد عند طلب جديد، تخزين دائم لقاعدة البيانات والملفات المرفوعة (راجع قسم "الاستضافة").
 
 ## روابط مهمة
 

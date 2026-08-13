@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>يشجب - تفاصيل الطلب</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -40,7 +41,11 @@
             <!-- موقع الخدمة -->
             <div class="order-field">
                 <label id="addressLabel">📍 موقع التوصيل</label>
+                <button type="button" class="btn-locate" onclick="useMyLocation()">📍 استخدم موقعي الحالي</button>
+                <div id="addressMap" class="location-map"></div>
                 <input type="text" id="address" placeholder="مثال: حي النرجس، شارع الأمير محمد"/>
+                <input type="hidden" id="addressLat"/>
+                <input type="hidden" id="addressLng"/>
             </div>
 
             <!-- موقع التوصيل للسطحة فقط -->
@@ -152,6 +157,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="order.js"></script>
 </body>
 </html>

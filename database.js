@@ -68,6 +68,10 @@ const migrations = [
     'ALTER TABLE providers ADD COLUMN id_document_path TEXT',
     'ALTER TABLE providers ADD COLUMN certificate_path TEXT',
     'ALTER TABLE orders ADD COLUMN provider_phone TEXT',
+    'ALTER TABLE orders ADD COLUMN lat REAL',
+    'ALTER TABLE orders ADD COLUMN lng REAL',
+    'ALTER TABLE products ADD COLUMN lat REAL',
+    'ALTER TABLE products ADD COLUMN lng REAL',
 ];
 
 for (const sql of migrations) {
