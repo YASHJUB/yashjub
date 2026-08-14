@@ -1082,6 +1082,10 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     margin-bottom: 6px;
 }
 
+.services-new .services-subtitle {
+    text-align: center;
+}
+
 .services-list {
     max-width: 700px;
     margin: 30px auto 0;
