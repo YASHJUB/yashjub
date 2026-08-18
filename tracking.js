@@ -148,14 +148,5 @@ function showComplete() {
     }, 1000);
 }
 
-// إلغاء الطلب
-function cancelOrder() {
-    if (confirm('هل أنت متأكد من إلغاء الطلب؟')) {
-        localStorage.removeItem('yashjub_order');
-        alert('تم إلغاء الطلب ✅');
-        window.location.href = 'index.html';
-    }
-}
-
 // تشغيل عند فتح الصفحة
 loadOrder();

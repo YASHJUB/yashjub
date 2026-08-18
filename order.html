@@ -143,6 +143,35 @@
         </div>
     </div>
 
+    <!-- تأكيد الطلب (overlay) -->
+    <div class="confirm-overlay" id="confirmOverlay" style="display:none">
+        <div class="confirm-modal">
+            <h3 class="confirm-title">تأكيد الطلب</h3>
+
+            <div class="confirm-details">
+                <div class="confirm-detail-row">
+                    <span class="confirm-detail-label">الخدمة</span>
+                    <span class="confirm-detail-value" id="confirmService">—</span>
+                </div>
+                <div class="confirm-detail-row">
+                    <span class="confirm-detail-label">الموقع</span>
+                    <span class="confirm-detail-value" id="confirmAddress">—</span>
+                </div>
+                <div class="confirm-detail-row">
+                    <span class="confirm-detail-label">المبلغ</span>
+                    <span class="confirm-detail-value" id="confirmAmount">—</span>
+                </div>
+            </div>
+
+            <div class="confirm-progress-track">
+                <div class="confirm-progress-fill" id="confirmProgressFill"></div>
+            </div>
+            <p class="confirm-countdown-text">سيتم تأكيد طلبك خلال <span id="confirmCountdownNum">7</span> ثواني</p>
+
+            <button class="btn-cancel-confirm" id="confirmCancelBtn" onclick="cancelConfirmation()">إلغاء</button>
+        </div>
+    </div>
+
     <!-- فوتر -->
     <div class="footer">
         <div class="footer-links">

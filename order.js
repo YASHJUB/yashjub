@@ -208,8 +208,8 @@ function updateContainerPrice() {
     document.getElementById('totalPrice').textContent          = `${total} ريال`;
 }
 
-// تأكيد الطلب
-async function confirmOrder() {
+// تأكيد الطلب — يجهّز البيانات ويفتح نافذة العد التنازلي
+function confirmOrder() {
     const address     = document.getElementById('address').value;
     const phone       = localStorage.getItem('yashjub_phone');
     const service     = servicesData[currentService];
@@ -251,23 +251,84 @@ async function confirmOrder() {
     const lat = document.getElementById('addressLat').value || null;
     const lng = document.getElementById('addressLng').value || null;
 
+    // تجهيز بيانات الطلب لحين انتهاء العد التنازلي
+    pendingOrder = {
+        payload: {
+            phone,
+            service:      currentService,
+            address:      fullAddress,
+            price:        finalPrice,
+            providerId:   selectedProduct ? selectedProduct.providerId   : null,
+            providerName: selectedProduct ? selectedProduct.providerName : null,
+            productId:    selectedProduct ? selectedProduct.id           : null,
+            lat, lng,
+        },
+        service, fullAddress, finalPrice, address,
+    };
+
+    openConfirmOverlay();
+}
+
+// ══ نافذة تأكيد الطلب (عد تنازلي 7 ثواني) ══
+
+let pendingOrder      = null;
+let confirmInterval   = null;
+let confirmSecondsLeft = 7;
+
+function openConfirmOverlay() {
+    document.getElementById('confirmService').textContent = pendingOrder.service.icon + ' ' + currentService;
+    document.getElementById('confirmAddress').textContent = pendingOrder.fullAddress;
+    document.getElementById('confirmAmount').textContent  = `${pendingOrder.finalPrice} ريال`;
+
+    document.getElementById('confirmOverlay').style.display  = 'flex';
+    document.getElementById('confirmCancelBtn').style.display = 'block';
+
+    confirmSecondsLeft = 7;
+    document.getElementById('confirmCountdownNum').textContent = confirmSecondsLeft;
+
+    const fill = document.getElementById('confirmProgressFill');
+    fill.style.transition = 'none';
+    fill.style.width      = '100%';
+    void fill.offsetWidth; // إجبار المتصفح يطبّق العرض قبل بدء الانتقال
+    fill.style.transition = 'width 7s linear';
+    fill.style.width      = '0%';
+
+    clearInterval(confirmInterval);
+    confirmInterval = setInterval(() => {
+        confirmSecondsLeft--;
+        document.getElementById('confirmCountdownNum').textContent = Math.max(confirmSecondsLeft, 0);
+
+        if (confirmSecondsLeft <= 0) {
+            clearInterval(confirmInterval);
+            document.getElementById('confirmCancelBtn').style.display = 'none';
+            submitPendingOrder();
+        }
+    }, 1000);
+}
+
+// إلغاء التأكيد أثناء العد التنازلي
+function cancelConfirmation() {
+    clearInterval(confirmInterval);
+    document.getElementById('confirmOverlay').style.display = 'none';
+    pendingOrder = null;
+}
+
+// إرسال الطلب فعلياً بعد انتهاء العد التنازلي
+async function submitPendingOrder() {
+    if (!pendingOrder) return;
+
+    const { payload, service, fullAddress, finalPrice } = pendingOrder;
+
     try {
         const response = await fetch(`${API}/orders`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({
-                phone,
-                service:      currentService,
-                address:      fullAddress,
-                price:        finalPrice,
-                providerId:   selectedProduct ? selectedProduct.providerId   : null,
-                providerName: selectedProduct ? selectedProduct.providerName : null,
-                productId:    selectedProduct ? selectedProduct.id           : null,
-                lat, lng,
-            })
+            body:    JSON.stringify(payload)
         });
 
         const data = await response.json();
+
+        document.getElementById('confirmOverlay').style.display = 'none';
 
         if (data.success) {
             const order = data.order;
@@ -291,14 +352,16 @@ async function confirmOrder() {
             localStorage.removeItem('yashjub_selected_product');
             localStorage.removeItem('yashjub_container_location');
 
-            alert(`✅ تم تأكيد طلبك!\n\nرقم الطلب: #${order.id}\n${service.icon} ${currentService}\n📍 ${address}`);
             window.location.href = 'tracking.html';
         } else {
             alert(`❌ ${data.message}`);
         }
 
     } catch (error) {
+        document.getElementById('confirmOverlay').style.display = 'none';
         alert('❌ خطأ في الاتصال بالسيرفر');
+    } finally {
+        pendingOrder = null;
     }
 }
 

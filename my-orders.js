@@ -88,10 +88,6 @@ async function loadOrders() {
                             <span class="order-detail-value">#${order.id}</span>
                         </div>
                     </div>
-                    ${order.status === 'pending' ? `
-                    <button class="btn-cancel" onclick="cancelOrder(${order.id})">
-                        إلغاء الطلب ❌
-                    </button>` : ''}
                 </div>
             `;
         }).join('');
@@ -99,29 +95,6 @@ async function loadOrders() {
     } catch (error) {
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('emptyState').style.display   = 'block';
-    }
-}
-
-// إلغاء طلب
-async function cancelOrder(id) {
-    if (!confirm('هل أنت متأكد من إلغاء الطلب؟')) return;
-
-    try {
-        const response = await fetch(`${API}/orders/${id}/status`, {
-            method:  'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ status: 'cancelled' })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            alert('✅ تم إلغاء الطلب');
-            loadOrders();
-        }
-
-    } catch (error) {
-        alert('❌ خطأ في الاتصال بالسيرفر');
     }
 }
 
