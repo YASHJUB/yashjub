@@ -192,7 +192,7 @@ function simulateIncomingOrder() {
         const order = JSON.parse(savedOrder);
         document.getElementById('newOrderService').textContent = `${order.icon} ${order.service}`;
         document.getElementById('newOrderAddress').textContent = order.address;
-        document.getElementById('newOrderAmount').textContent  = `${Math.round(order.price * 0.95)} ريال`;
+        document.getElementById('newOrderAmount').textContent  = `${order.price} ريال`;
         document.getElementById('newOrderClient').textContent  = `+966${phone}`;
         document.getElementById('newOrderSection').style.display = 'block';
         startCountdown();

@@ -3,9 +3,9 @@
 const API = window.location.origin + '/api';
 
 const servicesData = {
-    "وايت ماء": { icon: "🚚", type: "فوري",   price: 200,  time: "8 دقائق"        },
-    "سطحة":     { icon: "🚛", type: "فوري",   price: 250,  time: "12 دقيقة"       },
-    "حاوية":    { icon: "📦", type: "مجدول", price: 0,    time: "غداً 11 صباحاً" },
+    "وايت ماء": { icon: "🚚", type: "فوري",   minPrice: 150, time: "8 دقائق"        },
+    "سطحة":     { icon: "🚛", type: "فوري",   minPrice: 100, time: "12 دقيقة"       },
+    "حاوية":    { icon: "📦", type: "مجدول", price: 0,      time: "غداً 11 صباحاً" },
 }
 
 let currentService   = '';
@@ -84,8 +84,10 @@ function loadService() {
         updateEndDate();
         updateContainerPrice();
     } else {
-        // تحديث السعر للخدمات العادية
-        updateNormalPrice(service.price);
+        // وايت ماء / سطحة — العميل يحدد سعره بنفسه
+        document.getElementById('customPriceSection').style.display = 'block';
+        document.getElementById('customPrice').min = service.minPrice;
+        document.getElementById('servicePriceLabel').textContent = 'السعر المحدد';
     }
 
     initAddressMap();
@@ -156,6 +158,23 @@ function updateNormalPrice(price) {
     document.getElementById('servicePrice').textContent = `${price} ريال`;
     document.getElementById('platformFee').textContent  = `${fee} ريال`;
     document.getElementById('totalPrice').textContent   = `${total} ريال`;
+}
+
+// تحديث السعر اللي يحدده العميل (وايت ماء / سطحة)
+function updateCustomPrice() {
+    const service   = servicesData[currentService];
+    const input     = document.getElementById('customPrice');
+    const errorText = document.getElementById('priceErrorText');
+    const price     = parseFloat(input.value);
+
+    if (input.value && price < service.minPrice) {
+        errorText.textContent   = `❌ الحد الأدنى ${service.minPrice} ريال`;
+        errorText.style.display = 'block';
+    } else {
+        errorText.style.display = 'none';
+    }
+
+    updateNormalPrice(price > 0 ? price : 0);
 }
 
 // تغيير عدد الأيام
@@ -230,8 +249,9 @@ function confirmOrder() {
         fullAddress = `من: ${address} — إلى: ${delivery}`;
     }
 
+    let finalPrice = 0;
+
     // التحقق من الحاوية
-    let finalPrice = service.price;
     if (currentService === 'حاوية') {
         const minDays = selectedProduct.minDays;
         const days    = parseInt(document.getElementById('daysCount').value) || minDays;
@@ -246,6 +266,17 @@ function confirmOrder() {
         const dailyRate = selectedProduct.price / minDays;
         finalPrice  = Math.round(dailyRate * days);
         fullAddress = `${address} | ${selectedProduct.name} | من: ${start} إلى: ${end} (${days} يوم)`;
+
+    // وايت ماء / سطحة — السعر اللي حدده العميل
+    } else {
+        const customPrice = parseFloat(document.getElementById('customPrice').value);
+
+        if (!customPrice || customPrice < service.minPrice) {
+            alert(`❌ الحد الأدنى ${service.minPrice} ريال`);
+            return;
+        }
+
+        finalPrice = customPrice;
     }
 
     const lat = document.getElementById('addressLat').value || null;

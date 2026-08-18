@@ -4804,6 +4804,37 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     .confirm-modal { padding: 22px 18px; }
 }
 
+/* ══ تحديد سعر العميل (وايت ماء / سطحة) ══ */
+
+#customPrice {
+    font-size: 26px !important;
+    font-weight: 800;
+    text-align: center;
+    padding: 16px !important;
+}
+
+.price-hint {
+    font-size: 12px;
+    color: #888888;
+    margin-top: 8px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.price-error {
+    font-size: 13px;
+    font-weight: 700;
+    color: #EF4444;
+    margin-top: 8px;
+    font-family: 'Cairo', sans-serif;
+}
+
+/* إبراز السعر بالطلب الوارد للمزود */
+.new-order-price {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    color: #F5C518 !important;
+}
+
 .leaflet-popup-content {
     font-family: 'Cairo', sans-serif;
     text-align: right;
