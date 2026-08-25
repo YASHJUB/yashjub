@@ -27,7 +27,14 @@
     <div class="profile-hero">
         <div class="profile-avatar">👤</div>
         <div class="profile-hero-info">
-            <h1 id="profileName">مستخدم يشجب</h1>
+            <div class="profile-name-row">
+                <h1 id="profileName">مستخدم يشجب</h1>
+                <button class="edit-name-btn" onclick="toggleEditName()">✏️ تعديل الاسم</button>
+            </div>
+            <div class="edit-name-form" id="editNameForm" style="display:none">
+                <input type="text" id="editNameInput" placeholder="اكتب اسمك"/>
+                <button class="btn-small" onclick="saveEditedName()">حفظ</button>
+            </div>
             <p id="profilePhone">+966 5XXXXXXXX</p>
             <span class="profile-badge" id="profileBadge">عميل</span>
         </div>

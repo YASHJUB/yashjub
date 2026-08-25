@@ -72,6 +72,7 @@ const migrations = [
     'ALTER TABLE orders ADD COLUMN lng REAL',
     'ALTER TABLE products ADD COLUMN lat REAL',
     'ALTER TABLE products ADD COLUMN lng REAL',
+    'ALTER TABLE users ADD COLUMN name TEXT',
 ];
 
 for (const sql of migrations) {

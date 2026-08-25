@@ -293,6 +293,7 @@ function requestWithdraw() {
 function providerLogout() {
     localStorage.removeItem('yashjub_phone');
     localStorage.removeItem('yashjub_type');
+    localStorage.removeItem('yashjub_name');
     window.location.href = 'index.html';
 }
 

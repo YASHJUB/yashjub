@@ -143,6 +143,17 @@
 
     </div>
 
+    <!-- نافذة طلب الاسم (تظهر أول مرة فقط بعد التحقق من OTP) -->
+    <div class="name-popup-overlay" id="namePopupOverlay" style="display:none">
+        <div class="name-popup-card">
+            <img src="images/logo.png" alt="يشجب" class="name-popup-logo">
+            <h2 class="name-popup-title">أهلاً بك في يشجب 👋</h2>
+            <p class="name-popup-desc">وش اسمك عشان نرحب فيك بشكل صحيح؟</p>
+            <input type="text" id="nameInput" class="name-popup-input" placeholder="اكتب اسمك الكامل" onkeydown="if(event.key==='Enter') saveUserName()"/>
+            <button class="btn btn-full" onclick="saveUserName()">متابعة</button>
+        </div>
+    </div>
+
     <script src="login.js"></script>
 </body>
 </html>

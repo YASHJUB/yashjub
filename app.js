@@ -17,8 +17,9 @@ function checkLogin() {
         if (notLogged) notLogged.style.display = 'none';
 
         // تحديث السايد بار
+        const savedName = localStorage.getItem('yashjub_name');
         document.getElementById('sidebarPhone').textContent    = `+966${phone}`;
-        document.getElementById('sidebarUserName') && (document.getElementById('sidebarUserName').textContent = type === 'provider' ? 'مزود خدمة' : 'عميل');
+        document.getElementById('sidebarUserName') && (document.getElementById('sidebarUserName').textContent = savedName || (type === 'provider' ? 'مزود خدمة' : 'عميل'));
         document.getElementById('sidebarLoginBtn').style.display  = 'none';
         document.getElementById('sidebarLogoutBtn').style.display = 'block';
 
@@ -52,6 +53,7 @@ function goToLogin() {
 function logout() {
     localStorage.removeItem('yashjub_phone');
     localStorage.removeItem('yashjub_type');
+    localStorage.removeItem('yashjub_name');
     location.reload();
 }
 

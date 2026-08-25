@@ -47,6 +47,9 @@
 
 **العميل:** تسجيل دخول برقم الجوال + OTP، يطلب الخدمات، يتتبع الطلب، يقيّم المزوّد بعد الاكتمال.
 
+### اسم المستخدم (عميل ومزوّد)
+`users.name` — أول مرة يتحقق فيها أي مستخدم (عميل أو مزوّد) من OTP بـ `login.html` وما عنده اسم محفوظ بالسيرفر، تظهر نافذة ترحيب إلزامية (بدون زر إغلاق) تطلب اسمه قبل ما يكمل — تُحفظ عبر `PUT /api/users/:phone/name` وبـ `localStorage` كـ `yashjub_name`. الاسم يظهر بدل "عميل يشجب"/"مزود خدمة" بصفحة `profile.html` (مع زر "تعديل الاسم")، وبسايد بار `index.html` (`app.js`) — **لوحة المزود (`provider.js`) ما تعدّلت لنفس الشي**، لسه تعرض "مزود خدمة" ثابت بسايد بارها الخاص، لأن الطلب الأصلي حصر التعديل بـ `app.js`. `yashjub_name` يُمسح من localStorage مع باقي بيانات الجلسة عند تسجيل الخروج (بكل نقاط الخروج الثلاث: `app.js`, `profile.js`, `provider.js`).
+
 ### مطابقة المزود بالطلب + التواصل (`tracking.html`)
 كل طلب (بما فيها وايت ماء/سطحة، مو بس الحاوية) يرتبط بمزود حقيقي وقت `POST /api/orders`: لو الطلب ما حدد `providerId` صراحة (حالة الحاوية اللي يحدده العميل بنفسه)، السيرفر يطابق تلقائياً أفضل مزود متاح (`is_available=1`) بنفس نوع الخدمة (الأعلى تقييماً) من جدول `providers`. لو ماكو أي مزود مسجّل لهذي الخدمة، الطلب يكمل بدون مزود (`provider_id=null`) بدون أخطاء.
 
@@ -105,7 +108,7 @@ yashjub/
 
 **قاعدة البيانات (SQLite):**
 ```sql
-users       -- phone, otp, verified
+users       -- phone, otp, verified, name
 orders      -- phone, service, address, price, commission, status, provider_id, provider_name, provider_phone, product_id, lat, lng
 providers   -- phone, name, service_type, level, rating, id_document_path, certificate_path, city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
 products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available, lat, lng
@@ -115,13 +118,14 @@ products    -- provider_id, name, description, size, price, min_days, city, neig
 **API Endpoints:**
 ```
 POST /api/auth/send-otp
-POST /api/auth/verify-otp
+POST /api/auth/verify-otp                     الاستجابة تتضمن name (فاضي لو المستخدم ما حدد اسمه بعد)
+PUT  /api/users/:phone/name                    body: { name } — حفظ/تعديل اسم المستخدم (عميل أو مزوّد)
 POST /api/orders                              body إضافي اختياري: providerId, providerName, productId, lat, lng — لو providerId غايب يُطابَق مزود تلقائياً حسب service
 GET  /api/orders
 GET  /api/orders/:id
 GET  /api/orders/user/:phone
 PUT  /api/orders/:id/status
-GET  /api/users
+GET  /api/users                               يشمل name لكل مستخدم
 POST /api/providers/register                  multipart/form-data: fullName, phone, idNumber, idDocument(ملف), iban, serviceType, level (2/3) + حقول المستوى + certificateDocument(ملف)
 GET  /api/providers                           كل المزودين (بدون فلترة)
 POST /api/products                            body: providerId, name, description, size, price, minDays, city, neighborhood, lat, lng

@@ -62,13 +62,14 @@ async function verifyOTP() {
             localStorage.setItem('yashjub_phone', phone);
             localStorage.setItem('yashjub_type', userType);
 
-            alert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في يشجب 👷");
-
-            // توجيه حسب نوع المستخدم
-            if (userType === 'provider') {
-                window.location.href = 'provider.html';
+            if (data.name) {
+                // عنده اسم محفوظ مسبقاً
+                localStorage.setItem('yashjub_name', data.name);
+                alert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في يشجب 👷");
+                redirectAfterLogin();
             } else {
-                window.location.href = 'index.html';
+                // أول مرة يدخل — لازم يحدد اسمه قبل ما يكمل
+                document.getElementById('namePopupOverlay').style.display = 'flex';
             }
 
         } else {
@@ -77,5 +78,46 @@ async function verifyOTP() {
 
     } catch (error) {
         alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// حفظ اسم المستخدم (نافذة الترحيب)
+async function saveUserName() {
+    const name  = document.getElementById('nameInput').value.trim();
+    const phone = localStorage.getItem('yashjub_phone');
+
+    if (!name) {
+        alert('❌ يرجى إدخال اسمك للمتابعة');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API}/users/${phone}/name`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ name })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            localStorage.setItem('yashjub_name', data.name);
+            document.getElementById('namePopupOverlay').style.display = 'none';
+            redirectAfterLogin();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+
+    } catch (error) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// توجيه حسب نوع المستخدم بعد اكتمال تسجيل الدخول
+function redirectAfterLogin() {
+    if (userType === 'provider') {
+        window.location.href = 'provider.html';
+    } else {
+        window.location.href = 'index.html';
     }
 }

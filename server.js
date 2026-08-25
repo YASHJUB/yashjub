@@ -72,7 +72,26 @@ app.post('/api/auth/verify-otp', (req, res) => {
 
     db.prepare('UPDATE users SET verified = 1 WHERE phone = ?').run(phone);
 
-    res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone });
+    res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone, name: user.name });
+});
+
+app.put('/api/users/:phone/name', (req, res) => {
+    const { name }  = req.body;
+    const { phone } = req.params;
+
+    if (!name || !name.trim()) {
+        return res.json({ success: false, message: 'الاسم مطلوب' });
+    }
+
+    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+
+    if (!user) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    db.prepare('UPDATE users SET name = ? WHERE phone = ?').run(name.trim(), phone);
+
+    res.json({ success: true, name: name.trim() });
 });
 
 // ========== API الطلبات ==========
@@ -150,7 +169,7 @@ app.put('/api/orders/:id/status', (req, res) => {
 });
 
 app.get('/api/users', (req, res) => {
-    const users = db.prepare('SELECT id, phone, verified, created_at FROM users').all();
+    const users = db.prepare('SELECT id, phone, name, verified, created_at FROM users').all();
     res.json({ success: true, users });
 });
 
