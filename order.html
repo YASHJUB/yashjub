@@ -119,6 +119,18 @@
 
             <div class="order-divider"></div>
 
+            <!-- كود الخصم -->
+            <div class="order-field">
+                <label><svg class="icon"><use href="icons.svg#icon-ticket"></use></svg> كود الخصم (اختياري)</label>
+                <div style="display:flex;gap:8px">
+                    <input type="text" id="couponCodeInput" placeholder="أدخل الكود إن وجد" style="flex:1;text-transform:uppercase" oninput="this.value = this.value.toUpperCase()"/>
+                    <button type="button" class="btn-small" onclick="applyCouponCode()">تطبيق</button>
+                </div>
+                <div id="couponMessage" style="font-size:12px;margin-top:6px;display:none"></div>
+            </div>
+
+            <div class="order-divider"></div>
+
             <!-- ملخص السعر -->
             <div class="price-summary">
                 <div class="price-row" id="containerPriceRow" style="display:none">
@@ -132,6 +144,10 @@
                 <div class="price-row">
                     <span id="servicePriceLabel">سعر الخدمة</span>
                     <span id="servicePrice">0 ريال</span>
+                </div>
+                <div class="price-row" id="discountRow" style="display:none">
+                    <span>الخصم</span>
+                    <span id="discountValue" style="color:var(--red)">-0 ريال</span>
                 </div>
                 <div class="price-row">
                     <span>رسوم الخدمة (5%)</span>

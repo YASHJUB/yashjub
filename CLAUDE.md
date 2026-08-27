@@ -137,19 +137,27 @@ yashjub/
 **قاعدة البيانات (SQLite):**
 ```sql
 users       -- phone, otp, verified, name
-orders      -- phone, service, address, price, commission, status, provider_id, provider_name, provider_phone, product_id, lat, lng
+orders      -- phone, service, address, price, commission, status, provider_id, provider_name, provider_phone, product_id, lat, lng, coupon_code, discount
 providers   -- phone, name, service_type, level, rating, id_document_path, certificate_path, city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
 products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available, lat, lng
 employees   -- name, phone, iban, role (admin/supervisor/support/reviewer/accountant), username, password (مشفّرة bcrypt), is_active
+cities      -- name, is_active — مزروعة بـ 5 مدن أساسية أول تشغيل (لو الجدول فاضي)
+coupons     -- code (فريد، UPPERCASE دايماً)، discount_type (percent/fixed)، discount_value، max_discount، usage_limit، used_count، expires_at، is_active
 ```
-`price` بجدول `products` هو سعر حزمة كاملة (مو سعر يومي) — دايماً يُقرأ مع `min_days` المرافق له. `provider_id`/`provider_name`/`product_id` بالطلبات اختيارية (تُملأ فقط لطلبات الحاوية). أعمدة `providers.city/price_*`، `orders.provider_id/provider_name/product_id`، و`products.min_days` أُضيفت عبر `ALTER TABLE` مغلّفة بـ try/catch في `database.js` (migration بسيط بدون ORM).
+`price` بجدول `products` هو سعر حزمة كاملة (مو سعر يومي) — دايماً يُقرأ مع `min_days` المرافق له. `provider_id`/`provider_name`/`product_id` بالطلبات اختيارية (تُملأ فقط لطلبات الحاوية). `orders.price` يخزَّن **بعد** خصم الكوبون (لو فيه) — و`orders.discount`/`orders.coupon_code` يحفظان قيمة ومصدر الخصم للمرجعية. أعمدة `providers.city/price_*`، `orders.provider_id/provider_name/product_id/coupon_code/discount`، و`products.min_days` أُضيفت عبر `ALTER TABLE` مغلّفة بـ try/catch في `database.js` (migration بسيط بدون ORM).
+
+### كوبونات الخصم
+العميل يكتب الكود بحقل "كود الخصم" بصفحة `order.html` (لكل الخدمات) ويضغط "تطبيق" → `POST /api/coupons/validate` يتحقق من الكود (نشط، ما انتهت صلاحيته، ما تجاوز حد الاستخدام) ويرجّع قيمة الخصم كمعاينة فقط (بدون احتساب استخدام). العميل يشوف صف "الخصم" بملخص السعر يتحدّث تلقائياً كل ما يغيّر السعر/الأيام (نفس منطق حساب الخصم مكرر بـ `order.js`'s `computeDiscount()` مطابق تماماً لدالة `checkCoupon()` بـ `server.js` عشان المعاينة تطابق القيمة الفعلية). عند تأكيد الطلب، `couponCode` يُرسل مع الطلب، والسيرفر هو المصدر الوحيد الموثوق لحساب الخصم والتحقق النهائي (يمنع أي تلاعب من جهة المتصفح) — يطرح الخصم من `price` قبل حساب العمولة 5%، ويزيد `used_count` بجدول `coupons` بمقدار 1.
+
+### المدن
+جدول `cities` هو المصدر الوحيد لقائمة المدن بخطوة اختيار موقع الحاوية (`container-location.html`) — يُحمَّل ديناميكياً عبر `GET /api/cities/active` (`container-location.js`)، مع بقاء القائمة الثابتة بالـ HTML كنسخة احتياطية لو فشل الطلب. لوحة الإدارة (قسم "المدن") تدير الجدول بالكامل (إضافة/تعديل/حذف/تفعيل). **ملاحظة:** باقي أماكن المشروع (منتجات الحاوية، تسجيل مزوّد) لسه ما تربط بهذا الجدول — فقط خطوة اختيار الموقع للعميل.
 
 **API Endpoints:**
 ```
 POST /api/auth/send-otp
 POST /api/auth/verify-otp                     الاستجابة تتضمن name (فاضي لو المستخدم ما حدد اسمه بعد)
 PUT  /api/users/:phone/name                    body: { name } — حفظ/تعديل اسم المستخدم (عميل أو مزوّد)
-POST /api/orders                              body إضافي اختياري: providerId, providerName, productId, lat, lng — لو providerId غايب يُطابَق مزود تلقائياً حسب service
+POST /api/orders                              body إضافي اختياري: providerId, providerName, productId, lat, lng, couponCode — لو providerId غايب يُطابَق مزود تلقائياً حسب service، ولو couponCode موجود يُتحقق منه ويُخصم من price قبل حساب العمولة
 GET  /api/orders
 GET  /api/orders/:id
 GET  /api/orders/user/:phone
@@ -167,6 +175,18 @@ GET  /api/employees                           كل الموظفين (بدون ح
 PUT  /api/employees/:id                       body: نفس حقول الإضافة + isActive — password اختياري (فاضي = تبقى بدون تغيير)
 DELETE /api/employees/:id
 POST /api/employees/login                     body: { username, password } — يرفض لو is_active = 0
+GET  /api/cities                              كل المدن (للوحة الإدارة، تشمل غير النشطة)
+GET  /api/cities/active                       المدن النشطة فقط — يستخدمها container-location.js
+POST /api/cities                              body: { name } — يرفض لو الاسم مكرر
+PUT  /api/cities/:id                          body: { name, isActive }
+DELETE /api/cities/:id
+GET  /api/coupons                             كل الكوبونات (بلوحة الإدارة)
+POST /api/coupons                             body: code, discountType (percent/fixed), discountValue, maxDiscount, usageLimit, expiresAt — code يُحفظ UPPERCASE دايماً
+PUT  /api/coupons/:id                         نفس حقول الإضافة + isActive
+DELETE /api/coupons/:id
+POST /api/coupons/validate                    body: { code, amount } — معاينة فقط، بدون احتساب استخدام؛ يرجّع discount/discountType/discountValue/maxDiscount
+GET  /api/reports/commissions                 عمولات اليوم/الأسبوع/الشهر/السنة/الإجمالي + تفصيل حسب كل خدمة (من بيانات orders الفعلية)
+GET  /api/reports/payments                    سجل معاملات كل الطلبات: المبلغ، الخصم، عمولة المنصة، صافي المزوّد
 ```
 
 **Backend:** Node.js + Express.js, better-sqlite3, CORS + dotenv, multer (رفع الملفات), bcryptjs (تشفير كلمات مرور الموظفين)
@@ -217,11 +237,13 @@ git push
 
 ## الميزات المنجزة
 
-OTP دخول (محاكاة)، تمييز عميل/مزوّد، نظام طلبات كامل، صفحات طلب مخصصة لكل خدمة، نظام حاوية مبني على كتالوج منتجات فعلي (اختيار موقع → اختيار منتج حقيقي من مزود → أيام+تاريخ)، نظام سطحة (موقعين)، تتبع الطلب بالمراحل، لوحة مزوّد (إحصائيات+محفظة+طلبات)، تسجيل مزوّد (3 مستويات)، إدارة منتجات مزود الحاوية (إضافة/تعديل/حذف)، خرائط Leaflet/OpenStreetMap لتحديد المواقع (طلب، تتبع، منتجات المزودين)، صفحة طلباتي، ملف شخصي، لوحة إدارة، إدارة موظفين بصلاحيات حسب المنصب (مدير عام/مشرف/دعم فني/مراجع توثيق/محاسب)، صفحات عن/تواصل/شروط/404، وضع ليلي/نهاري، Responsive، أيقونات SVG موحّدة بكل الموقع تتبع لون النص (أسود/أبيض حسب الوضع)، رفع على Render وGitHub.
+OTP دخول (محاكاة)، تمييز عميل/مزوّد، نظام طلبات كامل، صفحات طلب مخصصة لكل خدمة، نظام حاوية مبني على كتالوج منتجات فعلي (اختيار موقع → اختيار منتج حقيقي من مزود → أيام+تاريخ)، نظام سطحة (موقعين)، تتبع الطلب بالمراحل، لوحة مزوّد (إحصائيات+محفظة+طلبات)، تسجيل مزوّد (3 مستويات)، إدارة منتجات مزود الحاوية (إضافة/تعديل/حذف)، خرائط Leaflet/OpenStreetMap لتحديد المواقع (طلب، تتبع، منتجات المزودين)، صفحة طلباتي، ملف شخصي، لوحة إدارة، إدارة موظفين بصلاحيات حسب المنصب (مدير عام/مشرف/دعم فني/مراجع توثيق/محاسب)، تقارير عمولات ومدفوعات حقيقية بلوحة الإدارة، إدارة مدن (تغذي خطوة اختيار موقع الحاوية)، كوبونات خصم فعلية (يطبّقها العميل بصفحة الطلب لأي خدمة)، صفحات عن/تواصل/شروط/404، وضع ليلي/نهاري، Responsive، أيقونات SVG موحّدة بكل الموقع تتبع لون النص (أسود/أبيض حسب الوضع)، رفع على Render وGitHub.
 
 ## الميزات القادمة (غير مُنفَّذة بعد)
 
 SMS حقيقي (Twilio)، بوابة دفع حقيقية (STC Pay)، دومين yashjub.sa، تطبيق جوال (iOS/Android)، تقييم بعد اكتمال الطلب، إشعارات Push، نظام Escrow حقيقي، فواتير PDF، رد المزود بالشات (حالياً بجهة واحدة من العميل فقط — راجع قسم "مطابقة المزود بالطلب + التواصل")، SMS إشعار للمزوّد عند طلب جديد، تخزين دائم لقاعدة البيانات والملفات المرفوعة (راجع قسم "الاستضافة").
+
+**أقسام لوحة الإدارة لسه "قريباً" (placeholder بدون وظيفة فعلية):** مركز العمليات المباشر، الخدمات (كتالوج الخدمات الأربع لسه مكتوب بالكود مو بقاعدة بيانات)، المحادثات (الشات الحالي محلي بمتصفح العميل فقط، السيرفر ما يشوفه)، الإشعارات (ماكو نظام إشعارات بالمشروع أصلاً)، البلاغات والشكاوى (ماكو تقديم شكوى من جهة العميل بعد)، التقييمات (تقييم المزود بعد اكتمال الخدمة غير مُنفَّذ). كل وحدة من هذي تحتاج بناء نظام جديد من الصفر (غالباً يشمل صفحة/تدفق بجهة العميل أيضاً) قبل ما تصير صفحة الإدارة مفيدة فعلياً.
 
 ## روابط مهمة
 

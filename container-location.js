@@ -1,5 +1,7 @@
 // كود خطوة اختيار الموقع (حاوية)
 
+const API = window.location.origin + '/api';
+
 (function checkLogin() {
     const phone = localStorage.getItem('yashjub_phone');
     if (!phone) {
@@ -7,6 +9,24 @@
         window.location.href = 'login.html';
     }
 })();
+
+// تحميل المدن المتاحة من لوحة الإدارة
+async function loadCities() {
+    const select = document.getElementById('city');
+    try {
+        const res  = await fetch(`${API}/cities/active`);
+        const data = await res.json();
+
+        if (data.success && data.cities.length) {
+            select.innerHTML = '<option value="">اختر المدينة</option>' +
+                data.cities.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
+    } catch (e) {
+        // تعذّر التحميل — يبقى الخيار الافتراضي بالـ HTML كما هو
+    }
+}
+
+loadCities();
 
 function goToProviders() {
     const city         = document.getElementById('city').value;

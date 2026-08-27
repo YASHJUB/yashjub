@@ -66,7 +66,36 @@ db.exec(`
         created_at TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول المدن المتاحة بالمنصة
+    CREATE TABLE IF NOT EXISTS cities (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        name       TEXT UNIQUE NOT NULL,
+        is_active  INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    -- جدول كوبونات الخصم
+    CREATE TABLE IF NOT EXISTS coupons (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        code           TEXT UNIQUE NOT NULL,
+        discount_type  TEXT NOT NULL DEFAULT 'percent',
+        discount_value REAL NOT NULL,
+        max_discount   REAL,
+        usage_limit    INTEGER,
+        used_count     INTEGER DEFAULT 0,
+        expires_at     TEXT,
+        is_active      INTEGER DEFAULT 1,
+        created_at     TEXT DEFAULT (datetime('now'))
+    );
+
 `);
+
+// زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
+const cityCount = db.prepare('SELECT COUNT(*) AS n FROM cities').get().n;
+if (cityCount === 0) {
+    const insertCity = db.prepare('INSERT INTO cities (name) VALUES (?)');
+    ['الرياض', 'جدة', 'الدمام', 'مكة', 'المدينة المنورة'].forEach(name => insertCity.run(name));
+}
 
 // ترقية الجداول القديمة (migrations بسيطة — تتجاهل الخطأ لو العمود موجود مسبقاً)
 const migrations = [
@@ -86,6 +115,8 @@ const migrations = [
     'ALTER TABLE products ADD COLUMN lat REAL',
     'ALTER TABLE products ADD COLUMN lng REAL',
     'ALTER TABLE users ADD COLUMN name TEXT',
+    'ALTER TABLE orders ADD COLUMN coupon_code TEXT',
+    'ALTER TABLE orders ADD COLUMN discount INTEGER DEFAULT 0',
 ];
 
 for (const sql of migrations) {

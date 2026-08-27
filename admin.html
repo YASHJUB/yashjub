@@ -1300,13 +1300,75 @@
                 <div class="page-header"><div class="page-title">الخدمات <svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الخدمات</p></div>
             </div>
+            <!-- ══ PAYMENTS PAGE ══ -->
             <div id="page-payments" style="display:none">
-                <div class="page-header"><div class="page-title">المدفوعات <svg class="icon"><use href="icons.svg#icon-card"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة المدفوعات</p></div>
+                <div class="page-header">
+                    <div class="page-title">المدفوعات <svg class="icon"><use href="icons.svg#icon-card"></use></svg></div>
+                    <div class="page-sub">سجل معاملات كل الطلبات — المبلغ، عمولة المنصة، وصافي المزوّد</div>
+                </div>
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>رقم الطلب</th><th>العميل</th><th>الخدمة</th><th>المزوّد</th>
+                                    <th>المبلغ الإجمالي</th><th>الخصم</th><th>عمولة المنصة</th><th>صافي المزوّد</th>
+                                    <th>الحالة</th><th>التاريخ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            <!-- ══ COMMISSIONS PAGE ══ -->
             <div id="page-commissions" style="display:none">
-                <div class="page-header"><div class="page-title">العمولات <svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة العمولات</p></div>
+                <div class="page-header">
+                    <div class="page-title">العمولات <svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
+                    <div class="page-sub">تقرير عمولات المنصة (5% من كل طلب)</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">عمولات اليوم</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="comm-today">0 ر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">عمولات هذا الأسبوع</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="comm-week">0 ر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">عمولات هذا الشهر</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-line"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="comm-month">0 ر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي منذ البداية</div>
+                            <div class="stat-card-icon" style="background:rgba(139,92,246,0.1)"><svg class="icon"><use href="icons.svg#icon-trophy"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="comm-total">0 ر</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">العمولات حسب الخدمة</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>الخدمة</th><th>عدد الطلبات</th><th>إجمالي الإيرادات</th><th>إجمالي العمولة</th></tr>
+                            </thead>
+                            <tbody id="commissionsByServiceTable"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <div id="page-chats" style="display:none">
                 <div class="page-header"><div class="page-title">المحادثات <svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div></div>
@@ -1324,13 +1386,109 @@
                 <div class="page-header"><div class="page-title">التقييمات <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة التقييمات</p></div>
             </div>
+            <!-- ══ CITIES PAGE ══ -->
             <div id="page-cities" style="display:none">
-                <div class="page-header"><div class="page-title">المدن <svg class="icon"><use href="icons.svg#icon-city"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة المدن</p></div>
+                <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <div>
+                        <div class="page-title">المدن <svg class="icon"><use href="icons.svg#icon-city"></use></svg></div>
+                        <div class="page-sub">المدن المتاحة لطلب خدمة الحاوية</div>
+                    </div>
+                    <button class="btn-gold" onclick="toggleCityForm()">+ إضافة مدينة</button>
+                </div>
+
+                <div class="card" id="cityForm" style="display:none;margin-bottom:16px">
+                    <div class="card-title" id="cityFormTitle">إضافة مدينة جديدة</div>
+                    <div class="emp-form-grid">
+                        <div class="form-group">
+                            <label>اسم المدينة</label>
+                            <input type="text" id="cityName" placeholder="مثال: الطائف"/>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding-top:8px">
+                                <input type="checkbox" id="cityActive" checked style="width:auto"/> نشطة (تظهر للعملاء)
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button class="btn-gold" onclick="submitCity()">حفظ</button>
+                        <button class="btn-detail" onclick="toggleCityForm()">إلغاء</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>اسم المدينة</th><th>الحالة</th><th>تاريخ الإضافة</th><th>إجراء</th></tr></thead>
+                            <tbody id="allCitiesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            <!-- ══ COUPONS PAGE ══ -->
             <div id="page-coupons" style="display:none">
-                <div class="page-header"><div class="page-title">كوبونات الخصم <svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الكوبونات</p></div>
+                <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <div>
+                        <div class="page-title">كوبونات الخصم <svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></div>
+                        <div class="page-sub">إدارة أكواد الخصم المطبّقة تلقائياً عند تأكيد الطلب</div>
+                    </div>
+                    <button class="btn-gold" onclick="toggleCouponForm()">+ إضافة كوبون</button>
+                </div>
+
+                <div class="card" id="couponForm" style="display:none;margin-bottom:16px">
+                    <div class="card-title" id="couponFormTitle">إضافة كوبون جديد</div>
+                    <div class="emp-form-grid">
+                        <div class="form-group">
+                            <label>كود الخصم</label>
+                            <input type="text" id="couponCode" placeholder="مثال: WELCOME10" style="text-transform:uppercase"/>
+                        </div>
+                        <div class="form-group">
+                            <label>نوع الخصم</label>
+                            <select id="couponType">
+                                <option value="percent">نسبة مئوية %</option>
+                                <option value="fixed">مبلغ ثابت (ريال)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>قيمة الخصم</label>
+                            <input type="number" id="couponValue" placeholder="مثال: 10"/>
+                        </div>
+                        <div class="form-group">
+                            <label>الحد الأقصى للخصم (اختياري)</label>
+                            <input type="number" id="couponMax" placeholder="مثال: 50 ريال"/>
+                        </div>
+                        <div class="form-group">
+                            <label>عدد مرات الاستخدام (اختياري)</label>
+                            <input type="number" id="couponLimit" placeholder="اتركه فارغ = بلا حد"/>
+                        </div>
+                        <div class="form-group">
+                            <label>تاريخ الانتهاء (اختياري)</label>
+                            <input type="date" id="couponExpiry"/>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding-top:8px">
+                                <input type="checkbox" id="couponActive" checked style="width:auto"/> الكوبون نشط
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button class="btn-gold" onclick="submitCoupon()">حفظ</button>
+                        <button class="btn-detail" onclick="toggleCouponForm()">إلغاء</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>الكود</th><th>نوع الخصم</th><th>القيمة</th><th>الحد الأقصى</th><th>الاستخدام</th><th>الانتهاء</th><th>الحالة</th><th>إجراء</th></tr>
+                            </thead>
+                            <tbody id="allCouponsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
         </div>

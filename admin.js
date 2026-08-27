@@ -118,24 +118,30 @@ function showPage(page) {
     const navEl = document.querySelector(`.sidebar-item[data-page="${page}"]`);
     if (navEl) navEl.classList.add('active');
 
-    if (page === 'orders')    loadOrdersPage();
-    if (page === 'providers') loadProvidersPage();
-    if (page === 'clients')   loadClientsPage();
-    if (page === 'employees') loadEmployeesPage();
+    if (page === 'orders')      loadOrdersPage();
+    if (page === 'providers')   loadProvidersPage();
+    if (page === 'clients')     loadClientsPage();
+    if (page === 'employees')   loadEmployeesPage();
+    if (page === 'commissions') loadCommissionsPage();
+    if (page === 'payments')    loadPaymentsPage();
+    if (page === 'cities')      loadCitiesPage();
+    if (page === 'coupons')     loadCouponsPage();
 }
 
 // تحميل لوحة التحكم
 async function loadDashboard() {
     try {
-        const [ordersRes, providersRes, usersRes] = await Promise.all([
+        const [ordersRes, providersRes, usersRes, commissionsRes] = await Promise.all([
             fetch(`${API}/orders`),
             fetch(`${API}/providers`),
             fetch(`${API}/users`),
+            fetch(`${API}/reports/commissions`),
         ]);
 
-        const ordersData    = await ordersRes.json();
-        const providersData = await providersRes.json();
-        const usersData     = await usersRes.json();
+        const ordersData      = await ordersRes.json();
+        const providersData   = await providersRes.json();
+        const usersData       = await usersRes.json();
+        const commissionsData = await commissionsRes.json();
 
         const orders    = ordersData.success    ? ordersData.orders       : [];
         const providers = providersData.success ? providersData.providers : [];
@@ -162,10 +168,12 @@ async function loadDashboard() {
         document.getElementById('sc-cancel').textContent  = cancelled.length;
 
         document.getElementById('p-success').textContent = revenue.toLocaleString() + ' ر';
-        document.getElementById('c-today').textContent   = commission;
-        document.getElementById('c-week').textContent    = commission;
-        document.getElementById('c-month').textContent   = commission;
-        document.getElementById('c-year').textContent    = commission;
+        if (commissionsData.success) {
+            document.getElementById('c-today').textContent = commissionsData.today.toLocaleString();
+            document.getElementById('c-week').textContent  = commissionsData.week.toLocaleString();
+            document.getElementById('c-month').textContent = commissionsData.month.toLocaleString();
+            document.getElementById('c-year').textContent  = commissionsData.year.toLocaleString();
+        }
 
         document.getElementById('pendingBadge').textContent  = pending.length;
         document.getElementById('verifyBadge').textContent   = providers.length;
@@ -491,6 +499,272 @@ async function deleteEmployee(id) {
     try {
         await fetch(`${API}/employees/${id}`, { method: 'DELETE' });
         loadEmployeesPage();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// صفحة العمولات
+async function loadCommissionsPage() {
+    try {
+        const res  = await fetch(`${API}/reports/commissions`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        document.getElementById('comm-today').textContent = data.today.toLocaleString() + ' ر';
+        document.getElementById('comm-week').textContent  = data.week.toLocaleString()  + ' ر';
+        document.getElementById('comm-month').textContent = data.month.toLocaleString() + ' ر';
+        document.getElementById('comm-total').textContent = data.total.toLocaleString() + ' ر';
+
+        document.getElementById('commissionsByServiceTable').innerHTML = Object.entries(data.byService).map(([service, s]) => `
+            <tr>
+                <td>${service}</td>
+                <td>${s.count}</td>
+                <td>${s.revenue.toLocaleString()} ر</td>
+                <td style="color:var(--gold);font-weight:700">${s.commission.toLocaleString()} ر</td>
+            </tr>
+        `).join('');
+    } catch (e) {}
+}
+
+// صفحة المدفوعات
+async function loadPaymentsPage() {
+    try {
+        const res  = await fetch(`${API}/reports/payments`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const statusBadge = {
+            pending:   '<span class="badge badge-pending">انتظار</span>',
+            accepted:  '<span class="badge badge-active">مقبول</span>',
+            completed: '<span class="badge badge-done">مكتمل</span>',
+            cancelled: '<span class="badge badge-cancel">ملغي</span>',
+        };
+
+        document.getElementById('paymentsTable').innerHTML = data.payments.map(p => `
+            <tr>
+                <td><strong>#${p.id}</strong></td>
+                <td dir="ltr">+966${p.phone}</td>
+                <td>${p.service}</td>
+                <td>${p.provider_name || '—'}</td>
+                <td>${p.price.toLocaleString()} ر</td>
+                <td>${p.discount ? `<span style="color:var(--red)">-${p.discount} ر (${p.coupon_code})</span>` : '—'}</td>
+                <td style="color:var(--gold)">${p.commission.toLocaleString()} ر</td>
+                <td style="color:var(--green)">${p.net_to_provider.toLocaleString()} ر</td>
+                <td>${statusBadge[p.status] || p.status}</td>
+                <td>${new Date(p.created_at).toLocaleDateString('ar-SA')}</td>
+            </tr>
+        `).join('');
+    } catch (e) {}
+}
+
+// صفحة المدن
+let editingCityId = null;
+
+async function loadCitiesPage() {
+    try {
+        const res  = await fetch(`${API}/cities`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        document.getElementById('allCitiesTable').innerHTML = data.cities.map(c => `
+            <tr>
+                <td>#${c.id}</td>
+                <td>${c.name}</td>
+                <td>${c.is_active ? '<span class="badge badge-done">نشطة</span>' : '<span class="badge badge-cancel">موقوفة</span>'}</td>
+                <td>${new Date(c.created_at).toLocaleDateString('ar-SA')}</td>
+                <td>
+                    <button class="btn-detail" onclick='openEditCity(${JSON.stringify(c)})'>تعديل</button>
+                    <button class="btn-detail" style="color:var(--red);border-color:var(--red)" onclick="deleteCity(${c.id})">حذف</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {}
+}
+
+function toggleCityForm() {
+    const form   = document.getElementById('cityForm');
+    const isOpen = form.style.display === 'block';
+
+    if (isOpen) {
+        form.style.display = 'none';
+    } else {
+        editingCityId = null;
+        document.getElementById('cityFormTitle').textContent = 'إضافة مدينة جديدة';
+        document.getElementById('cityName').value    = '';
+        document.getElementById('cityActive').checked = true;
+        form.style.display = 'block';
+    }
+}
+
+function openEditCity(city) {
+    editingCityId = city.id;
+    document.getElementById('cityFormTitle').textContent = 'تعديل المدينة';
+    document.getElementById('cityName').value     = city.name;
+    document.getElementById('cityActive').checked = !!city.is_active;
+
+    const form = document.getElementById('cityForm');
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitCity() {
+    const name     = document.getElementById('cityName').value.trim();
+    const isActive = document.getElementById('cityActive').checked;
+
+    if (!name) {
+        alert('❌ اسم المدينة مطلوب');
+        return;
+    }
+
+    try {
+        const url    = editingCityId ? `${API}/cities/${editingCityId}` : `${API}/cities`;
+        const method = editingCityId ? 'PUT' : 'POST';
+
+        const res  = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, isActive }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('cityForm').style.display = 'none';
+            loadCitiesPage();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function deleteCity(id) {
+    if (!confirm('هل أنت متأكد من حذف هذه المدينة؟')) return;
+
+    try {
+        await fetch(`${API}/cities/${id}`, { method: 'DELETE' });
+        loadCitiesPage();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// صفحة كوبونات الخصم
+let editingCouponId = null;
+
+async function loadCouponsPage() {
+    try {
+        const res  = await fetch(`${API}/coupons`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        document.getElementById('allCouponsTable').innerHTML = data.coupons.map(c => {
+            const valueLabel = c.discount_type === 'percent' ? `${c.discount_value}%` : `${c.discount_value} ر`;
+            const usageLabel = c.usage_limit ? `${c.used_count} / ${c.usage_limit}` : `${c.used_count} / بلا حد`;
+            const expiryLabel = c.expires_at ? new Date(c.expires_at).toLocaleDateString('ar-SA') : 'بلا تاريخ';
+
+            return `
+                <tr>
+                    <td><strong>${c.code}</strong></td>
+                    <td>${c.discount_type === 'percent' ? 'نسبة %' : 'مبلغ ثابت'}</td>
+                    <td>${valueLabel}</td>
+                    <td>${c.max_discount ? c.max_discount + ' ر' : '—'}</td>
+                    <td>${usageLabel}</td>
+                    <td>${expiryLabel}</td>
+                    <td>${c.is_active ? '<span class="badge badge-done">نشط</span>' : '<span class="badge badge-cancel">موقوف</span>'}</td>
+                    <td>
+                        <button class="btn-detail" onclick='openEditCoupon(${JSON.stringify(c)})'>تعديل</button>
+                        <button class="btn-detail" style="color:var(--red);border-color:var(--red)" onclick="deleteCoupon(${c.id})">حذف</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {}
+}
+
+function toggleCouponForm() {
+    const form   = document.getElementById('couponForm');
+    const isOpen = form.style.display === 'block';
+
+    if (isOpen) {
+        form.style.display = 'none';
+    } else {
+        resetCouponForm();
+        form.style.display = 'block';
+    }
+}
+
+function resetCouponForm() {
+    editingCouponId = null;
+    document.getElementById('couponFormTitle').textContent = 'إضافة كوبون جديد';
+    document.getElementById('couponCode').value    = '';
+    document.getElementById('couponType').value    = 'percent';
+    document.getElementById('couponValue').value   = '';
+    document.getElementById('couponMax').value     = '';
+    document.getElementById('couponLimit').value   = '';
+    document.getElementById('couponExpiry').value  = '';
+    document.getElementById('couponActive').checked = true;
+}
+
+function openEditCoupon(coupon) {
+    editingCouponId = coupon.id;
+    document.getElementById('couponFormTitle').textContent = 'تعديل الكوبون';
+    document.getElementById('couponCode').value    = coupon.code;
+    document.getElementById('couponType').value    = coupon.discount_type;
+    document.getElementById('couponValue').value   = coupon.discount_value;
+    document.getElementById('couponMax').value     = coupon.max_discount || '';
+    document.getElementById('couponLimit').value   = coupon.usage_limit || '';
+    document.getElementById('couponExpiry').value  = coupon.expires_at || '';
+    document.getElementById('couponActive').checked = !!coupon.is_active;
+
+    const form = document.getElementById('couponForm');
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitCoupon() {
+    const code        = document.getElementById('couponCode').value.trim();
+    const discountType  = document.getElementById('couponType').value;
+    const discountValue = parseFloat(document.getElementById('couponValue').value);
+    const maxDiscount  = document.getElementById('couponMax').value ? parseFloat(document.getElementById('couponMax').value) : null;
+    const usageLimit   = document.getElementById('couponLimit').value ? parseInt(document.getElementById('couponLimit').value, 10) : null;
+    const expiresAt    = document.getElementById('couponExpiry').value || null;
+    const isActive     = document.getElementById('couponActive').checked;
+
+    if (!code || !discountValue) {
+        alert('❌ يرجى تعبئة الكود وقيمة الخصم');
+        return;
+    }
+
+    try {
+        const url    = editingCouponId ? `${API}/coupons/${editingCouponId}` : `${API}/coupons`;
+        const method = editingCouponId ? 'PUT' : 'POST';
+
+        const res  = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, discountType, discountValue, maxDiscount, usageLimit, expiresAt, isActive }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('couponForm').style.display = 'none';
+            loadCouponsPage();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function deleteCoupon(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الكوبون؟')) return;
+
+    try {
+        await fetch(`${API}/coupons/${id}`, { method: 'DELETE' });
+        loadCouponsPage();
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

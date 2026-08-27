@@ -38,6 +38,35 @@ const upload = multer({
     },
 });
 
+// التحقق من صلاحية كوبون خصم وحساب قيمة الخصم (بدون احتساب استخدام)
+function checkCoupon(code, amount) {
+    if (!code) return { valid: false, message: 'كود الخصم مطلوب' };
+
+    const coupon = db.prepare('SELECT * FROM coupons WHERE code = ?').get(code.trim().toUpperCase());
+
+    if (!coupon || !coupon.is_active) {
+        return { valid: false, message: 'كود الخصم غير صحيح' };
+    }
+
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+        return { valid: false, message: 'انتهت صلاحية كود الخصم' };
+    }
+
+    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
+        return { valid: false, message: 'تم استنفاد عدد مرات استخدام هذا الكود' };
+    }
+
+    let discount = coupon.discount_type === 'percent'
+        ? Math.round(amount * (coupon.discount_value / 100))
+        : Math.round(coupon.discount_value);
+
+    if (coupon.max_discount && discount > coupon.max_discount) discount = Math.round(coupon.max_discount);
+    if (discount > amount) discount = amount;
+    if (discount < 0) discount = 0;
+
+    return { valid: true, coupon, discount };
+}
+
 // ========== API المستخدمين ==========
 
 app.post('/api/auth/send-otp', (req, res) => {
@@ -98,11 +127,24 @@ app.put('/api/users/:phone/name', (req, res) => {
 // ========== API الطلبات ==========
 
 app.post('/api/orders', (req, res) => {
-    const { phone, service, address, price, productId, lat, lng } = req.body;
-    let   { providerId, providerName } = req.body;
+    const { phone, service, address, productId, lat, lng, couponCode } = req.body;
+    let   { providerId, providerName, price } = req.body;
 
     if (!phone || !service || !address) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    // تطبيق كوبون الخصم (اختياري)
+    let discount   = 0;
+    let usedCoupon = null;
+    if (couponCode) {
+        const check = checkCoupon(couponCode, price);
+        if (!check.valid) {
+            return res.json({ success: false, message: check.message || 'كود الخصم غير صحيح' });
+        }
+        discount   = check.discount;
+        usedCoupon = check.coupon;
+        price      = Math.max(0, price - discount);
     }
 
     // لو ما انبعث مزود محدد (وايت ماء/سطحة) — مطابقة تلقائية لأفضل مزود متاح لنفس الخدمة
@@ -132,9 +174,13 @@ app.post('/api/orders', (req, res) => {
     const commission = Math.round(price * 0.05);
 
     const result = db.prepare(`
-        INSERT INTO orders (phone, service, address, price, commission, provider_id, provider_name, provider_phone, product_id, lat, lng)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(phone, service, address, price, commission, providerId || null, providerName || null, providerPhone, productId || null, lat || null, lng || null);
+        INSERT INTO orders (phone, service, address, price, commission, provider_id, provider_name, provider_phone, product_id, lat, lng, coupon_code, discount)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(phone, service, address, price, commission, providerId || null, providerName || null, providerPhone, productId || null, lat || null, lng || null, usedCoupon ? usedCoupon.code : null, discount);
+
+    if (usedCoupon) {
+        db.prepare('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?').run(usedCoupon.id);
+    }
 
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(result.lastInsertRowid);
     order.provider_rating = providerRating;
@@ -394,6 +440,202 @@ app.post('/api/employees/login', (req, res) => {
         success: true,
         employee: { id: employee.id, name: employee.name, role: employee.role, username: employee.username },
     });
+});
+
+// ========== API المدن ==========
+
+app.get('/api/cities', (req, res) => {
+    const cities = db.prepare('SELECT * FROM cities ORDER BY name').all();
+    res.json({ success: true, cities });
+});
+
+app.get('/api/cities/active', (req, res) => {
+    const cities = db.prepare('SELECT * FROM cities WHERE is_active = 1 ORDER BY name').all();
+    res.json({ success: true, cities });
+});
+
+app.post('/api/cities', (req, res) => {
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+        return res.json({ success: false, message: 'اسم المدينة مطلوب' });
+    }
+
+    const existing = db.prepare('SELECT * FROM cities WHERE name = ?').get(name.trim());
+    if (existing) {
+        return res.json({ success: false, message: 'المدينة مضافة مسبقاً' });
+    }
+
+    const result = db.prepare('INSERT INTO cities (name) VALUES (?)').run(name.trim());
+    const city = db.prepare('SELECT * FROM cities WHERE id = ?').get(result.lastInsertRowid);
+
+    res.json({ success: true, city });
+});
+
+app.put('/api/cities/:id', (req, res) => {
+    const { name, isActive } = req.body;
+
+    if (!name || !name.trim()) {
+        return res.json({ success: false, message: 'اسم المدينة مطلوب' });
+    }
+
+    const existing = db.prepare('SELECT * FROM cities WHERE name = ? AND id != ?').get(name.trim(), req.params.id);
+    if (existing) {
+        return res.json({ success: false, message: 'المدينة مضافة مسبقاً' });
+    }
+
+    db.prepare('UPDATE cities SET name = ?, is_active = ? WHERE id = ?')
+        .run(name.trim(), isActive ? 1 : 0, req.params.id);
+
+    const city = db.prepare('SELECT * FROM cities WHERE id = ?').get(req.params.id);
+    res.json({ success: true, city });
+});
+
+app.delete('/api/cities/:id', (req, res) => {
+    db.prepare('DELETE FROM cities WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+// ========== API كوبونات الخصم ==========
+
+app.get('/api/coupons', (req, res) => {
+    const coupons = db.prepare('SELECT * FROM coupons ORDER BY created_at DESC').all();
+    res.json({ success: true, coupons });
+});
+
+app.post('/api/coupons', (req, res) => {
+    const { code, discountType, discountValue, maxDiscount, usageLimit, expiresAt } = req.body;
+
+    if (!code || !code.trim() || !discountValue) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const normalizedCode = code.trim().toUpperCase();
+    const existing = db.prepare('SELECT * FROM coupons WHERE code = ?').get(normalizedCode);
+    if (existing) {
+        return res.json({ success: false, message: 'كود الخصم مستخدم مسبقاً' });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO coupons (code, discount_type, discount_value, max_discount, usage_limit, expires_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+        normalizedCode,
+        discountType === 'fixed' ? 'fixed' : 'percent',
+        discountValue,
+        maxDiscount || null,
+        usageLimit || null,
+        expiresAt || null,
+    );
+
+    const coupon = db.prepare('SELECT * FROM coupons WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, coupon });
+});
+
+app.put('/api/coupons/:id', (req, res) => {
+    const { code, discountType, discountValue, maxDiscount, usageLimit, expiresAt, isActive } = req.body;
+
+    if (!code || !code.trim() || !discountValue) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const normalizedCode = code.trim().toUpperCase();
+    const existing = db.prepare('SELECT * FROM coupons WHERE code = ? AND id != ?').get(normalizedCode, req.params.id);
+    if (existing) {
+        return res.json({ success: false, message: 'كود الخصم مستخدم مسبقاً' });
+    }
+
+    db.prepare(`
+        UPDATE coupons
+        SET code = ?, discount_type = ?, discount_value = ?, max_discount = ?, usage_limit = ?, expires_at = ?, is_active = ?
+        WHERE id = ?
+    `).run(
+        normalizedCode,
+        discountType === 'fixed' ? 'fixed' : 'percent',
+        discountValue,
+        maxDiscount || null,
+        usageLimit || null,
+        expiresAt || null,
+        isActive ? 1 : 0,
+        req.params.id,
+    );
+
+    const coupon = db.prepare('SELECT * FROM coupons WHERE id = ?').get(req.params.id);
+    res.json({ success: true, coupon });
+});
+
+app.delete('/api/coupons/:id', (req, res) => {
+    db.prepare('DELETE FROM coupons WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+app.post('/api/coupons/validate', (req, res) => {
+    const { code, amount } = req.body;
+    const check = checkCoupon(code, Number(amount) || 0);
+
+    if (!check.valid) {
+        return res.json({ success: false, message: check.message });
+    }
+
+    res.json({
+        success: true,
+        discount: check.discount,
+        discountType: check.coupon.discount_type,
+        discountValue: check.coupon.discount_value,
+        maxDiscount: check.coupon.max_discount,
+    });
+});
+
+// ========== API التقارير المالية ==========
+
+app.get('/api/reports/commissions', (req, res) => {
+    const orders = db.prepare('SELECT service, commission, price, created_at FROM orders').all();
+
+    const now   = new Date();
+    const today = now.toISOString().slice(0, 10);
+
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    const weekStr = startOfWeek.toISOString().slice(0, 10);
+
+    const monthStr = now.toISOString().slice(0, 7);
+    const yearStr  = now.toISOString().slice(0, 4);
+
+    let todayTotal = 0, weekTotal = 0, monthTotal = 0, yearTotal = 0, allTotal = 0;
+    const byService = {};
+
+    orders.forEach(o => {
+        const day = (o.created_at || '').slice(0, 10);
+        allTotal += o.commission;
+
+        if (day >= today)     todayTotal += o.commission;
+        if (day >= weekStr)   weekTotal  += o.commission;
+        if (day.slice(0,7) === monthStr) monthTotal += o.commission;
+        if (day.slice(0,4) === yearStr)  yearTotal  += o.commission;
+
+        if (!byService[o.service]) byService[o.service] = { count: 0, commission: 0, revenue: 0 };
+        byService[o.service].count++;
+        byService[o.service].commission += o.commission;
+        byService[o.service].revenue    += o.price;
+    });
+
+    res.json({
+        success: true,
+        today: todayTotal, week: weekTotal, month: monthTotal, year: yearTotal, total: allTotal,
+        byService,
+    });
+});
+
+app.get('/api/reports/payments', (req, res) => {
+    const payments = db.prepare(`
+        SELECT orders.id, orders.phone, orders.service, orders.price, orders.commission,
+               orders.status, orders.provider_name, orders.discount, orders.coupon_code, orders.created_at,
+               (orders.price - orders.commission) AS net_to_provider
+        FROM orders
+        ORDER BY orders.created_at DESC
+    `).all();
+
+    res.json({ success: true, payments });
 });
 
 // أخطاء رفع الملفات (نوع غير مسموح، حجم كبير)

@@ -12,6 +12,7 @@ let currentService   = '';
 let selectedProduct  = null;
 let addressMap       = null;
 let addressMarker    = null;
+let appliedCoupon    = null;
 
 function loadService() {
     const phone = localStorage.getItem('yashjub_phone');
@@ -151,13 +152,107 @@ function useMyLocation() {
     );
 }
 
+// حساب قيمة الخصم لسعر معيّن حسب الكوبون المطبّق (نفس منطق السيرفر بالضبط)
+function computeDiscount(baseAmount) {
+    if (!appliedCoupon || !baseAmount) return 0;
+
+    let discount = appliedCoupon.type === 'percent'
+        ? Math.round(baseAmount * (appliedCoupon.value / 100))
+        : Math.round(appliedCoupon.value);
+
+    if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) discount = Math.round(appliedCoupon.maxDiscount);
+    if (discount > baseAmount) discount = baseAmount;
+
+    return Math.max(0, discount);
+}
+
+function updateDiscountRow(discount) {
+    const row = document.getElementById('discountRow');
+    if (discount > 0) {
+        row.style.display = 'flex';
+        document.getElementById('discountValue').textContent = `-${discount} ريال`;
+    } else {
+        row.style.display = 'none';
+    }
+}
+
+// تطبيق كود الخصم
+async function applyCouponCode() {
+    const codeInput = document.getElementById('couponCodeInput');
+    const code      = codeInput.value.trim();
+    const msgEl     = document.getElementById('couponMessage');
+
+    if (!code) {
+        appliedCoupon = null;
+        msgEl.style.display = 'none';
+        recalcCurrentPrice();
+        return;
+    }
+
+    const baseAmount = getCurrentBasePrice();
+
+    try {
+        const res  = await fetch(`${API}/coupons/validate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, amount: baseAmount }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            appliedCoupon = { code: code.toUpperCase(), type: data.discountType, value: data.discountValue, maxDiscount: data.maxDiscount };
+            msgEl.textContent   = `تم تطبيق الكود — خصم ${data.discount} ريال`;
+            msgEl.style.color   = 'var(--green)';
+            msgEl.style.display = 'block';
+        } else {
+            appliedCoupon = null;
+            msgEl.textContent   = `❌ ${data.message}`;
+            msgEl.style.color   = 'var(--red)';
+            msgEl.style.display = 'block';
+        }
+    } catch (e) {
+        appliedCoupon = null;
+        msgEl.textContent   = '❌ تعذّر التحقق من الكود';
+        msgEl.style.color   = 'var(--red)';
+        msgEl.style.display = 'block';
+    }
+
+    recalcCurrentPrice();
+}
+
+// السعر الأساسي الحالي (قبل الخصم وقبل رسوم الخدمة) حسب نوع الخدمة
+function getCurrentBasePrice() {
+    if (currentService === 'حاوية') {
+        if (!selectedProduct) return 0;
+        const minDays   = selectedProduct.minDays;
+        const days      = parseInt(document.getElementById('daysCount').value) || minDays;
+        const dailyRate = selectedProduct.price / minDays;
+        return Math.round(dailyRate * days);
+    }
+
+    const val = parseFloat(document.getElementById('customPrice').value);
+    return val > 0 ? val : 0;
+}
+
+function recalcCurrentPrice() {
+    if (currentService === 'حاوية') {
+        updateContainerPrice();
+    } else {
+        updateCustomPrice();
+    }
+}
+
 // تحديث السعر العادي
 function updateNormalPrice(price) {
-    const fee = Math.round(price * 0.05);
-    const total = price + fee;
+    const discount      = computeDiscount(price);
+    const afterDiscount = price - discount;
+    const fee           = Math.round(afterDiscount * 0.05);
+    const total         = afterDiscount + fee;
+
     document.getElementById('servicePrice').textContent = `${price} ريال`;
     document.getElementById('platformFee').textContent  = `${fee} ريال`;
     document.getElementById('totalPrice').textContent   = `${total} ريال`;
+    updateDiscountRow(discount);
 }
 
 // تحديث السعر اللي يحدده العميل (وايت ماء / سطحة)
@@ -216,8 +311,10 @@ function updateContainerPrice() {
 
     const dailyRate = selectedProduct.price / minDays;
     const totalBase = Math.round(dailyRate * days);
-    const fee       = Math.round(totalBase * 0.05);
-    const total     = totalBase + fee;
+    const discount  = computeDiscount(totalBase);
+    const afterDiscount = totalBase - discount;
+    const fee       = Math.round(afterDiscount * 0.05);
+    const total     = afterDiscount + fee;
 
     document.getElementById('containerDailyPrice').textContent = `${selectedProduct.price} ريال / ${minDays} أيام`;
     document.getElementById('containerDaysLabel').textContent  = `${days} يوم`;
@@ -225,6 +322,7 @@ function updateContainerPrice() {
     document.getElementById('servicePrice').textContent        = `${totalBase} ريال`;
     document.getElementById('platformFee').textContent         = `${fee} ريال`;
     document.getElementById('totalPrice').textContent          = `${total} ريال`;
+    updateDiscountRow(discount);
 }
 
 // تأكيد الطلب — يجهّز البيانات ويفتح نافذة العد التنازلي
@@ -282,6 +380,8 @@ function confirmOrder() {
     const lat = document.getElementById('addressLat').value || null;
     const lng = document.getElementById('addressLng').value || null;
 
+    const discount = computeDiscount(finalPrice);
+
     // تجهيز بيانات الطلب لحين انتهاء العد التنازلي
     pendingOrder = {
         payload: {
@@ -289,12 +389,15 @@ function confirmOrder() {
             service:      currentService,
             address:      fullAddress,
             price:        finalPrice,
+            couponCode:   appliedCoupon ? appliedCoupon.code : null,
             providerId:   selectedProduct ? selectedProduct.providerId   : null,
             providerName: selectedProduct ? selectedProduct.providerName : null,
             productId:    selectedProduct ? selectedProduct.id           : null,
             lat, lng,
         },
-        service, fullAddress, finalPrice, address,
+        service, fullAddress, address,
+        finalPrice: finalPrice - discount,
+        discount,
     };
 
     openConfirmOverlay();
@@ -309,7 +412,9 @@ let confirmSecondsLeft = 7;
 function openConfirmOverlay() {
     document.getElementById('confirmService').textContent = pendingOrder.service.icon + ' ' + currentService;
     document.getElementById('confirmAddress').textContent = pendingOrder.fullAddress;
-    document.getElementById('confirmAmount').textContent  = `${pendingOrder.finalPrice} ريال`;
+    document.getElementById('confirmAmount').textContent  = pendingOrder.discount > 0
+        ? `${pendingOrder.finalPrice} ريال (بعد خصم ${pendingOrder.discount} ريال)`
+        : `${pendingOrder.finalPrice} ريال`;
 
     document.getElementById('confirmOverlay').style.display  = 'flex';
     document.getElementById('confirmCancelBtn').style.display = 'block';
@@ -348,7 +453,7 @@ function cancelConfirmation() {
 async function submitPendingOrder() {
     if (!pendingOrder) return;
 
-    const { payload, service, fullAddress, finalPrice } = pendingOrder;
+    const { payload, service, fullAddress } = pendingOrder;
 
     try {
         const response = await fetch(`${API}/orders`, {
@@ -371,7 +476,7 @@ async function submitPendingOrder() {
                 address:        fullAddress,
                 status:         order.status,
                 time:           service.time,
-                price:          finalPrice,
+                price:          order.price,
                 createdAt:      new Date().toLocaleString('ar-SA'),
                 providerName:   order.provider_name,
                 providerPhone:  order.provider_phone,
