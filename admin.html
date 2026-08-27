@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>يشجب - لوحة الإدارة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Cairo',sans-serif; }
@@ -418,6 +419,32 @@
             background: var(--gold); color: var(--black); border: 1px solid var(--gold);
             padding: 9px 20px; border-radius: 8px; font-family: 'Cairo',sans-serif;
             font-size: 13px; font-weight: 700; cursor: pointer;
+        }
+
+        /* ══ مركز العمليات ══ */
+        @keyframes flashGreen {
+            0%   { color: var(--green); }
+            100% { color: var(--text); }
+        }
+        .flash-update { animation: flashGreen 1.2s ease-out; }
+
+        .ops-order-row-red td,    .ops-order-row-red:hover td    { background: rgba(239,68,68,0.08) !important; }
+        .ops-order-row-yellow td, .ops-order-row-yellow:hover td { background: rgba(245,158,11,0.08) !important; }
+
+        .alert-action {
+            margin-right: auto; background: none; border: 1px solid currentColor;
+            color: inherit; padding: 4px 12px; border-radius: 6px; font-size: 11px;
+            font-weight: 700; font-family: 'Cairo',sans-serif; cursor: pointer; white-space: nowrap;
+        }
+        .alert-action:hover { opacity: 0.75; }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            z-index: 999; display: none; align-items: center; justify-content: center; padding: 16px;
+        }
+        .modal-box {
+            background: var(--white); border-radius: 16px; padding: 20px;
+            width: 380px; max-width: 100%;
         }
 
         /* ══ PAGINATION ══ */
@@ -1292,9 +1319,99 @@
             </div>
 
             <!-- ══ OTHER PAGES ══ -->
+            <!-- ══ OPERATIONS PAGE (LIVE) ══ -->
             <div id="page-operations" style="display:none">
-                <div class="page-header"><div class="page-title">مركز العمليات <svg class="icon"><use href="icons.svg#icon-target"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز العمليات المباشر</p></div>
+                <div class="page-header">
+                    <div class="page-title">مركز العمليات المباشر <svg class="icon"><use href="icons.svg#icon-target"></use></svg></div>
+                    <div class="page-sub">تحديث تلقائي كل 30 ثانية</div>
+                </div>
+
+                <!-- إحصائيات لحظية -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">الطلبات النشطة الآن</div>
+                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ops-active-orders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">المزودون المتاحون</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ops-available-providers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">متوسط وقت القبول</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ops-avg-acceptance">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إيرادات اليوم</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ops-today-revenue">0 ر</div>
+                    </div>
+                </div>
+
+                <!-- الخريطة المباشرة -->
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">الخريطة المباشرة</div>
+                    <div id="opsMap" style="height:400px;border-radius:12px;overflow:hidden"></div>
+                </div>
+
+                <!-- التنبيهات الفورية -->
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">التنبيهات الفورية</div>
+                    <div id="opsAlertsList">
+                        <p style="color:var(--text3);text-align:center;padding:16px;font-size:13px">لا توجد تنبيهات حالياً</p>
+                    </div>
+                </div>
+
+                <!-- جدول الطلبات المباشرة -->
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">الطلبات المباشرة</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>رقم الطلب</th><th>الخدمة</th><th>العميل</th><th>الموقع</th><th>منذ</th><th>الحالة</th><th>إجراء</th></tr>
+                            </thead>
+                            <tbody id="opsOrdersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- المزودون المتاحون الآن -->
+                <div class="card">
+                    <div class="card-title">المزودون المتاحون الآن</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>الاسم</th><th>نوع الخدمة</th><th>التقييم</th><th>آخر نشاط</th><th>إجراء</th></tr>
+                            </thead>
+                            <tbody id="opsProvidersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal تعيين مزود يدوياً -->
+            <div id="assignProviderModal" class="modal-overlay">
+                <div class="modal-box">
+                    <div class="card-title">تعيين مزود للطلب #<span id="assignOrderId"></span></div>
+                    <div class="form-group" style="margin-bottom:14px">
+                        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">اختر مزود متاح لنفس الخدمة</label>
+                        <select id="assignProviderSelect" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"></select>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button class="btn-gold" onclick="submitAssignProvider()">تعيين</button>
+                        <button class="btn-detail" onclick="closeAssignModal()">إلغاء</button>
+                    </div>
+                </div>
             </div>
             <div id="page-services" style="display:none">
                 <div class="page-header"><div class="page-title">الخدمات <svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></div></div>
@@ -1495,6 +1612,7 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>

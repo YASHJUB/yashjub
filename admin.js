@@ -19,6 +19,10 @@ const ROLE_LABELS = {
     accountant: { label: 'محاسب',       class: 'badge-pending' },
 };
 
+let opsRefreshInterval = null;
+let opsMap             = null;
+let opsMapMarkers       = [];
+
 // تسجيل الدخول
 async function doLogin() {
     const user = document.getElementById('adminUser').value;
@@ -118,6 +122,12 @@ function showPage(page) {
     const navEl = document.querySelector(`.sidebar-item[data-page="${page}"]`);
     if (navEl) navEl.classList.add('active');
 
+    // إيقاف التحديث التلقائي لمركز العمليات عند مغادرة صفحته
+    if (opsRefreshInterval) {
+        clearInterval(opsRefreshInterval);
+        opsRefreshInterval = null;
+    }
+
     if (page === 'orders')      loadOrdersPage();
     if (page === 'providers')   loadProvidersPage();
     if (page === 'clients')     loadClientsPage();
@@ -126,6 +136,7 @@ function showPage(page) {
     if (page === 'payments')    loadPaymentsPage();
     if (page === 'cities')      loadCitiesPage();
     if (page === 'coupons')     loadCouponsPage();
+    if (page === 'operations')  startOperationsPage();
 }
 
 // تحميل لوحة التحكم
@@ -779,6 +790,241 @@ async function updateStatus(id, status) {
             body: JSON.stringify({ status })
         });
     } catch(e) {}
+}
+
+// ══ مركز العمليات المباشر ══
+
+let opsOrdersCache     = [];
+let opsProvidersCache  = [];
+
+// بدء تشغيل صفحة مركز العمليات + التحديث التلقائي كل 30 ثانية
+function startOperationsPage() {
+    loadOperationsPage();
+    opsRefreshInterval = setInterval(loadOperationsPage, 30000);
+}
+
+// حساب عدد الدقائق منذ تاريخ SQLite (مخزّن UTC بدون منطقة زمنية)
+function minutesAgo(dateStr) {
+    if (!dateStr) return null;
+    const then = new Date(dateStr.replace(' ', 'T') + 'Z').getTime();
+    return Math.max(0, Math.round((Date.now() - then) / 60000));
+}
+
+function formatAgo(minutes) {
+    if (minutes === null) return '—';
+    if (minutes < 60)   return `${minutes} د`;
+    if (minutes < 1440) return `${Math.round(minutes / 60)} س`;
+    return `${Math.round(minutes / 1440)} يوم`;
+}
+
+// تحديث رقم إحصائي مع وميض أخضر لو تغيّرت القيمة
+function flashUpdate(elId, newValue) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (el.textContent !== String(newValue)) {
+        el.textContent = newValue;
+        el.classList.remove('flash-update');
+        void el.offsetWidth;
+        el.classList.add('flash-update');
+    }
+}
+
+async function loadOperationsPage() {
+    try {
+        const [liveRes, ordersRes, providersRes] = await Promise.all([
+            fetch(`${API}/operations/live`),
+            fetch(`${API}/orders`),
+            fetch(`${API}/providers`),
+        ]);
+
+        const live      = await liveRes.json();
+        const ordersData    = await ordersRes.json();
+        const providersData = await providersRes.json();
+
+        if (!live.success || !ordersData.success || !providersData.success) return;
+
+        const allOrders = ordersData.orders;
+        const activeOrders    = allOrders.filter(o => o.status === 'pending' || o.status === 'accepted');
+        const availableProviders = providersData.providers.filter(p => p.is_available);
+
+        opsOrdersCache    = activeOrders;
+        opsProvidersCache = availableProviders;
+
+        // الإحصائيات اللحظية
+        flashUpdate('ops-active-orders',       live.stats.activeOrders);
+        flashUpdate('ops-available-providers', live.stats.availableProviders);
+        flashUpdate('ops-avg-acceptance',      live.stats.avgAcceptanceMinutes !== null ? `${live.stats.avgAcceptanceMinutes} د` : '—');
+        flashUpdate('ops-today-revenue',       live.stats.todayRevenue.toLocaleString() + ' ر');
+
+        renderOpsAlerts(live.alerts);
+        renderOpsOrdersTable(activeOrders);
+        renderOpsProvidersTable(availableProviders, allOrders);
+        renderOpsMap(activeOrders, availableProviders);
+
+    } catch (e) {}
+}
+
+// التنبيهات الفورية
+function renderOpsAlerts(alerts) {
+    const container = document.getElementById('opsAlertsList');
+
+    if (!alerts.length) {
+        container.innerHTML = '<p style="color:var(--text3);text-align:center;padding:16px;font-size:13px">لا توجد تنبيهات حالياً</p>';
+        return;
+    }
+
+    const levelClass = { red: 'alert-red', yellow: 'alert-warn', blue: 'alert-blue' };
+    const levelIcon  = { red: 'siren', yellow: 'clock', blue: 'worker' };
+
+    container.innerHTML = alerts.map(a => `
+        <div class="alert-item ${levelClass[a.level] || 'alert-blue'}">
+            <svg class="icon"><use href="icons.svg#icon-${levelIcon[a.level] || 'warning'}"></use></svg>
+            <span>${a.message}</span>
+            <button class="alert-action" onclick='handleAlertAction(${JSON.stringify(a)})'>تصرف الآن</button>
+        </div>
+    `).join('');
+}
+
+function handleAlertAction(alertItem) {
+    if (alertItem.type === 'order_unassigned') {
+        const order = opsOrdersCache.find(o => o.id === alertItem.orderId);
+        if (order) openAssignModal(order.id, order.service);
+    } else if (alertItem.type === 'provider_review') {
+        document.querySelector('.sidebar-item[data-page="providers"]')?.click();
+    }
+}
+
+// جدول الطلبات المباشرة
+function renderOpsOrdersTable(orders) {
+    const statusBadge = {
+        pending:   '<span class="badge badge-pending">انتظار</span>',
+        accepted:  '<span class="badge badge-active">مقبول</span>',
+    };
+
+    document.getElementById('opsOrdersTable').innerHTML = orders.map(o => {
+        const age = minutesAgo(o.created_at);
+        const rowClass = age >= 10 ? 'ops-order-row-red' : (age >= 5 ? 'ops-order-row-yellow' : '');
+
+        return `
+            <tr class="${rowClass}">
+                <td><strong>#${o.id}</strong></td>
+                <td>${o.service}</td>
+                <td dir="ltr">+966${o.phone}</td>
+                <td>${(o.address || '').substring(0, 25)}${(o.address || '').length > 25 ? '...' : ''}</td>
+                <td>${formatAgo(age)}</td>
+                <td>${statusBadge[o.status] || o.status}</td>
+                <td><button class="btn-detail" onclick="openAssignModal(${o.id}, '${o.service}')">تدخل يدوي</button></td>
+            </tr>
+        `;
+    }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px">لا توجد طلبات نشطة الآن</td></tr>';
+}
+
+// المزودون المتاحون الآن
+function renderOpsProvidersTable(providers, allOrders) {
+    document.getElementById('opsProvidersTable').innerHTML = providers.map(p => {
+        const lastOrder = allOrders.find(o => o.provider_id === p.id);
+        const activityLabel = lastOrder ? `منذ ${formatAgo(minutesAgo(lastOrder.created_at))}` : 'لا يوجد نشاط بعد';
+
+        return `
+            <tr>
+                <td>${p.name}</td>
+                <td>${p.service_type}</td>
+                <td><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.rating}</td>
+                <td>${activityLabel}</td>
+                <td><a class="btn-detail" href="tel:+966${p.phone}" style="text-decoration:none;display:inline-block">تواصل</a></td>
+            </tr>
+        `;
+    }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px">لا يوجد مزودون متاحون حالياً</td></tr>';
+}
+
+// الخريطة المباشرة
+function initOpsMap() {
+    if (opsMap) return;
+
+    opsMap = L.map('opsMap').setView([24.7136, 46.6753], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+    }).addTo(opsMap);
+}
+
+function renderOpsMap(activeOrders, availableProviders) {
+    initOpsMap();
+
+    opsMapMarkers.forEach(m => opsMap.removeLayer(m));
+    opsMapMarkers = [];
+
+    const redIcon = L.divIcon({
+        className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#EF4444;border:2px solid #fff;box-shadow:0 0 0 1px #EF4444"></div>',
+        iconSize: [14, 14],
+    });
+    const greenIcon = L.divIcon({
+        className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#10B981;border:2px solid #fff;box-shadow:0 0 0 1px #10B981"></div>',
+        iconSize: [14, 14],
+    });
+
+    activeOrders.forEach(o => {
+        if (!o.lat || !o.lng) return;
+        const age = minutesAgo(o.created_at);
+        const marker = L.marker([o.lat, o.lng], { icon: redIcon }).addTo(opsMap)
+            .bindPopup(`<strong>طلب #${o.id}</strong><br>${o.service}<br>منذ ${formatAgo(age)}`);
+        opsMapMarkers.push(marker);
+    });
+
+    availableProviders.forEach(p => {
+        if (!p.lat || !p.lng) return;
+        const marker = L.marker([p.lat, p.lng], { icon: greenIcon }).addTo(opsMap)
+            .bindPopup(`<strong>${p.name}</strong><br>${p.service_type}<br>⭐ ${p.rating}`);
+        opsMapMarkers.push(marker);
+    });
+}
+
+// تعيين مزود يدوياً
+function openAssignModal(orderId, service) {
+    document.getElementById('assignOrderId').textContent = orderId;
+
+    const matching = opsProvidersCache.filter(p => p.service_type === service);
+    const select = document.getElementById('assignProviderSelect');
+
+    select.innerHTML = matching.length
+        ? matching.map(p => `<option value="${p.id}">${p.name} — ⭐ ${p.rating}</option>`).join('')
+        : '<option value="">لا يوجد مزود متاح لهذه الخدمة</option>';
+
+    select.dataset.orderId = orderId;
+    document.getElementById('assignProviderModal').style.display = 'flex';
+}
+
+function closeAssignModal() {
+    document.getElementById('assignProviderModal').style.display = 'none';
+}
+
+async function submitAssignProvider() {
+    const select    = document.getElementById('assignProviderSelect');
+    const providerId = select.value;
+    const orderId    = select.dataset.orderId;
+
+    if (!providerId) {
+        alert('❌ لا يوجد مزود متاح لتعيينه');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/orders/${orderId}/assign-provider`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ providerId }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            closeAssignModal();
+            loadOperationsPage();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
 }
 
 // تحقق من الجلسة

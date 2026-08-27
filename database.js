@@ -117,6 +117,7 @@ const migrations = [
     'ALTER TABLE users ADD COLUMN name TEXT',
     'ALTER TABLE orders ADD COLUMN coupon_code TEXT',
     'ALTER TABLE orders ADD COLUMN discount INTEGER DEFAULT 0',
+    'ALTER TABLE orders ADD COLUMN accepted_at TEXT',
 ];
 
 for (const sql of migrations) {

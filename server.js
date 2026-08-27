@@ -208,7 +208,36 @@ app.get('/api/orders/:id', (req, res) => {
 app.put('/api/orders/:id/status', (req, res) => {
     const { status } = req.body;
 
-    db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, req.params.id);
+    const current = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+
+    if (status === 'accepted' && current && !current.accepted_at) {
+        db.prepare("UPDATE orders SET status = ?, accepted_at = datetime('now') WHERE id = ?").run(status, req.params.id);
+    } else {
+        db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, req.params.id);
+    }
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+
+    res.json({ success: true, order });
+});
+
+// تعيين/تغيير مزود الطلب يدوياً (مركز العمليات المباشر)
+app.put('/api/orders/:id/assign-provider', (req, res) => {
+    const { providerId } = req.body;
+
+    if (!providerId) {
+        return res.json({ success: false, message: 'المزود مطلوب' });
+    }
+
+    const provider = db.prepare('SELECT * FROM providers WHERE id = ?').get(providerId);
+
+    if (!provider) {
+        return res.json({ success: false, message: 'المزود غير موجود' });
+    }
+
+    db.prepare(`
+        UPDATE orders SET provider_id = ?, provider_name = ?, provider_phone = ? WHERE id = ?
+    `).run(provider.id, provider.name, provider.phone, req.params.id);
 
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
 
@@ -268,7 +297,12 @@ app.post('/api/providers/register', upload.fields([
 });
 
 app.get('/api/providers', (req, res) => {
-    const providers = db.prepare('SELECT * FROM providers ORDER BY created_at DESC').all();
+    const providers = db.prepare(`
+        SELECT providers.*,
+            (SELECT lat FROM products WHERE products.provider_id = providers.id AND lat IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS lat,
+            (SELECT lng FROM products WHERE products.provider_id = providers.id AND lat IS NOT NULL ORDER BY created_at DESC LIMIT 1) AS lng
+        FROM providers ORDER BY created_at DESC
+    `).all();
     res.json({ success: true, providers });
 });
 // جلب طلبات مستخدم محدد
@@ -636,6 +670,78 @@ app.get('/api/reports/payments', (req, res) => {
     `).all();
 
     res.json({ success: true, payments });
+});
+
+// ========== API مركز العمليات المباشر ==========
+
+app.get('/api/operations/live', (req, res) => {
+    const activeOrders = db.prepare(`
+        SELECT * FROM orders WHERE status IN ('pending', 'accepted') ORDER BY created_at DESC
+    `).all();
+
+    const availableProvidersCount = db.prepare(
+        'SELECT COUNT(*) AS n FROM providers WHERE is_available = 1'
+    ).get().n;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const todayRevenue = db.prepare(
+        "SELECT COALESCE(SUM(price), 0) AS total FROM orders WHERE created_at LIKE ?"
+    ).get(today + '%').total;
+
+    // متوسط وقت القبول (بالدقائق) من آخر 50 طلب له وقت قبول مسجّل
+    const acceptedSample = db.prepare(`
+        SELECT created_at, accepted_at FROM orders
+        WHERE accepted_at IS NOT NULL
+        ORDER BY accepted_at DESC LIMIT 50
+    `).all();
+
+    let avgAcceptanceMinutes = null;
+    if (acceptedSample.length) {
+        const totalMinutes = acceptedSample.reduce((sum, o) => {
+            const created  = new Date(o.created_at.replace(' ', 'T') + 'Z').getTime();
+            const accepted = new Date(o.accepted_at.replace(' ', 'T') + 'Z').getTime();
+            return sum + Math.max(0, (accepted - created) / 60000);
+        }, 0);
+        avgAcceptanceMinutes = Math.round(totalMinutes / acceptedSample.length);
+    }
+
+    // تنبيهات: طلبات بدون مزود تجاوزت 5 أو 10 دقائق
+    const now = Date.now();
+    const alerts = [];
+
+    activeOrders.forEach(o => {
+        if (o.provider_id) return;
+        const ageMinutes = Math.round((now - new Date(o.created_at.replace(' ', 'T') + 'Z').getTime()) / 60000);
+
+        if (ageMinutes > 24 * 60) return; // طلبات قديمة جداً (أكثر من يوم) تُستبعد من تنبيهات "الآن" — تبقى بجدول الطلبات فقط
+
+        if (ageMinutes >= 10) {
+            alerts.push({ level: 'red', type: 'order_unassigned', orderId: o.id, message: `الطلب #${o.id} (${o.service}) بدون مزود منذ ${ageMinutes} دقيقة` });
+        } else if (ageMinutes >= 5) {
+            alerts.push({ level: 'yellow', type: 'order_unassigned', orderId: o.id, message: `الطلب #${o.id} (${o.service}) بدون مزود منذ ${ageMinutes} دقيقة` });
+        }
+    });
+
+    // تنبيهات: مزودون انضموا خلال آخر 24 ساعة يحتاجون مراجعة
+    const dayAgoIso = new Date(now - 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
+    const newProviders = db.prepare(
+        'SELECT * FROM providers WHERE created_at >= ? ORDER BY created_at DESC'
+    ).all(dayAgoIso);
+
+    newProviders.forEach(p => {
+        alerts.push({ level: 'blue', type: 'provider_review', providerId: p.id, message: `مزود جديد "${p.name}" يحتاج مراجعة توثيق` });
+    });
+
+    res.json({
+        success: true,
+        stats: {
+            activeOrders: activeOrders.length,
+            availableProviders: availableProvidersCount,
+            avgAcceptanceMinutes,
+            todayRevenue,
+        },
+        alerts,
+    });
 });
 
 // أخطاء رفع الملفات (نوع غير مسموح، حجم كبير)
