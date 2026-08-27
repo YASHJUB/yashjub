@@ -278,6 +278,7 @@
         .badge-done     { background: rgba(16,185,129,0.1); color: var(--green); }
         .badge-cancel   { background: rgba(239,68,68,0.1);  color: var(--red); }
         .badge-gold     { background: rgba(245,197,24,0.12); color: #92700A; }
+        .badge-purple   { background: rgba(139,92,246,0.1); color: #7C3AED; }
 
         /* ══ ACTIVITY ══ */
         .activity-item {
@@ -401,6 +402,24 @@
         }
         .btn-detail:hover { border-color: var(--gold); color: var(--gold); }
 
+        /* ══ EMPLOYEE FORM ══ */
+        .emp-form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;
+        }
+        .emp-form-grid .form-group label {
+            font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;
+        }
+        .emp-form-grid .form-group input,
+        .emp-form-grid .form-group select {
+            width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--gray2);
+            font-family: 'Cairo',sans-serif; font-size: 13px;
+        }
+        .btn-gold {
+            background: var(--gold); color: var(--black); border: 1px solid var(--gold);
+            padding: 9px 20px; border-radius: 8px; font-family: 'Cairo',sans-serif;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+        }
+
         /* ══ PAGINATION ══ */
         .pagination {
             display: flex; align-items: center; justify-content: center;
@@ -468,67 +487,72 @@
         </div>
 
         <div class="sidebar-section-label">الرئيسية</div>
-        <a class="sidebar-item active" onclick="showPage('dashboard')">
+        <a class="sidebar-item active" data-page="dashboard" onclick="showPage('dashboard')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></span> لوحة التحكم
         </a>
-        <a class="sidebar-item" onclick="showPage('operations')">
+        <a class="sidebar-item" data-page="operations" onclick="showPage('operations')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-target"></use></svg></span> مركز العمليات
             <span class="sidebar-badge gold">مباشر</span>
         </a>
 
         <div class="sidebar-section-label">إدارة الطلبات</div>
-        <a class="sidebar-item" onclick="showPage('orders')">
+        <a class="sidebar-item" data-page="orders" onclick="showPage('orders')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> الطلبات
             <span class="sidebar-badge" id="pendingBadge">0</span>
         </a>
-        <a class="sidebar-item" onclick="showPage('services')">
+        <a class="sidebar-item" data-page="services" onclick="showPage('services')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></span> الخدمات
         </a>
 
         <div class="sidebar-section-label">إدارة المستخدمين</div>
-        <a class="sidebar-item" onclick="showPage('clients')">
+        <a class="sidebar-item" data-page="clients" onclick="showPage('clients')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></span> العملاء
         </a>
-        <a class="sidebar-item" onclick="showPage('providers')">
+        <a class="sidebar-item" data-page="providers" onclick="showPage('providers')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> الموردون
         </a>
-        <a class="sidebar-item" onclick="showPage('verification')">
+        <a class="sidebar-item" data-page="verification" onclick="showPage('verification')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></span> طلبات التوثيق
             <span class="sidebar-badge" id="verifyBadge">0</span>
         </a>
 
         <div class="sidebar-section-label">المالية</div>
-        <a class="sidebar-item" onclick="showPage('payments')">
+        <a class="sidebar-item" data-page="payments" onclick="showPage('payments')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> المدفوعات
         </a>
-        <a class="sidebar-item" onclick="showPage('commissions')">
+        <a class="sidebar-item" data-page="commissions" onclick="showPage('commissions')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></span> العمولات
         </a>
 
         <div class="sidebar-section-label">التواصل</div>
-        <a class="sidebar-item" onclick="showPage('chats')">
+        <a class="sidebar-item" data-page="chats" onclick="showPage('chats')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> المحادثات
         </a>
-        <a class="sidebar-item" onclick="showPage('notifications')">
+        <a class="sidebar-item" data-page="notifications" onclick="showPage('notifications')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg></span> الإشعارات
         </a>
-        <a class="sidebar-item" onclick="showPage('complaints')">
+        <a class="sidebar-item" data-page="complaints" onclick="showPage('complaints')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></span> البلاغات والشكاوى
             <span class="sidebar-badge" id="complaintBadge">2</span>
         </a>
 
         <div class="sidebar-section-label">أخرى</div>
-        <a class="sidebar-item" onclick="showPage('reviews')">
+        <a class="sidebar-item" data-page="reviews" onclick="showPage('reviews')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></span> التقييمات
         </a>
-        <a class="sidebar-item" onclick="showPage('cities')">
+        <a class="sidebar-item" data-page="cities" onclick="showPage('cities')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></span> المدن
         </a>
-        <a class="sidebar-item" onclick="showPage('coupons')">
+        <a class="sidebar-item" data-page="coupons" onclick="showPage('coupons')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></span> كوبونات الخصم
         </a>
-        <a class="sidebar-item" onclick="showPage('settings')">
+        <a class="sidebar-item" data-page="settings" onclick="showPage('settings')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-settings"></use></svg></span> الإعدادات
+        </a>
+
+        <div class="sidebar-section-label" id="employeesSectionLabel" style="display:none">إدارة النظام</div>
+        <a class="sidebar-item" data-page="employees" id="navEmployees" style="display:none" onclick="showPage('employees')">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-id-card"></use></svg></span> إدارة الموظفين
         </a>
 
         <div class="sidebar-bottom">
@@ -554,8 +578,8 @@
                 </button>
                 <button class="topbar-icon-btn"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></button>
                 <div class="topbar-admin">
-                    <div class="topbar-admin-avatar">م</div>
-                    <div class="topbar-admin-name">المدير العام</div>
+                    <div class="topbar-admin-avatar" id="topbarAdminAvatar">م</div>
+                    <div class="topbar-admin-name" id="topbarAdminName">المدير العام</div>
                 </div>
             </div>
         </div>
@@ -1136,6 +1160,88 @@
                 </div>
                 <div class="card">
                     <p style="color:var(--text3);text-align:center;padding:40px">لا توجد طلبات توثيق معلقة حالياً</p>
+                </div>
+            </div>
+
+            <!-- ══ EMPLOYEES PAGE (المدير العام فقط) ══ -->
+            <div id="page-employees" style="display:none">
+                <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <div>
+                        <div class="page-title">إدارة الموظفين <svg class="icon"><use href="icons.svg#icon-id-card"></use></svg></div>
+                        <div class="page-sub">إضافة موظفي لوحة الإدارة وتحديد صلاحيات كل منصب</div>
+                    </div>
+                    <button class="btn-gold" onclick="toggleEmployeeForm()">+ إضافة موظف جديد</button>
+                </div>
+
+                <div class="card" id="employeeForm" style="display:none;margin-bottom:16px">
+                    <div class="card-title" id="employeeFormTitle">إضافة موظف جديد</div>
+                    <div class="emp-form-grid">
+                        <div class="form-group">
+                            <label>الاسم الكامل</label>
+                            <input type="text" id="empName" placeholder="اسم الموظف"/>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الجوال</label>
+                            <input type="text" id="empPhone" placeholder="05XXXXXXXX"/>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الإيبان</label>
+                            <input type="text" id="empIban" placeholder="SA00 0000 0000 0000 0000 0000"/>
+                        </div>
+                        <div class="form-group">
+                            <label>المنصب</label>
+                            <select id="empRole">
+                                <option value="admin">مدير عام</option>
+                                <option value="supervisor">مشرف</option>
+                                <option value="support">دعم فني</option>
+                                <option value="reviewer">مراجع توثيق</option>
+                                <option value="accountant">محاسب</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>اسم المستخدم</label>
+                            <input type="text" id="empUsername" placeholder="اسم الدخول"/>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding-top:8px">
+                                <input type="checkbox" id="empActive" checked style="width:auto"/> الحساب نشط
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>كلمة المرور</label>
+                            <input type="password" id="empPassword" placeholder="كلمة المرور"/>
+                        </div>
+                        <div class="form-group">
+                            <label>تأكيد كلمة المرور</label>
+                            <input type="password" id="empPasswordConfirm" placeholder="أعد كتابة كلمة المرور"/>
+                        </div>
+                    </div>
+                    <div id="empFormNote" style="font-size:12px;color:var(--text3);margin-bottom:14px;display:none">اترك كلمة المرور فارغة إذا ما تبي تغييرها</div>
+                    <div style="display:flex;gap:10px">
+                        <button class="btn-gold" onclick="submitEmployee()">حفظ</button>
+                        <button class="btn-detail" onclick="toggleEmployeeForm()">إلغاء</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم</th>
+                                    <th>المنصب</th>
+                                    <th>الجوال</th>
+                                    <th>اسم المستخدم</th>
+                                    <th>الحالة</th>
+                                    <th>تاريخ الإضافة</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allEmployeesTable"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

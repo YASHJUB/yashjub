@@ -53,6 +53,19 @@ db.exec(`
         created_at   TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول موظفي لوحة الإدارة
+    CREATE TABLE IF NOT EXISTS employees (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        name       TEXT NOT NULL,
+        phone      TEXT NOT NULL,
+        iban       TEXT,
+        role       TEXT NOT NULL,
+        username   TEXT UNIQUE NOT NULL,
+        password   TEXT NOT NULL,
+        is_active  INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // ترقية الجداول القديمة (migrations بسيطة — تتجاهل الخطأ لو العمود موجود مسبقاً)

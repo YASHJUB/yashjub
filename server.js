@@ -5,6 +5,7 @@ const cors    = require('cors');
 const path    = require('path');
 const fs      = require('fs');
 const multer  = require('multer');
+const bcrypt  = require('bcryptjs');
 const db      = require('./database');
 
 const app  = express();
@@ -301,6 +302,98 @@ app.put('/api/products/:id', (req, res) => {
 app.delete('/api/products/:id', (req, res) => {
     db.prepare('DELETE FROM products WHERE id = ?').run(req.params.id);
     res.json({ success: true });
+});
+
+// ========== API موظفي لوحة الإدارة ==========
+
+app.post('/api/employees', (req, res) => {
+    const { name, phone, iban, role, username, password } = req.body;
+
+    if (!name || !phone || !role || !username || !password) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const existing = db.prepare('SELECT * FROM employees WHERE username = ?').get(username);
+
+    if (existing) {
+        return res.json({ success: false, message: 'اسم المستخدم مستخدم مسبقاً' });
+    }
+
+    const hashed = bcrypt.hashSync(password, 10);
+
+    const result = db.prepare(`
+        INSERT INTO employees (name, phone, iban, role, username, password)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(name, phone, iban || '', role, username, hashed);
+
+    const employee = db.prepare(
+        'SELECT id, name, phone, iban, role, username, is_active, created_at FROM employees WHERE id = ?'
+    ).get(result.lastInsertRowid);
+
+    res.json({ success: true, employee });
+});
+
+app.get('/api/employees', (req, res) => {
+    const employees = db.prepare(
+        'SELECT id, name, phone, iban, role, username, is_active, created_at FROM employees ORDER BY created_at DESC'
+    ).all();
+
+    res.json({ success: true, employees });
+});
+
+app.put('/api/employees/:id', (req, res) => {
+    const { name, phone, iban, role, username, password, isActive } = req.body;
+
+    if (!name || !phone || !role || !username) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const existing = db.prepare(
+        'SELECT * FROM employees WHERE username = ? AND id != ?'
+    ).get(username, req.params.id);
+
+    if (existing) {
+        return res.json({ success: false, message: 'اسم المستخدم مستخدم مسبقاً' });
+    }
+
+    if (password) {
+        const hashed = bcrypt.hashSync(password, 10);
+        db.prepare(`
+            UPDATE employees SET name = ?, phone = ?, iban = ?, role = ?, username = ?, password = ?, is_active = ?
+            WHERE id = ?
+        `).run(name, phone, iban || '', role, username, hashed, isActive ? 1 : 0, req.params.id);
+    } else {
+        db.prepare(`
+            UPDATE employees SET name = ?, phone = ?, iban = ?, role = ?, username = ?, is_active = ?
+            WHERE id = ?
+        `).run(name, phone, iban || '', role, username, isActive ? 1 : 0, req.params.id);
+    }
+
+    const employee = db.prepare(
+        'SELECT id, name, phone, iban, role, username, is_active, created_at FROM employees WHERE id = ?'
+    ).get(req.params.id);
+
+    res.json({ success: true, employee });
+});
+
+app.delete('/api/employees/:id', (req, res) => {
+    db.prepare('DELETE FROM employees WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+app.post('/api/employees/login', (req, res) => {
+    const { username, password } = req.body;
+
+    const employee = db.prepare('SELECT * FROM employees WHERE username = ?').get(username);
+
+    if (!employee || !employee.is_active || !bcrypt.compareSync(password, employee.password)) {
+        return res.json({ success: false, message: 'بيانات الدخول غير صحيحة' });
+    }
+
+    res.json({
+        success: true,
+        employee: { id: employee.id, name: employee.name, role: employee.role, username: employee.username },
+    });
 });
 
 // أخطاء رفع الملفات (نوع غير مسموح، حجم كبير)

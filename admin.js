@@ -3,24 +3,108 @@
 const API      = window.location.origin + '/api';
 const ADMIN_PASS = 'yashjub2025';
 
+// صلاحيات كل منصب — الصفحات المسموح للمنصب رؤيتها (admin يشوف كل شيء بدون قيود)
+const ROLE_PAGES = {
+    supervisor: ['orders', 'providers', 'clients'],
+    support:    ['orders', 'complaints'],
+    reviewer:   ['verification'],
+    accountant: ['payments', 'commissions'],
+};
+
+const ROLE_LABELS = {
+    admin:      { label: 'مدير عام',    class: 'badge-gold'    },
+    supervisor: { label: 'مشرف',        class: 'badge-active'  },
+    support:    { label: 'دعم فني',     class: 'badge-done'    },
+    reviewer:   { label: 'مراجع توثيق', class: 'badge-purple'  },
+    accountant: { label: 'محاسب',       class: 'badge-pending' },
+};
+
 // تسجيل الدخول
-function doLogin() {
+async function doLogin() {
     const user = document.getElementById('adminUser').value;
     const pass = document.getElementById('adminPass').value;
 
     if ((user === 'admin' || user === 'يشجب') && pass === ADMIN_PASS) {
-        sessionStorage.setItem('yashjub_admin', 'true');
-        document.getElementById('loginScreen').style.display  = 'none';
-        document.getElementById('adminLayout').style.display  = 'flex';
-        loadDashboard();
-    } else {
+        enterAdminPanel('admin', 'المدير العام');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/employees/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user, password: pass }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            enterAdminPanel(data.employee.role, data.employee.name);
+        } else {
+            alert('❌ بيانات الدخول غير صحيحة');
+        }
+    } catch (e) {
         alert('❌ بيانات الدخول غير صحيحة');
     }
+}
+
+// فتح اللوحة بعد نجاح الدخول (مدير عام أو موظف)
+function enterAdminPanel(role, name) {
+    sessionStorage.setItem('yashjub_admin', 'true');
+    sessionStorage.setItem('yashjub_admin_role', role);
+    sessionStorage.setItem('yashjub_admin_name', name);
+
+    document.getElementById('loginScreen').style.display  = 'none';
+    document.getElementById('adminLayout').style.display  = 'flex';
+
+    applyRolePermissions(role, name);
+
+    if (role === 'admin') {
+        loadDashboard();
+    } else {
+        const firstPage = (ROLE_PAGES[role] || [])[0];
+        if (firstPage) showPage(firstPage);
+    }
+}
+
+// إظهار/إخفاء عناصر السايد بار حسب صلاحية المنصب
+function applyRolePermissions(role, name) {
+    document.getElementById('topbarAdminName').textContent   = name || 'المدير العام';
+    document.getElementById('topbarAdminAvatar').textContent = (name || 'م').trim().charAt(0);
+
+    const employeesNav = document.getElementById('navEmployees');
+    const employeesLabel = document.getElementById('employeesSectionLabel');
+
+    if (role === 'admin') {
+        document.querySelectorAll('.sidebar-item[data-page]').forEach(i => i.style.display = 'flex');
+        document.querySelectorAll('.sidebar-section-label').forEach(l => l.style.display = 'block');
+        return;
+    }
+
+    if (employeesNav)   employeesNav.style.display   = 'none';
+    if (employeesLabel) employeesLabel.style.display = 'none';
+
+    const allowed = ROLE_PAGES[role] || [];
+    document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+        const page = item.getAttribute('data-page');
+        item.style.display = allowed.includes(page) ? 'flex' : 'none';
+    });
+
+    document.querySelectorAll('.sidebar-section-label').forEach(label => {
+        let next = label.nextElementSibling;
+        let hasVisible = false;
+        while (next && next.classList.contains('sidebar-item')) {
+            if (next.style.display !== 'none') hasVisible = true;
+            next = next.nextElementSibling;
+        }
+        label.style.display = hasVisible ? 'block' : 'none';
+    });
 }
 
 // تسجيل الخروج
 function doLogout() {
     sessionStorage.removeItem('yashjub_admin');
+    sessionStorage.removeItem('yashjub_admin_role');
+    sessionStorage.removeItem('yashjub_admin_name');
     document.getElementById('loginScreen').style.display  = 'flex';
     document.getElementById('adminLayout').style.display  = 'none';
 }
@@ -30,11 +114,14 @@ function showPage(page) {
     document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
     document.getElementById(`page-${page}`).style.display = 'block';
-    event.currentTarget.classList.add('active');
+
+    const navEl = document.querySelector(`.sidebar-item[data-page="${page}"]`);
+    if (navEl) navEl.classList.add('active');
 
     if (page === 'orders')    loadOrdersPage();
     if (page === 'providers') loadProvidersPage();
     if (page === 'clients')   loadClientsPage();
+    if (page === 'employees') loadEmployeesPage();
 }
 
 // تحميل لوحة التحكم
@@ -277,6 +364,138 @@ async function loadClientsPage() {
     } catch(e) {}
 }
 
+// صفحة الموظفين
+let editingEmployeeId = null;
+
+async function loadEmployeesPage() {
+    try {
+        const res  = await fetch(`${API}/employees`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        document.getElementById('allEmployeesTable').innerHTML = data.employees.map(e => {
+            const roleInfo = ROLE_LABELS[e.role] || { label: e.role, class: 'badge-active' };
+            return `
+                <tr>
+                    <td>#${e.id}</td>
+                    <td>${e.name}</td>
+                    <td><span class="badge ${roleInfo.class}">${roleInfo.label}</span></td>
+                    <td dir="ltr">${e.phone}</td>
+                    <td dir="ltr">${e.username}</td>
+                    <td>${e.is_active ? '<span class="badge badge-done">نشط</span>' : '<span class="badge badge-cancel">موقوف</span>'}</td>
+                    <td>${new Date(e.created_at).toLocaleDateString('ar-SA')}</td>
+                    <td>
+                        <button class="btn-detail" onclick='openEditEmployee(${JSON.stringify(e)})'>تعديل</button>
+                        <button class="btn-detail" style="color:var(--red);border-color:var(--red)" onclick="deleteEmployee(${e.id})">حذف</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {}
+}
+
+function toggleEmployeeForm() {
+    const form   = document.getElementById('employeeForm');
+    const isOpen = form.style.display === 'block';
+
+    if (isOpen) {
+        form.style.display = 'none';
+    } else {
+        resetEmployeeForm();
+        form.style.display = 'block';
+    }
+}
+
+function resetEmployeeForm() {
+    editingEmployeeId = null;
+    document.getElementById('employeeFormTitle').textContent = 'إضافة موظف جديد';
+    document.getElementById('empName').value             = '';
+    document.getElementById('empPhone').value            = '';
+    document.getElementById('empIban').value              = '';
+    document.getElementById('empRole').value              = 'supervisor';
+    document.getElementById('empUsername').value          = '';
+    document.getElementById('empPassword').value          = '';
+    document.getElementById('empPasswordConfirm').value   = '';
+    document.getElementById('empActive').checked          = true;
+    document.getElementById('empFormNote').style.display  = 'none';
+}
+
+function openEditEmployee(emp) {
+    editingEmployeeId = emp.id;
+    document.getElementById('employeeFormTitle').textContent = 'تعديل بيانات الموظف';
+    document.getElementById('empName').value             = emp.name;
+    document.getElementById('empPhone').value            = emp.phone;
+    document.getElementById('empIban').value              = emp.iban || '';
+    document.getElementById('empRole').value              = emp.role;
+    document.getElementById('empUsername').value          = emp.username;
+    document.getElementById('empPassword').value          = '';
+    document.getElementById('empPasswordConfirm').value   = '';
+    document.getElementById('empActive').checked          = !!emp.is_active;
+    document.getElementById('empFormNote').style.display  = 'block';
+
+    const form = document.getElementById('employeeForm');
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitEmployee() {
+    const name     = document.getElementById('empName').value.trim();
+    const phone    = document.getElementById('empPhone').value.trim();
+    const iban     = document.getElementById('empIban').value.trim();
+    const role     = document.getElementById('empRole').value;
+    const username = document.getElementById('empUsername').value.trim();
+    const password = document.getElementById('empPassword').value;
+    const confirmPass = document.getElementById('empPasswordConfirm').value;
+    const isActive = document.getElementById('empActive').checked;
+
+    if (!name || !phone || !username) {
+        alert('❌ يرجى تعبئة جميع الحقول المطلوبة');
+        return;
+    }
+
+    if (!editingEmployeeId && !password) {
+        alert('❌ كلمة المرور مطلوبة');
+        return;
+    }
+
+    if (password && password !== confirmPass) {
+        alert('❌ كلمة المرور وتأكيدها غير متطابقين');
+        return;
+    }
+
+    try {
+        const url    = editingEmployeeId ? `${API}/employees/${editingEmployeeId}` : `${API}/employees`;
+        const method = editingEmployeeId ? 'PUT' : 'POST';
+
+        const res  = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phone, iban, role, username, password, isActive }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('employeeForm').style.display = 'none';
+            loadEmployeesPage();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function deleteEmployee(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الموظف؟')) return;
+
+    try {
+        await fetch(`${API}/employees/${id}`, { method: 'DELETE' });
+        loadEmployeesPage();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
 // تحديث حالة الطلب
 async function updateStatus(id, status) {
     try {
@@ -290,7 +509,18 @@ async function updateStatus(id, status) {
 
 // تحقق من الجلسة
 if (sessionStorage.getItem('yashjub_admin') === 'true') {
+    const savedRole = sessionStorage.getItem('yashjub_admin_role') || 'admin';
+    const savedName = sessionStorage.getItem('yashjub_admin_name') || 'المدير العام';
+
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminLayout').style.display = 'flex';
-    loadDashboard();
+
+    applyRolePermissions(savedRole, savedName);
+
+    if (savedRole === 'admin') {
+        loadDashboard();
+    } else {
+        const firstPage = (ROLE_PAGES[savedRole] || [])[0];
+        if (firstPage) showPage(firstPage);
+    }
 }
