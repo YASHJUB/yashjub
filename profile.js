@@ -20,14 +20,14 @@ async function loadProfile() {
 
     if (type === 'provider') {
         document.getElementById('profileName').textContent  = name || 'مزود خدمة';
-        document.getElementById('profileBadge').textContent = '👷 مزود';
+        document.getElementById('profileBadge').innerHTML = '<svg class="icon"><use href="icons.svg#icon-worker"></use></svg> مزود';
         document.getElementById('profileBadge').style.background = 'rgba(245,197,24,0.2)';
         document.getElementById('profileBadge').style.color = '#92700A';
         document.getElementById('infoType').textContent    = 'مزود خدمة';
         document.getElementById('providerAction').style.display = 'flex';
     } else {
         document.getElementById('profileName').textContent  = name || 'عميل يشجب';
-        document.getElementById('profileBadge').textContent = '👤 عميل';
+        document.getElementById('profileBadge').innerHTML = '<svg class="icon"><use href="icons.svg#icon-user"></use></svg> عميل';
         document.getElementById('infoType').textContent    = 'عميل';
     }
 

@@ -3,11 +3,11 @@
 const API = window.location.origin + '/api';
 
 const serviceIcons = {
-    'وايت ماء':    '🚚',
-    'سطحة':        '🚛',
-    'معدات ثقيلة': '🏗️',
-    'حاوية':       '📦',
-    'عمالة':       '👷',
+    'وايت ماء':    'truck',
+    'سطحة':        'tow-truck',
+    'معدات ثقيلة': 'crane',
+    'حاوية':       'box',
+    'عمالة':       'worker',
 }
 
 const statusLabels = {
@@ -54,7 +54,7 @@ async function loadOrders() {
         // بناء البطاقات
         const container = document.getElementById('ordersCards');
         container.innerHTML = orders.map(order => {
-            const icon   = serviceIcons[order.service] || '🔧';
+            const icon   = serviceIcons[order.service] || 'wrench';
             const status = statusLabels[order.status]  || { label: order.status, color: '#888', bg: '#f0f0f0' };
             const date   = new Date(order.created_at).toLocaleDateString('ar-SA');
 
@@ -62,7 +62,7 @@ async function loadOrders() {
                 <div class="order-card-item">
                     <div class="order-card-top">
                         <div class="order-card-service">
-                            <div class="order-card-icon">${icon}</div>
+                            <div class="order-card-icon"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg></div>
                             <div>
                                 <div class="order-card-name">${order.service}</div>
                                 <div class="order-card-date">${date}</div>
@@ -76,15 +76,15 @@ async function loadOrders() {
                     <div class="order-card-divider"></div>
                     <div class="order-card-details">
                         <div class="order-detail">
-                            <span class="order-detail-label">📍 الموقع</span>
+                            <span class="order-detail-label"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> الموقع</span>
                             <span class="order-detail-value">${order.address}</span>
                         </div>
                         <div class="order-detail">
-                            <span class="order-detail-label">💰 المبلغ</span>
+                            <span class="order-detail-label"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> المبلغ</span>
                             <span class="order-detail-value">${order.price} ريال</span>
                         </div>
                         <div class="order-detail">
-                            <span class="order-detail-label">🧾 رقم الطلب</span>
+                            <span class="order-detail-label"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg> رقم الطلب</span>
                             <span class="order-detail-value">#${order.id}</span>
                         </div>
                     </div>

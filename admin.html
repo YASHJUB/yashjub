@@ -435,12 +435,12 @@
 <!-- ══ LOGIN SCREEN ══ -->
 <div id="loginScreen" class="login-screen">
     <div class="login-box">
-        <div class="logo">⚙️</div>
+        <div class="logo"><svg class="icon"><use href="icons.svg#icon-settings"></use></svg></div>
         <h2>لوحة إدارة يشجب</h2>
         <p>للمسؤولين فقط</p>
         <input type="text" id="adminUser" placeholder="اسم المستخدم"/>
         <input type="password" id="adminPass" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()"/>
-        <button onclick="doLogin()">دخول 🔐</button>
+        <button onclick="doLogin()">دخول <svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></button>
     </div>
 </div>
 
@@ -450,7 +450,7 @@
     <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="sidebar-logo">
-            <div class="sidebar-logo-img">⚙️</div>
+            <div class="sidebar-logo-img"><svg class="icon"><use href="icons.svg#icon-settings"></use></svg></div>
             <div>
                 <div class="sidebar-logo-text">يشجب</div>
                 <div class="sidebar-logo-sub">لوحة الإدارة</div>
@@ -459,71 +459,71 @@
 
         <div class="sidebar-section-label">الرئيسية</div>
         <a class="sidebar-item active" onclick="showPage('dashboard')">
-            <span class="s-icon">📊</span> لوحة التحكم
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></span> لوحة التحكم
         </a>
         <a class="sidebar-item" onclick="showPage('operations')">
-            <span class="s-icon">🎯</span> مركز العمليات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-target"></use></svg></span> مركز العمليات
             <span class="sidebar-badge gold">مباشر</span>
         </a>
 
         <div class="sidebar-section-label">إدارة الطلبات</div>
         <a class="sidebar-item" onclick="showPage('orders')">
-            <span class="s-icon">📋</span> الطلبات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> الطلبات
             <span class="sidebar-badge" id="pendingBadge">0</span>
         </a>
         <a class="sidebar-item" onclick="showPage('services')">
-            <span class="s-icon">🔧</span> الخدمات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></span> الخدمات
         </a>
 
         <div class="sidebar-section-label">إدارة المستخدمين</div>
         <a class="sidebar-item" onclick="showPage('clients')">
-            <span class="s-icon">👥</span> العملاء
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></span> العملاء
         </a>
         <a class="sidebar-item" onclick="showPage('providers')">
-            <span class="s-icon">👷</span> الموردون
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> الموردون
         </a>
         <a class="sidebar-item" onclick="showPage('verification')">
-            <span class="s-icon">✅</span> طلبات التوثيق
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></span> طلبات التوثيق
             <span class="sidebar-badge" id="verifyBadge">0</span>
         </a>
 
         <div class="sidebar-section-label">المالية</div>
         <a class="sidebar-item" onclick="showPage('payments')">
-            <span class="s-icon">💳</span> المدفوعات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> المدفوعات
         </a>
         <a class="sidebar-item" onclick="showPage('commissions')">
-            <span class="s-icon">💰</span> العمولات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></span> العمولات
         </a>
 
         <div class="sidebar-section-label">التواصل</div>
         <a class="sidebar-item" onclick="showPage('chats')">
-            <span class="s-icon">💬</span> المحادثات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> المحادثات
         </a>
         <a class="sidebar-item" onclick="showPage('notifications')">
-            <span class="s-icon">🔔</span> الإشعارات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg></span> الإشعارات
         </a>
         <a class="sidebar-item" onclick="showPage('complaints')">
-            <span class="s-icon">🚨</span> البلاغات والشكاوى
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></span> البلاغات والشكاوى
             <span class="sidebar-badge" id="complaintBadge">2</span>
         </a>
 
         <div class="sidebar-section-label">أخرى</div>
         <a class="sidebar-item" onclick="showPage('reviews')">
-            <span class="s-icon">⭐</span> التقييمات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></span> التقييمات
         </a>
         <a class="sidebar-item" onclick="showPage('cities')">
-            <span class="s-icon">🏙️</span> المدن
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></span> المدن
         </a>
         <a class="sidebar-item" onclick="showPage('coupons')">
-            <span class="s-icon">🎟️</span> كوبونات الخصم
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></span> كوبونات الخصم
         </a>
         <a class="sidebar-item" onclick="showPage('settings')">
-            <span class="s-icon">⚙️</span> الإعدادات
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-settings"></use></svg></span> الإعدادات
         </a>
 
         <div class="sidebar-bottom">
             <div class="sidebar-logout" onclick="doLogout()">
-                <span>🚪</span> تسجيل الخروج
+                <span><svg class="icon"><use href="icons.svg#icon-door"></use></svg></span> تسجيل الخروج
             </div>
         </div>
     </div>
@@ -534,15 +534,15 @@
         <!-- TOPBAR -->
         <div class="topbar">
             <div class="topbar-search">
-                <span>🔍</span>
+                <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
                 <input type="text" placeholder="بحث عن طلب، عميل، مورد، جوال..."/>
             </div>
             <div class="topbar-right">
                 <button class="topbar-icon-btn">
-                    🔔
+                    <svg class="icon"><use href="icons.svg#icon-bell"></use></svg>
                     <div class="notif-dot"></div>
                 </button>
-                <button class="topbar-icon-btn">💬</button>
+                <button class="topbar-icon-btn"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></button>
                 <div class="topbar-admin">
                     <div class="topbar-admin-avatar">م</div>
                     <div class="topbar-admin-name">المدير العام</div>
@@ -556,7 +556,7 @@
             <!-- ══ DASHBOARD ══ -->
             <div id="page-dashboard">
                 <div class="page-header">
-                    <div class="page-title">لوحة التحكم 📊</div>
+                    <div class="page-title">لوحة التحكم <svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></div>
                     <div class="page-sub">مرحباً بك — آخر تحديث: الآن</div>
                 </div>
 
@@ -565,7 +565,7 @@
                     <div class="stat-card">
                         <div class="stat-card-top">
                             <div class="stat-card-label">إجمالي الإيرادات</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)">💰</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
                         </div>
                         <div class="stat-card-num" id="s-revenue">0 ر</div>
                         <div class="stat-card-change up">↑ 12% هذا الشهر</div>
@@ -573,7 +573,7 @@
                     <div class="stat-card">
                         <div class="stat-card-top">
                             <div class="stat-card-label">إجمالي العمولات</div>
-                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)">📈</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-line"></use></svg></div>
                         </div>
                         <div class="stat-card-num" id="s-commission">0 ر</div>
                         <div class="stat-card-change up">↑ 8% هذا الشهر</div>
@@ -581,7 +581,7 @@
                     <div class="stat-card">
                         <div class="stat-card-top">
                             <div class="stat-card-label">طلبات اليوم</div>
-                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)">📋</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
                         </div>
                         <div class="stat-card-num" id="s-today">0</div>
                         <div class="stat-card-change up">↑ 5 عن أمس</div>
@@ -589,7 +589,7 @@
                     <div class="stat-card">
                         <div class="stat-card-top">
                             <div class="stat-card-label">الطلبات الجارية</div>
-                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)">⚡</div>
+                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-bolt"></use></svg></div>
                         </div>
                         <div class="stat-card-num" id="s-active">0</div>
                         <div class="stat-card-change down">↓ 2 عن أمس</div>
@@ -597,7 +597,7 @@
                     <div class="stat-card">
                         <div class="stat-card-top">
                             <div class="stat-card-label">الطلبات المكتملة</div>
-                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)">✅</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
                         </div>
                         <div class="stat-card-num" id="s-completed">0</div>
                         <div class="stat-card-change up">↑ 18% هذا الشهر</div>
@@ -605,7 +605,7 @@
                     <div class="stat-card">
                         <div class="stat-card-top">
                             <div class="stat-card-label">الموردون</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)">👷</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
                         </div>
                         <div class="stat-card-num" id="s-providers">0</div>
                         <div class="stat-card-change up">↑ 3 جدد هذا الأسبوع</div>
@@ -613,7 +613,7 @@
                     <div class="stat-card">
                         <div class="stat-card-top">
                             <div class="stat-card-label">العملاء</div>
-                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)">👥</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></div>
                         </div>
                         <div class="stat-card-num" id="s-users">0</div>
                         <div class="stat-card-change up">↑ 15 جدد هذا الأسبوع</div>
@@ -621,7 +621,7 @@
                     <div class="stat-card">
                         <div class="stat-card-top">
                             <div class="stat-card-label">متوسط التقييم</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)">⭐</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
                         </div>
                         <div class="stat-card-num">4.8</div>
                         <div class="stat-card-change up">↑ ممتاز</div>
@@ -682,7 +682,7 @@
                     <div class="card">
                         <div class="card-title">أكثر الخدمات طلباً <a href="#">عرض الكل</a></div>
                         <div class="service-stat">
-                            <div class="service-stat-icon">🚛</div>
+                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-tow-truck"></use></svg></div>
                             <div>
                                 <div class="service-stat-name">سطحة</div>
                                 <div class="service-stat-count">١٢٤ طلب</div>
@@ -693,7 +693,7 @@
                             </div>
                         </div>
                         <div class="service-stat">
-                            <div class="service-stat-icon">🚚</div>
+                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg></div>
                             <div>
                                 <div class="service-stat-name">وايت ماء</div>
                                 <div class="service-stat-count">٩٨ طلب</div>
@@ -704,7 +704,7 @@
                             </div>
                         </div>
                         <div class="service-stat">
-                            <div class="service-stat-icon">🏗️</div>
+                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg></div>
                             <div>
                                 <div class="service-stat-name">معدات ثقيلة</div>
                                 <div class="service-stat-count">٧٦ طلب</div>
@@ -715,7 +715,7 @@
                             </div>
                         </div>
                         <div class="service-stat">
-                            <div class="service-stat-icon">📦</div>
+                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-box"></use></svg></div>
                             <div>
                                 <div class="service-stat-name">حاوية</div>
                                 <div class="service-stat-count">٥٤ طلب</div>
@@ -726,7 +726,7 @@
                             </div>
                         </div>
                         <div class="service-stat">
-                            <div class="service-stat-icon">👷</div>
+                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
                             <div>
                                 <div class="service-stat-name">عمالة</div>
                                 <div class="service-stat-count">٣٢ طلب</div>
@@ -743,27 +743,27 @@
                         <div class="card-title">أكثر المدن نشاطاً</div>
                         <div class="city-item">
                             <div class="city-rank" style="background:#F5C518;color:#111">١</div>
-                            <div class="city-name">🏙️ الرياض</div>
+                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> الرياض</div>
                             <div class="city-count">٢٤٨ طلب</div>
                         </div>
                         <div class="city-item">
                             <div class="city-rank">٢</div>
-                            <div class="city-name">🏙️ جدة</div>
+                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> جدة</div>
                             <div class="city-count">١٣٦ طلب</div>
                         </div>
                         <div class="city-item">
                             <div class="city-rank">٣</div>
-                            <div class="city-name">🏙️ الدمام</div>
+                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> الدمام</div>
                             <div class="city-count">٨٩ طلب</div>
                         </div>
                         <div class="city-item">
                             <div class="city-rank">٤</div>
-                            <div class="city-name">🏙️ مكة</div>
+                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> مكة</div>
                             <div class="city-count">٦٤ طلب</div>
                         </div>
                         <div class="city-item">
                             <div class="city-rank">٥</div>
-                            <div class="city-name">🏙️ المدينة</div>
+                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> المدينة</div>
                             <div class="city-count">٤٢ طلب</div>
                         </div>
                     </div>
@@ -773,27 +773,27 @@
                         <div class="card-title">إجراءات سريعة</div>
                         <div class="quick-actions">
                             <button class="quick-btn">
-                                <div class="quick-btn-icon">➕</div>
+                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></div>
                                 <div class="quick-btn-label">إضافة خدمة</div>
                             </button>
                             <button class="quick-btn">
-                                <div class="quick-btn-icon">👷</div>
+                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
                                 <div class="quick-btn-label">إضافة مورد</div>
                             </button>
                             <button class="quick-btn">
-                                <div class="quick-btn-icon">🔔</div>
+                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div>
                                 <div class="quick-btn-label">إرسال إشعار</div>
                             </button>
                             <button class="quick-btn">
-                                <div class="quick-btn-icon">🎟️</div>
+                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></div>
                                 <div class="quick-btn-label">إنشاء كوبون</div>
                             </button>
                             <button class="quick-btn">
-                                <div class="quick-btn-icon">💰</div>
+                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
                                 <div class="quick-btn-label">تعديل العمولة</div>
                             </button>
                             <button class="quick-btn">
-                                <div class="quick-btn-icon">🏙️</div>
+                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></div>
                                 <div class="quick-btn-label">إضافة مدينة</div>
                             </button>
                         </div>
@@ -826,35 +826,35 @@
                     <div class="card">
                         <div class="card-title">آخر النشاطات</div>
                         <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(16,185,129,0.1)">✅</div>
+                            <div class="activity-dot" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
                             <div>
                                 <div class="activity-text">تم تسجيل مورد جديد — محمد العتيبي</div>
                                 <div class="activity-time">منذ 5 دقائق</div>
                             </div>
                         </div>
                         <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(59,130,246,0.1)">📋</div>
+                            <div class="activity-dot" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
                             <div>
                                 <div class="activity-text">تم إنشاء طلب جديد #١٠٢٣ — وايت ماء</div>
                                 <div class="activity-time">منذ 12 دقيقة</div>
                             </div>
                         </div>
                         <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(245,197,24,0.1)">👷</div>
+                            <div class="activity-dot" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
                             <div>
                                 <div class="activity-text">تم قبول مورد — سطحة الرياض</div>
                                 <div class="activity-time">منذ 28 دقيقة</div>
                             </div>
                         </div>
                         <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(239,68,68,0.1)">❌</div>
+                            <div class="activity-dot" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg></div>
                             <div>
                                 <div class="activity-text">تم رفض طلب توثيق — بدون وثائق</div>
                                 <div class="activity-time">منذ ساعة</div>
                             </div>
                         </div>
                         <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(16,185,129,0.1)">💰</div>
+                            <div class="activity-dot" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
                             <div>
                                 <div class="activity-text">تم دفع مستحقات مورد — ٢٤٠٠ ريال</div>
                                 <div class="activity-time">منذ ساعتين</div>
@@ -868,34 +868,34 @@
 
                     <!-- التنبيهات -->
                     <div class="card">
-                        <div class="card-title">التنبيهات 🔔</div>
+                        <div class="card-title">التنبيهات <svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div>
                         <div class="alert-item alert-warn">
-                            ⚠️ يوجد ٣ موردين بانتظار التوثيق
+                            <svg class="icon"><use href="icons.svg#icon-warning"></use></svg> يوجد ٣ موردين بانتظار التوثيق
                         </div>
                         <div class="alert-item alert-red">
-                            🚨 توجد ٢ شكاوى جديدة بحاجة للمراجعة
+                            <svg class="icon"><use href="icons.svg#icon-siren"></use></svg> توجد ٢ شكاوى جديدة بحاجة للمراجعة
                         </div>
                         <div class="alert-item alert-warn">
-                            ⏰ توجد ٤ طلبات متأخرة عن الموعد
+                            <svg class="icon"><use href="icons.svg#icon-clock"></use></svg> توجد ٤ طلبات متأخرة عن الموعد
                         </div>
                         <div class="alert-item alert-blue">
-                            📋 توجد ٦ طلبات بدون قبول من مورد
+                            <svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg> توجد ٦ طلبات بدون قبول من مورد
                         </div>
                     </div>
 
                     <!-- المدفوعات والعمولات -->
                     <div class="card">
-                        <div class="card-title">المدفوعات والعمولات 💳</div>
+                        <div class="card-title">المدفوعات والعمولات <svg class="icon"><use href="icons.svg#icon-card"></use></svg></div>
                         <div class="payment-row">
-                            <div class="payment-label">✅ مدفوعات ناجحة</div>
+                            <div class="payment-label"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> مدفوعات ناجحة</div>
                             <div class="payment-val" style="color:var(--green)" id="p-success">0 ر</div>
                         </div>
                         <div class="payment-row">
-                            <div class="payment-label">⏳ مدفوعات معلقة</div>
+                            <div class="payment-label"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> مدفوعات معلقة</div>
                             <div class="payment-val" style="color:var(--orange)">٠ ر</div>
                         </div>
                         <div class="payment-row">
-                            <div class="payment-label">↩️ مدفوعات مسترجعة</div>
+                            <div class="payment-label"><svg class="icon"><use href="icons.svg#icon-undo"></use></svg> مدفوعات مسترجعة</div>
                             <div class="payment-val" style="color:var(--red)">٠ ر</div>
                         </div>
                         <div style="height:12px"></div>
@@ -946,10 +946,10 @@
 
                     <!-- آخر التقييمات -->
                     <div class="card">
-                        <div class="card-title">آخر التقييمات ⭐</div>
+                        <div class="card-title">آخر التقييمات <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
                         <div class="review-item">
                             <div class="review-top">
-                                <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                                <div class="review-stars"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
                                 <div class="review-name">أحمد السالم</div>
                                 <div class="review-time">منذ ساعة</div>
                             </div>
@@ -957,7 +957,7 @@
                         </div>
                         <div class="review-item">
                             <div class="review-top">
-                                <div class="review-stars">⭐⭐⭐⭐</div>
+                                <div class="review-stars"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
                                 <div class="review-name">محمد الغامدي</div>
                                 <div class="review-time">منذ 3 ساعات</div>
                             </div>
@@ -965,7 +965,7 @@
                         </div>
                         <div class="review-item">
                             <div class="review-top">
-                                <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                                <div class="review-stars"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
                                 <div class="review-name">خالد العتيبي</div>
                                 <div class="review-time">منذ 5 ساعات</div>
                             </div>
@@ -976,9 +976,9 @@
 
                 <!-- آخر الشكاوى -->
                 <div class="card" style="margin-bottom:24px">
-                    <div class="card-title">آخر الشكاوى 🚨 <a href="#" onclick="showPage('complaints')">عرض الكل</a></div>
+                    <div class="card-title">آخر الشكاوى <svg class="icon"><use href="icons.svg#icon-siren"></use></svg> <a href="#" onclick="showPage('complaints')">عرض الكل</a></div>
                     <div class="complaint-item">
-                        <div class="activity-dot" style="background:rgba(239,68,68,0.1)">🚨</div>
+                        <div class="activity-dot" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div>
                         <div class="complaint-info">
                             <div class="complaint-title">تأخر في التوصيل — طلب #١٠١٥</div>
                             <div class="complaint-sub">العميل: أحمد السالم · منذ ساعتين</div>
@@ -986,7 +986,7 @@
                         <span class="badge badge-pending">قيد المراجعة</span>
                     </div>
                     <div class="complaint-item">
-                        <div class="activity-dot" style="background:rgba(239,68,68,0.1)">🚨</div>
+                        <div class="activity-dot" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div>
                         <div class="complaint-info">
                             <div class="complaint-title">المورد لم يحضر — طلب #١٠٠٨</div>
                             <div class="complaint-sub">العميل: محمد الزهراني · منذ 5 ساعات</div>
@@ -1000,13 +1000,13 @@
             <!-- ══ ORDERS PAGE ══ -->
             <div id="page-orders" style="display:none">
                 <div class="page-header">
-                    <div class="page-title">الطلبات 📋</div>
+                    <div class="page-title">الطلبات <svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
                     <div class="page-sub">إدارة جميع طلبات المنصة</div>
                 </div>
                 <div class="card">
                     <div class="table-controls">
                         <div class="table-search">
-                            <span>🔍</span>
+                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
                             <input type="text" placeholder="بحث برقم الطلب، العميل، المورد..."/>
                         </div>
                         <select class="table-filter" id="statusFilter">
@@ -1056,13 +1056,13 @@
             <!-- ══ PROVIDERS PAGE ══ -->
             <div id="page-providers" style="display:none">
                 <div class="page-header">
-                    <div class="page-title">الموردون 👷</div>
+                    <div class="page-title">الموردون <svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
                     <div class="page-sub">إدارة جميع موردي المنصة</div>
                 </div>
                 <div class="card">
                     <div class="table-controls">
                         <div class="table-search">
-                            <span>🔍</span>
+                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
                             <input type="text" placeholder="بحث باسم المورد أو الجوال..."/>
                         </div>
                         <select class="table-filter">
@@ -1096,7 +1096,7 @@
             <!-- ══ CLIENTS PAGE ══ -->
             <div id="page-clients" style="display:none">
                 <div class="page-header">
-                    <div class="page-title">العملاء 👥</div>
+                    <div class="page-title">العملاء <svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></div>
                     <div class="page-sub">إدارة جميع عملاء المنصة</div>
                 </div>
                 <div class="card">
@@ -1121,7 +1121,7 @@
             <!-- ══ VERIFICATION PAGE ══ -->
             <div id="page-verification" style="display:none">
                 <div class="page-header">
-                    <div class="page-title">طلبات التوثيق ✅</div>
+                    <div class="page-title">طلبات التوثيق <svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
                     <div class="page-sub">مراجعة وثائق الموردين</div>
                 </div>
                 <div class="card">
@@ -1132,7 +1132,7 @@
             <!-- ══ SETTINGS PAGE ══ -->
             <div id="page-settings" style="display:none">
                 <div class="page-header">
-                    <div class="page-title">الإعدادات ⚙️</div>
+                    <div class="page-title">الإعدادات <svg class="icon"><use href="icons.svg#icon-settings"></use></svg></div>
                     <div class="page-sub">إعدادات المنصة العامة</div>
                 </div>
                 <div class="grid-2">
@@ -1177,43 +1177,43 @@
 
             <!-- ══ OTHER PAGES ══ -->
             <div id="page-operations" style="display:none">
-                <div class="page-header"><div class="page-title">مركز العمليات 🎯</div></div>
+                <div class="page-header"><div class="page-title">مركز العمليات <svg class="icon"><use href="icons.svg#icon-target"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز العمليات المباشر</p></div>
             </div>
             <div id="page-services" style="display:none">
-                <div class="page-header"><div class="page-title">الخدمات 🔧</div></div>
+                <div class="page-header"><div class="page-title">الخدمات <svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الخدمات</p></div>
             </div>
             <div id="page-payments" style="display:none">
-                <div class="page-header"><div class="page-title">المدفوعات 💳</div></div>
+                <div class="page-header"><div class="page-title">المدفوعات <svg class="icon"><use href="icons.svg#icon-card"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة المدفوعات</p></div>
             </div>
             <div id="page-commissions" style="display:none">
-                <div class="page-header"><div class="page-title">العمولات 💰</div></div>
+                <div class="page-header"><div class="page-title">العمولات <svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة العمولات</p></div>
             </div>
             <div id="page-chats" style="display:none">
-                <div class="page-header"><div class="page-title">المحادثات 💬</div></div>
+                <div class="page-header"><div class="page-title">المحادثات <svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز المحادثات</p></div>
             </div>
             <div id="page-notifications" style="display:none">
-                <div class="page-header"><div class="page-title">الإشعارات 🔔</div></div>
+                <div class="page-header"><div class="page-title">الإشعارات <svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز الإشعارات</p></div>
             </div>
             <div id="page-complaints" style="display:none">
-                <div class="page-header"><div class="page-title">البلاغات والشكاوى 🚨</div></div>
+                <div class="page-header"><div class="page-title">البلاغات والشكاوى <svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الشكاوى</p></div>
             </div>
             <div id="page-reviews" style="display:none">
-                <div class="page-header"><div class="page-title">التقييمات ⭐</div></div>
+                <div class="page-header"><div class="page-title">التقييمات <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة التقييمات</p></div>
             </div>
             <div id="page-cities" style="display:none">
-                <div class="page-header"><div class="page-title">المدن 🏙️</div></div>
+                <div class="page-header"><div class="page-title">المدن <svg class="icon"><use href="icons.svg#icon-city"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة المدن</p></div>
             </div>
             <div id="page-coupons" style="display:none">
-                <div class="page-header"><div class="page-title">كوبونات الخصم 🎟️</div></div>
+                <div class="page-header"><div class="page-title">كوبونات الخصم <svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></div></div>
                 <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الكوبونات</p></div>
             </div>
 

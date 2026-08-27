@@ -29,7 +29,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="app-sidebar" id="appSidebar">
         <div class="sidebar-header">
-            <div class="sidebar-user-icon">👷</div>
+            <div class="sidebar-user-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
             <div>
                 <div class="sidebar-user-name" id="providerNameSidebar">مزود خدمة</div>
                 <div class="sidebar-user-phone" id="providerPhoneSidebar">+966XXXXXXXXX</div>
@@ -37,16 +37,16 @@
             <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
         </div>
         <div class="sidebar-menu">
-            <a class="sidebar-link" href="index.html"><span>🏠</span> الرئيسية</a>
-            <a class="sidebar-link active" href="provider.html"><span>👷</span> لوحة المزود</a>
-            <a class="sidebar-link" href="profile.html"><span>👤</span> حسابي</a>
+            <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
+            <a class="sidebar-link active" href="provider.html"><span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> لوحة المزود</a>
+            <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
             <div class="sidebar-divider"></div>
-            <a class="sidebar-link" href="about.html"><span>ℹ️</span> من نحن</a>
-            <a class="sidebar-link" href="contact.html"><span>📞</span> تواصل معنا</a>
-            <a class="sidebar-link" href="terms.html"><span>📄</span> الشروط والأحكام</a>
+            <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
+            <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
+            <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
         </div>
         <div class="sidebar-footer">
-            <button class="btn-small btn-logout" onclick="providerLogout()">تسجيل الخروج 🚪</button>
+            <button class="btn-small btn-logout" onclick="providerLogout()">تسجيل الخروج <svg class="icon"><use href="icons.svg#icon-door"></use></svg></button>
         </div>
     </div>
 
@@ -55,12 +55,12 @@
         <!-- بطاقة المزود -->
         <div class="provider-hero-card">
             <div class="provider-hero-right">
-                <div class="provider-hero-avatar">👷</div>
+                <div class="provider-hero-avatar"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
                 <div class="provider-hero-info">
                     <div class="provider-hero-name" id="providerName">مزود خدمة</div>
                     <div class="provider-hero-phone" id="providerPhone">+966XXXXXXXXX</div>
-                    <div class="provider-hero-rating">⭐⭐⭐⭐⭐ <span>4.8</span></div>
-                    <div class="provider-hero-badge" id="providerBadge">🥇 مزود موثق</div>
+                    <div class="provider-hero-rating"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg> <span>4.8</span></div>
+                    <div class="provider-hero-badge" id="providerBadge"><svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> مزود موثق</div>
                 </div>
             </div>
             <div class="provider-hero-left">
@@ -77,22 +77,22 @@
         <!-- الإحصائيات -->
         <div class="provider-stats-grid">
             <div class="provider-stat-card">
-                <div class="provider-stat-icon" style="background:rgba(245,197,24,0.1)">📋</div>
+                <div class="provider-stat-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
                 <div class="provider-stat-num" id="statToday">0</div>
                 <div class="provider-stat-label">طلبات اليوم</div>
             </div>
             <div class="provider-stat-card">
-                <div class="provider-stat-icon" style="background:rgba(16,185,129,0.1)">💰</div>
+                <div class="provider-stat-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
                 <div class="provider-stat-num" id="statWeek">0</div>
                 <div class="provider-stat-label">أرباح الأسبوع (ر)</div>
             </div>
             <div class="provider-stat-card">
-                <div class="provider-stat-icon" style="background:rgba(59,130,246,0.1)">⭐</div>
+                <div class="provider-stat-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
                 <div class="provider-stat-num">4.8</div>
                 <div class="provider-stat-label">التقييم</div>
             </div>
             <div class="provider-stat-card">
-                <div class="provider-stat-icon" style="background:rgba(139,92,246,0.1)">✅</div>
+                <div class="provider-stat-icon" style="background:rgba(139,92,246,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
                 <div class="provider-stat-num">93%</div>
                 <div class="provider-stat-label">نسبة الإتمام</div>
             </div>
@@ -101,7 +101,7 @@
         <!-- منتجاتي (لمزودي الحاوية فقط) -->
         <div class="my-products-section" id="myProductsSection" style="display:none">
             <div class="my-products-header">
-                <div class="my-products-title">📦 منتجاتي</div>
+                <div class="my-products-title"><svg class="icon"><use href="icons.svg#icon-box"></use></svg> منتجاتي</div>
                 <button class="btn-small" onclick="toggleProductForm()">+ إضافة منتج جديد</button>
             </div>
 
@@ -149,7 +149,7 @@
                 </div>
                 <div class="order-field">
                     <label>الموقع على الخريطة (اختياري — يساعد العملاء يشوفون موقعك بالضبط)</label>
-                    <button type="button" class="btn-locate" onclick="useMyLocationForProduct()">📍 استخدم موقعي الحالي</button>
+                    <button type="button" class="btn-locate" onclick="useMyLocationForProduct()"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> استخدم موقعي الحالي</button>
                     <div id="productMap" class="location-map"></div>
                     <input type="hidden" id="productLat"/>
                     <input type="hidden" id="productLng"/>
@@ -171,40 +171,40 @@
         <div class="new-order-section" id="newOrderSection">
             <div class="new-order-header">
                 <div class="new-order-pulse"></div>
-                <div class="new-order-title">🔔 طلب جديد وارد!</div>
+                <div class="new-order-title"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg> طلب جديد وارد!</div>
             </div>
 
             <div class="new-order-body">
-                <div class="new-order-service" id="newOrderService">🚚 وايت ماء</div>
+                <div class="new-order-service" id="newOrderService"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg> وايت ماء</div>
                 <div class="new-order-details-grid">
                     <div class="new-order-detail">
-                        <span class="new-order-detail-label">📍 الموقع</span>
+                        <span class="new-order-detail-label"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> الموقع</span>
                         <span class="new-order-detail-value" id="newOrderAddress">الرياض</span>
                     </div>
                     <div class="new-order-detail">
-                        <span class="new-order-detail-label">💰 السعر المحدد من العميل</span>
+                        <span class="new-order-detail-label"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> السعر المحدد من العميل</span>
                         <span class="new-order-detail-value new-order-price" id="newOrderAmount">0 ريال</span>
                     </div>
                     <div class="new-order-detail">
-                        <span class="new-order-detail-label">📱 العميل</span>
+                        <span class="new-order-detail-label"><svg class="icon"><use href="icons.svg#icon-phone"></use></svg> العميل</span>
                         <span class="new-order-detail-value" id="newOrderClient">+966XXXXXXXXX</span>
                     </div>
                     <div class="new-order-detail">
-                        <span class="new-order-detail-label">⏱️ النوع</span>
+                        <span class="new-order-detail-label"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> النوع</span>
                         <span class="new-order-detail-value" id="newOrderType">فوري</span>
                     </div>
                 </div>
 
                 <div class="new-order-actions">
-                    <button class="btn-accept-order" onclick="acceptOrder()">✅ قبول الطلب</button>
-                    <button class="btn-reject-order" onclick="rejectOrder()">❌ رفض</button>
+                    <button class="btn-accept-order" onclick="acceptOrder()"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> قبول الطلب</button>
+                    <button class="btn-reject-order" onclick="rejectOrder()"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> رفض</button>
                 </div>
 
                 <div class="countdown-wrap">
                     <div class="countdown-bar-wrap">
                         <div class="countdown-bar-fill" id="countdownFill"></div>
                     </div>
-                    <div class="countdown-text">⏳ <span id="countdownNum">60</span> ثانية للرد</div>
+                    <div class="countdown-text"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> <span id="countdownNum">60</span> ثانية للرد</div>
                 </div>
             </div>
         </div>
@@ -212,7 +212,7 @@
         <!-- المحفظة -->
         <div class="wallet-card">
             <div class="wallet-header">
-                <div class="wallet-title">💳 محفظتي</div>
+                <div class="wallet-title"><svg class="icon"><use href="icons.svg#icon-card"></use></svg> محفظتي</div>
                 <button class="wallet-withdraw-btn" onclick="requestWithdraw()">طلب سحب</button>
             </div>
             <div class="wallet-balance-wrap">
@@ -240,7 +240,7 @@
         <!-- الطلبات السابقة -->
         <div class="provider-orders-card">
             <div class="provider-orders-header">
-                <div class="provider-orders-title">📋 سجل الطلبات</div>
+                <div class="provider-orders-title"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg> سجل الطلبات</div>
                 <div class="provider-orders-count" id="ordersCount">0 طلب</div>
             </div>
 
@@ -254,7 +254,7 @@
 
             <div id="providerOrdersList">
                 <div class="empty-state">
-                    <div class="empty-icon">📭</div>
+                    <div class="empty-icon"><svg class="icon"><use href="icons.svg#icon-inbox-empty"></use></svg></div>
                     <div class="empty-title">لا يوجد طلبات بعد</div>
                     <div class="empty-sub">ابدأ باستقبال الطلبات الآن!</div>
                 </div>

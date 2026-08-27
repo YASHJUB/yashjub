@@ -3,9 +3,9 @@
 const API = window.location.origin + '/api';
 
 const levelBadges = {
-    basic:    { icon: '🥈', label: 'مزود أساسي' },
-    verified: { icon: '🥇', label: 'مزود موثق'  },
-    business: { icon: '🏆', label: 'شركة'       },
+    basic:    { icon: 'medal-silver', label: 'مزود أساسي' },
+    verified: { icon: 'medal-gold', label: 'مزود موثق'  },
+    business: { icon: 'trophy', label: 'شركة'       },
 };
 
 const sizeLabels = { small: 'صغيرة (3م)', medium: 'متوسطة (6م)', large: 'كبيرة (12م)' };
@@ -27,8 +27,8 @@ async function loadProducts() {
     }
 
     containerLocation = JSON.parse(raw);
-    document.getElementById('locationSummaryText').textContent =
-        `📍 ${containerLocation.city} — ${containerLocation.neighborhood}`;
+    document.getElementById('locationSummaryText').innerHTML =
+        `<svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${containerLocation.city} — ${containerLocation.neighborhood}`;
 
     try {
         const response = await fetch(`${API}/products/available?city=${encodeURIComponent(containerLocation.city)}`);
@@ -62,11 +62,11 @@ function renderProducts(products) {
                     <div class="provider-select-info">
                         <div class="provider-select-name">${p.name}</div>
                         <div class="provider-select-meta">
-                            <span class="provider-select-rating">⭐ ${p.provider_rating}</span>
-                            <span class="provider-select-badge">${badge.icon} ${p.provider_name}</span>
+                            <span class="provider-select-rating"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.provider_rating}</span>
+                            <span class="provider-select-badge"><svg class="icon"><use href="icons.svg#icon-${badge.icon}"></use></svg> ${p.provider_name}</span>
                         </div>
                     </div>
-                    <button class="btn-small" onclick='selectProduct(${JSON.stringify(p)})'>اختيار ✅</button>
+                    <button class="btn-small" onclick='selectProduct(${JSON.stringify(p)})'>اختيار <svg class="icon"><use href="icons.svg#icon-check"></use></svg></button>
                 </div>
                 ${p.description ? `<div class="product-item-desc" style="margin-bottom:10px">${p.description}</div>` : ''}
                 <div class="provider-select-prices" style="grid-template-columns:1fr 1fr">

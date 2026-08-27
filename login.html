@@ -24,19 +24,19 @@
 
                 <div class="login-features">
                     <div class="login-feature">
-                        <span class="login-feature-icon">⚡</span>
+                        <span class="login-feature-icon"><svg class="icon"><use href="icons.svg#icon-bolt"></use></svg></span>
                         <span>خدمة فورية في دقائق</span>
                     </div>
                     <div class="login-feature">
-                        <span class="login-feature-icon">🔒</span>
+                        <span class="login-feature-icon"><svg class="icon"><use href="icons.svg#icon-lock"></use></svg></span>
                         <span>دفع آمن بنظام الأمانة</span>
                     </div>
                     <div class="login-feature">
-                        <span class="login-feature-icon">✅</span>
+                        <span class="login-feature-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></span>
                         <span>مزودون موثقون ومعتمدون</span>
                     </div>
                     <div class="login-feature">
-                        <span class="login-feature-icon">📡</span>
+                        <span class="login-feature-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span>
                         <span>تتبع فوري للخدمة</span>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                     </div>
                     <div class="login-stat-divider"></div>
                     <div class="login-stat">
-                        <div class="login-stat-num">4.8⭐</div>
+                        <div class="login-stat-num">4.8<svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
                         <div class="login-stat-label">تقييم</div>
                     </div>
                 </div>
@@ -69,16 +69,16 @@
                     → رجوع للرئيسية
                 </button>
 
-                <h1 class="login-title">أهلاً بك 👋</h1>
+                <h1 class="login-title">أهلاً بك <svg class="icon"><use href="icons.svg#icon-wave"></use></svg></h1>
                 <p class="login-desc">أدخل رقم جوالك للمتابعة</p>
 
                 <!-- اختيار نوع المستخدم -->
                 <div class="user-type-tabs">
                     <button class="type-tab active" id="clientTab" onclick="selectType('client')">
-                        👤 عميل
+                        <svg class="icon"><use href="icons.svg#icon-user"></use></svg> عميل
                     </button>
                     <button class="type-tab" id="providerTab" onclick="selectType('provider')">
-                        👷 مزود خدمة
+                        <svg class="icon"><use href="icons.svg#icon-worker"></use></svg> مزود خدمة
                     </button>
                 </div>
 
@@ -96,13 +96,13 @@
 
                 <!-- زر الإرسال -->
                 <button class="btn btn-full" onclick="sendOTP()">
-                    إرسال رمز التحقق 📱
+                    إرسال رمز التحقق <svg class="icon"><use href="icons.svg#icon-phone"></use></svg>
                 </button>
 
                 <!-- قسم OTP -->
                 <div class="otp-section" id="otpSection">
                     <div class="otp-info">
-                        📱 تم إرسال رمز التحقق لجوالك
+                        <svg class="icon"><use href="icons.svg#icon-phone"></use></svg> تم إرسال رمز التحقق لجوالك
                     </div>
                     <div class="login-field-label">رمز التحقق</div>
                     <input
@@ -112,7 +112,7 @@
                         class="otp-input"
                     />
                     <button class="btn btn-full" onclick="verifyOTP()">
-                        تحقق وادخل ✅
+                        تحقق وادخل <svg class="icon"><use href="icons.svg#icon-check"></use></svg>
                     </button>
                     <button class="resend-btn" onclick="sendOTP()">
                         إعادة إرسال الرمز
@@ -127,7 +127,7 @@
                 <!-- رابط تسجيل المزود -->
                 <div class="login-register-link">
                     مزود جديد؟
-                    <a href="register-provider.html">سجّل الآن مجاناً 👷</a>
+                    <a href="register-provider.html">سجّل الآن مجاناً <svg class="icon"><use href="icons.svg#icon-worker"></use></svg></a>
                 </div>
 
                 <!-- الشروط -->
@@ -147,7 +147,7 @@
     <div class="name-popup-overlay" id="namePopupOverlay" style="display:none">
         <div class="name-popup-card">
             <img src="images/logo.png" alt="يشجب" class="name-popup-logo">
-            <h2 class="name-popup-title">أهلاً بك في يشجب 👋</h2>
+            <h2 class="name-popup-title">أهلاً بك في يشجب <svg class="icon"><use href="icons.svg#icon-wave"></use></svg></h2>
             <p class="name-popup-desc">وش اسمك عشان نرحب فيك بشكل صحيح؟</p>
             <input type="text" id="nameInput" class="name-popup-input" placeholder="اكتب اسمك الكامل" onkeydown="if(event.key==='Enter') saveUserName()"/>
             <button class="btn btn-full" onclick="saveUserName()">متابعة</button>

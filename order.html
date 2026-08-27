@@ -29,7 +29,7 @@
         <div class="order-card">
 
             <div class="order-service-header">
-                <div class="order-icon" id="orderIcon">🚚</div>
+                <div class="order-icon" id="orderIcon"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg></div>
                 <div>
                     <h2 id="orderTitle">وايت ماء</h2>
                     <span class="service-type" id="orderType">فوري</span>
@@ -40,8 +40,8 @@
 
             <!-- موقع الخدمة -->
             <div class="order-field">
-                <label id="addressLabel">📍 موقع التوصيل</label>
-                <button type="button" class="btn-locate" onclick="useMyLocation()">📍 استخدم موقعي الحالي</button>
+                <label id="addressLabel"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> موقع التوصيل</label>
+                <button type="button" class="btn-locate" onclick="useMyLocation()"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> استخدم موقعي الحالي</button>
                 <div id="addressMap" class="location-map"></div>
                 <input type="text" id="address" placeholder="مثال: حي النرجس، شارع الأمير محمد"/>
                 <input type="hidden" id="addressLat"/>
@@ -50,13 +50,13 @@
 
             <!-- موقع التوصيل للسطحة فقط -->
             <div class="order-field" id="deliveryField" style="display:none">
-                <label>🏁 موقع التوصيل</label>
+                <label><svg class="icon"><use href="icons.svg#icon-flag-checkered"></use></svg> موقع التوصيل</label>
                 <input type="text" id="deliveryAddress" placeholder="مثال: حي العليا، طريق الملك فهد"/>
             </div>
 
             <!-- تحديد السعر (وايت ماء وسطحة فقط) -->
             <div class="order-field" id="customPriceSection" style="display:none">
-                <label>💰 حدد سعرك</label>
+                <label><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> حدد سعرك</label>
                 <input type="number" id="customPrice" placeholder="مثال: 200" oninput="updateCustomPrice()"/>
                 <div class="price-hint">كلما كان السعر أعلى زادت فرصة القبول</div>
                 <div class="price-error" id="priceErrorText" style="display:none"></div>
@@ -67,7 +67,7 @@
 
                 <!-- المزود المختار -->
                 <div class="selected-provider-bar">
-                    <span id="selectedProviderText">📦 —</span>
+                    <span id="selectedProviderText"><svg class="icon"><use href="icons.svg#icon-box"></use></svg> —</span>
                     <a href="container-providers.html" class="location-change-link">تغيير المنتج</a>
                 </div>
 
@@ -76,14 +76,14 @@
                     <div class="selected-product-name" id="productName">—</div>
                     <div class="selected-product-desc" id="productDescription"></div>
                     <div class="selected-product-details">
-                        <span>📦 <span id="productSize">—</span></span>
-                        <span>💰 <span id="productPrice">—</span> ريال / <span id="productMinDaysText">—</span> أيام</span>
+                        <span><svg class="icon"><use href="icons.svg#icon-box"></use></svg> <span id="productSize">—</span></span>
+                        <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> <span id="productPrice">—</span> ريال / <span id="productMinDaysText">—</span> أيام</span>
                     </div>
                 </div>
 
                 <!-- عدد الأيام -->
                 <div class="order-field">
-                    <label>📅 عدد الأيام <span style="color:#888;font-size:12px">(الحد الأدنى <span id="minDaysLabel">10</span> أيام)</span></label>
+                    <label><svg class="icon"><use href="icons.svg#icon-calendar"></use></svg> عدد الأيام <span style="color:#888;font-size:12px">(الحد الأدنى <span id="minDaysLabel">10</span> أيام)</span></label>
                     <div class="days-input">
                         <button class="days-btn" onclick="changeDays(-1)">−</button>
                         <input type="number" id="daysCount" value="10" min="10" onchange="updateContainerPrice()"/>
@@ -93,13 +93,13 @@
 
                 <!-- تاريخ البداية -->
                 <div class="order-field">
-                    <label>📅 تاريخ البداية</label>
+                    <label><svg class="icon"><use href="icons.svg#icon-calendar"></use></svg> تاريخ البداية</label>
                     <input type="date" id="startDate" onchange="updateEndDate()"/>
                 </div>
 
                 <!-- تاريخ النهاية -->
                 <div class="order-field">
-                    <label>📅 تاريخ النهاية (تلقائي)</label>
+                    <label><svg class="icon"><use href="icons.svg#icon-calendar"></use></svg> تاريخ النهاية (تلقائي)</label>
                     <input type="date" id="endDate" readonly style="background:#f5f5f5;cursor:not-allowed"/>
                 </div>
 
@@ -107,13 +107,13 @@
 
             <!-- ملاحظات -->
             <div class="order-field">
-                <label>📝 ملاحظات إضافية</label>
+                <label><svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> ملاحظات إضافية</label>
                 <textarea id="notes" rows="3" placeholder="أي تفاصيل إضافية..."></textarea>
             </div>
 
             <!-- وقت الخدمة للمجدول -->
             <div class="order-field" id="timeField">
-                <label>🕐 وقت الخدمة</label>
+                <label><svg class="icon"><use href="icons.svg#icon-clock"></use></svg> وقت الخدمة</label>
                 <input type="datetime-local" id="scheduledTime"/>
             </div>
 
@@ -145,7 +145,7 @@
 
             <!-- زر تأكيد -->
             <button class="btn btn-order" onclick="confirmOrder()">
-                تأكيد الطلب والدفع 💳
+                تأكيد الطلب والدفع <svg class="icon"><use href="icons.svg#icon-card"></use></svg>
             </button>
 
         </div>

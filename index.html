@@ -25,7 +25,7 @@
             <div id="userNotLogged">
                 <button class="btn-small" onclick="goToLogin()">دخول</button>
             </div>
-          <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+          <button class="theme-btn" onclick="toggleTheme()" id="themeBtn"><svg class="icon"><use href="icons.svg#icon-moon"></use></svg></button>
 <button class="menu-btn" onclick="toggleSidebar()">☰</button>
         </div>
     </div>
@@ -34,7 +34,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="app-sidebar" id="appSidebar">
         <div class="sidebar-header">
-            <div class="sidebar-user-icon">👤</div>
+            <div class="sidebar-user-icon"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
             <div id="sidebarUserInfo">
                 <div class="sidebar-user-name" id="sidebarUserName">مرحباً بك</div>
                 <div class="sidebar-user-phone" id="sidebarPhone">سجّل دخولك</div>
@@ -44,29 +44,29 @@
 
         <div class="sidebar-menu">
             <a class="sidebar-link" href="index.html">
-                <span>🏠</span> الرئيسية
+                <span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية
             </a>
             <a class="sidebar-link" id="myOrdersLink" href="my-orders.html">
-                <span>📋</span> طلباتي
+                <span><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> طلباتي
             </a>
             <a class="sidebar-link" id="profileLink" href="profile.html">
-                <span>👤</span> حسابي
+                <span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي
             </a>
             <a class="sidebar-link" id="providerLink" href="provider.html" style="display:none">
-                <span>👷</span> لوحة المزود
+                <span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> لوحة المزود
             </a>
             <div class="sidebar-divider"></div>
             <a class="sidebar-link" href="about.html">
-                <span>ℹ️</span> من نحن
+                <span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن
             </a>
             <a class="sidebar-link" href="contact.html">
-                <span>📞</span> تواصل معنا
+                <span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا
             </a>
             <a class="sidebar-link" href="terms.html">
-                <span>📄</span> الشروط والأحكام
+                <span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام
             </a>
             <a class="sidebar-link" href="register-provider.html">
-                <span>👷</span> انضم كمزود
+                <span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> انضم كمزود
             </a>
         </div>
 
@@ -75,7 +75,7 @@
                 تسجيل الدخول
             </button>
             <button class="btn-small btn-logout" onclick="logout()" id="sidebarLogoutBtn" style="display:none">
-                تسجيل الخروج 🚪
+                تسجيل الخروج <svg class="icon"><use href="icons.svg#icon-door"></use></svg>
             </button>
         </div>
     </div>
@@ -132,7 +132,7 @@
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-                <div class="stat-num">4.8 ⭐</div>
+                <div class="stat-num">4.8 <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
                 <div class="stat-label">متوسط التقييم</div>
             </div>
             <div class="stat-divider"></div>
@@ -152,7 +152,7 @@
 
             <div class="service-row" onclick="orderService('وايت ماء')">
                 <div class="service-row-right">
-                    <div class="service-row-icon">🚚</div>
+                    <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg></div>
                     <div class="service-row-info">
                         <div class="service-row-name">وايت ماء</div>
                         <div class="service-row-desc">توصيل المياه لمواقع البناء</div>
@@ -166,7 +166,7 @@
 
             <div class="service-row" onclick="orderService('سطحة')">
                 <div class="service-row-right">
-                    <div class="service-row-icon">🚛</div>
+                    <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-tow-truck"></use></svg></div>
                     <div class="service-row-info">
                         <div class="service-row-name">سطحة</div>
                         <div class="service-row-desc">نقل وسحب المركبات</div>
@@ -180,7 +180,7 @@
 
             <div class="service-row" onclick="orderService('حاوية')">
                 <div class="service-row-right">
-                    <div class="service-row-icon">📦</div>
+                    <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-box"></use></svg></div>
                     <div class="service-row-info">
                         <div class="service-row-name">حاوية</div>
                         <div class="service-row-desc">حاويات البناء والنفايات</div>
@@ -194,7 +194,7 @@
 
             <div class="service-row soon" onclick="showHeavyEquipment()">
                 <div class="service-row-right">
-                    <div class="service-row-icon">🏗️</div>
+                    <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg></div>
                     <div class="service-row-info">
                         <div class="service-row-name">معدات ثقيلة</div>
                         <div class="service-row-desc">بوكلينات، شيولات، قلابات، رافعات</div>
@@ -210,32 +210,32 @@
 
         <!-- قائمة المعدات الثقيلة -->
         <div class="heavy-equipment-panel" id="heavyEquipmentPanel" style="display:none">
-            <div class="heavy-panel-title">🏗️ اختر نوع المعدة</div>
+            <div class="heavy-panel-title"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg> اختر نوع المعدة</div>
             <div class="heavy-grid">
                 <div class="heavy-item coming-soon">
-                    <div class="heavy-icon">🚜</div>
+                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-tractor"></use></svg></div>
                     <div class="heavy-name">بوكلين</div>
                     <div class="heavy-badge">قريباً</div>
                 </div>
                 <div class="heavy-item coming-soon">
-                    <div class="heavy-icon">🚧</div>
+                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-construction"></use></svg></div>
                     <div class="heavy-name">شيول</div>
                     <div class="heavy-badge">قريباً</div>
                 </div>
                 <div class="heavy-item coming-soon">
-                    <div class="heavy-icon">🚚</div>
+                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg></div>
                     <div class="heavy-name">قلابي</div>
                     <div class="heavy-badge">قريباً</div>
                 </div>
                 <div class="heavy-item coming-soon">
-                    <div class="heavy-icon">🏗️</div>
+                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg></div>
                     <div class="heavy-name">رافعة</div>
                     <div class="heavy-badge">قريباً</div>
                 </div>
             </div>
-            <p class="heavy-note">⏳ نعمل على إطلاق هذه الخدمات قريباً!</p>
+            <p class="heavy-note"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> نعمل على إطلاق هذه الخدمات قريباً!</p>
             <button class="btn" style="margin-top:12px" onclick="window.location.href='register-provider.html'">
-                أبلغني عند الإطلاق 🔔
+                أبلغني عند الإطلاق <svg class="icon"><use href="icons.svg#icon-bell"></use></svg>
             </button>
         </div>
 
@@ -248,28 +248,28 @@
         <div class="how-grid">
             <div class="how-card">
                 <div class="how-num">١</div>
-                <div class="how-icon">🔍</div>
+                <div class="how-icon"><svg class="icon"><use href="icons.svg#icon-search"></use></svg></div>
                 <div class="how-title">اختر الخدمة</div>
                 <div class="how-desc">اختر من قائمة خدماتنا المتنوعة</div>
             </div>
             <div class="how-arrow">←</div>
             <div class="how-card">
                 <div class="how-num">٢</div>
-                <div class="how-icon">📍</div>
+                <div class="how-icon"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg></div>
                 <div class="how-title">حدد الموقع</div>
                 <div class="how-desc">أدخل موقعك أو حدده على الخريطة</div>
             </div>
             <div class="how-arrow">←</div>
             <div class="how-card">
                 <div class="how-num">٣</div>
-                <div class="how-icon">✅</div>
+                <div class="how-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
                 <div class="how-title">أكّد الطلب</div>
                 <div class="how-desc">ادفع بأمان عبر نظام الأمانة</div>
             </div>
             <div class="how-arrow">←</div>
             <div class="how-card">
                 <div class="how-num">٤</div>
-                <div class="how-icon">🚀</div>
+                <div class="how-icon"><svg class="icon"><use href="icons.svg#icon-rocket"></use></svg></div>
                 <div class="how-title">استلم الخدمة</div>
                 <div class="how-desc">تابع المزود وقيّم تجربتك</div>
             </div>
@@ -283,22 +283,22 @@
             <p class="services-subtitle">نحن نضمن لك أفضل تجربة في قطاع البناء</p>
             <div class="why-grid">
                 <div class="why-card">
-                    <div class="why-icon">🔒</div>
+                    <div class="why-icon"><svg class="icon"><use href="icons.svg#icon-lock"></use></svg></div>
                     <div class="why-title">دفع آمن</div>
                     <div class="why-desc">نظام أمانة يحفظ حقوقك حتى اكتمال الخدمة</div>
                 </div>
                 <div class="why-card">
-                    <div class="why-icon">✔️</div>
+                    <div class="why-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
                     <div class="why-title">مزودون موثقون</div>
                     <div class="why-desc">جميع المزودين معتمدون ومتحقق منهم</div>
                 </div>
                 <div class="why-card">
-                    <div class="why-icon">📡</div>
+                    <div class="why-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
                     <div class="why-title">تتبع فوري</div>
                     <div class="why-desc">تابع موقع المزود لحظة بلحظة</div>
                 </div>
                 <div class="why-card">
-                    <div class="why-icon">💬</div>
+                    <div class="why-icon"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div>
                     <div class="why-title">دعم 24/7</div>
                     <div class="why-desc">فريق دعم متاح على مدار الساعة</div>
                 </div>
@@ -313,13 +313,13 @@
                 <h2>هل أنت مزود خدمة؟</h2>
                 <p>انضم لآلاف المزودين وابدأ في استقبال الطلبات اليوم</p>
                 <div class="provider-benefits">
-                    <div class="benefit">✅ بدون رسوم اشتراك</div>
+                    <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> بدون رسوم اشتراك</div>
                   
-                    <div class="benefit">✅ دفع فوري لحسابك</div>
-                    <div class="benefit">✅ تحكم كامل بجدولك</div>
+                    <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> دفع فوري لحسابك</div>
+                    <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> تحكم كامل بجدولك</div>
                 </div>
                 <button class="btn provider-btn" onclick="window.location.href='register-provider.html'">
-                    انضم الآن كمزود 👷
+                    انضم الآن كمزود <svg class="icon"><use href="icons.svg#icon-worker"></use></svg>
                 </button>
             </div>
             <div class="provider-visual">

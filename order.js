@@ -3,9 +3,9 @@
 const API = window.location.origin + '/api';
 
 const servicesData = {
-    "وايت ماء": { icon: "🚚", type: "فوري",   minPrice: 150, time: "8 دقائق"        },
-    "سطحة":     { icon: "🚛", type: "فوري",   minPrice: 100, time: "12 دقيقة"       },
-    "حاوية":    { icon: "📦", type: "مجدول", price: 0,      time: "غداً 11 صباحاً" },
+    "وايت ماء": { icon: "truck", type: "فوري",   minPrice: 150, time: "8 دقائق"        },
+    "سطحة":     { icon: "tow-truck", type: "فوري",   minPrice: 100, time: "12 دقيقة"       },
+    "حاوية":    { icon: "box", type: "مجدول", price: 0,      time: "غداً 11 صباحاً" },
 }
 
 let currentService   = '';
@@ -32,7 +32,7 @@ function loadService() {
 
     const service = servicesData[serviceName];
 
-    document.getElementById('orderIcon').textContent  = service.icon;
+    document.getElementById('orderIcon').innerHTML = `<svg class="icon"><use href="icons.svg#icon-${service.icon}"></use></svg>`;
     document.getElementById('orderTitle').textContent = serviceName;
     document.getElementById('orderType').textContent  = service.type;
 
@@ -44,7 +44,7 @@ function loadService() {
     // السطحة — حقل التوصيل
     if (serviceName === 'سطحة') {
         document.getElementById('deliveryField').style.display = 'block';
-        document.getElementById('addressLabel').textContent    = '📍 موقع السيارة الحالي';
+        document.getElementById('addressLabel').innerHTML    = '<svg class="icon"><use href="icons.svg#icon-pin"></use></svg> موقع السيارة الحالي';
     }
 
     // الحاوية — قسم خاص
@@ -63,8 +63,8 @@ function loadService() {
 
         const sizeNames = { small: 'صغيرة (3م)', medium: 'متوسطة (6م)', large: 'كبيرة (12م)' };
 
-        document.getElementById('selectedProviderText').textContent =
-            `📦 ${selectedProduct.providerName} — ⭐ ${selectedProduct.providerRating}`;
+        document.getElementById('selectedProviderText').innerHTML =
+            `<svg class="icon"><use href="icons.svg#icon-box"></use></svg> ${selectedProduct.providerName} — <svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${selectedProduct.providerRating}`;
 
         document.getElementById('productName').textContent        = selectedProduct.name;
         document.getElementById('productDescription').textContent = selectedProduct.description || '';
@@ -168,7 +168,7 @@ function updateCustomPrice() {
     const price     = parseFloat(input.value);
 
     if (input.value && price < service.minPrice) {
-        errorText.textContent   = `❌ الحد الأدنى ${service.minPrice} ريال`;
+        errorText.innerHTML   = `<svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> الحد الأدنى ${service.minPrice} ريال`;
         errorText.style.display = 'block';
     } else {
         errorText.style.display = 'none';

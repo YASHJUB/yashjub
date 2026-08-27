@@ -1,9 +1,9 @@
 // يشجب - كود التفاعل الكامل
 
 const services = {
-    "وايت ماء": { icon: "🚚", time: "8 دقائق",        type: "فوري"   },
-    "سطحة":     { icon: "🚛", time: "12 دقيقة",       type: "فوري"   },
-    "حاوية":    { icon: "📦", time: "غداً 11 صباحاً", type: "مجدول" },
+    "وايت ماء": { icon: "truck", time: "8 دقائق",        type: "فوري"   },
+    "سطحة":     { icon: "tow-truck", time: "12 دقيقة",       type: "فوري"   },
+    "حاوية":    { icon: "box", time: "غداً 11 صباحاً", type: "مجدول" },
 }
 
 // تحقق من تسجيل الدخول
@@ -92,7 +92,9 @@ function toggleTheme() {
     const btn  = document.getElementById('themeBtn');
     const isDark = body.classList.toggle('dark-mode');
 
-    btn.textContent = isDark ? '☀️' : '🌙';
+    btn.innerHTML = isDark
+        ? '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>'
+        : '<svg class="icon"><use href="icons.svg#icon-moon"></use></svg>';
     localStorage.setItem('yashjub_theme', isDark ? 'dark' : 'light');
 }
 
@@ -102,7 +104,7 @@ function loadTheme() {
     if (theme === 'dark') {
         document.body.classList.add('dark-mode');
         const btn = document.getElementById('themeBtn');
-        if (btn) btn.textContent = '☀️';
+        if (btn) btn.innerHTML = '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>';
     }
 }
 

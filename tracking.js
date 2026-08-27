@@ -115,20 +115,20 @@ function simulateTracking() {
         document.getElementById('line2').classList.add('done');
         document.getElementById('step3').classList.add('active');
         document.getElementById('step3').classList.remove('step');
-        document.querySelector('#step2 .step-icon').textContent = '✅';
+        document.querySelector('#step2 .step-icon').innerHTML = '<svg class="icon"><use href="icons.svg#icon-check"></use></svg>';
     }, 3000);
 
     // بعد 6 ثواني — المزود في الطريق
     setTimeout(() => {
         document.getElementById('line3').classList.add('done');
         document.getElementById('step4').classList.add('active');
-        document.querySelector('#step3 .step-icon').textContent = '✅';
+        document.querySelector('#step3 .step-icon').innerHTML = '<svg class="icon"><use href="icons.svg#icon-check"></use></svg>';
     }, 6000);
 
     // بعد 10 ثواني — تم التوصيل
     setTimeout(() => {
-        document.querySelector('#step4 .step-icon').textContent = '✅';
-        document.querySelector('#step4 .step-sub').textContent  = 'اكتملت الخدمة بنجاح 🎉';
+        document.querySelector('#step4 .step-icon').innerHTML = '<svg class="icon"><use href="icons.svg#icon-check"></use></svg>';
+        document.querySelector('#step4 .step-sub').innerHTML  = 'اكتملت الخدمة بنجاح <svg class="icon"><use href="icons.svg#icon-confetti"></use></svg>';
         showComplete();
     }, 10000);
 }

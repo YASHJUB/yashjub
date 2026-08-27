@@ -113,7 +113,7 @@ function renderOrders(orders) {
     if (orders.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📭</div>
+                <div class="empty-icon"><svg class="icon"><use href="icons.svg#icon-inbox-empty"></use></svg></div>
                 <div class="empty-title">لا يوجد طلبات</div>
                 <div class="empty-sub">ابدأ باستقبال الطلبات الآن!</div>
             </div>`;
@@ -128,12 +128,12 @@ function renderOrders(orders) {
     };
 
     const serviceIcons = {
-        'وايت ماء': '🚚', 'سطحة': '🚛', 'حاوية': '📦', 'معدات ثقيلة': '🏗️'
+        'وايت ماء': 'truck', 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane'
     };
 
     container.innerHTML = orders.map(o => {
         const status = statusLabels[o.status] || { label: o.status, color: '#888', bg: '#f0f0f0' };
-        const icon   = serviceIcons[o.service] || '🔧';
+        const icon   = serviceIcons[o.service] || 'wrench';
         const date   = new Date(o.created_at).toLocaleDateString('ar-SA');
         const net    = o.price - o.commission;
 
@@ -141,7 +141,7 @@ function renderOrders(orders) {
             <div class="provider-order-item">
                 <div class="provider-order-top">
                     <div class="provider-order-service">
-                        <div class="provider-order-icon">${icon}</div>
+                        <div class="provider-order-icon"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg></div>
                         <div>
                             <div class="provider-order-name">${o.service}</div>
                             <div class="provider-order-date">${date}</div>
@@ -155,15 +155,15 @@ function renderOrders(orders) {
                 <div class="provider-order-divider"></div>
                 <div class="provider-order-details">
                     <div class="provider-order-detail">
-                        <span>📍 ${o.address.substring(0, 30)}${o.address.length > 30 ? '...' : ''}</span>
+                        <span><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${o.address.substring(0, 30)}${o.address.length > 30 ? '...' : ''}</span>
                     </div>
                     <div class="provider-order-detail">
-                        <span>💰 صافي الأرباح: <strong>${net} ريال</strong></span>
+                        <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> صافي الأرباح: <strong>${net} ريال</strong></span>
                     </div>
                 </div>
                 ${o.status === 'accepted' ? `
                 <button class="btn-complete-order" onclick="completeOrder(${o.id})">
-                    ✅ تأكيد الاكتمال
+                    <svg class="icon"><use href="icons.svg#icon-check"></use></svg> تأكيد الاكتمال
                 </button>` : ''}
             </div>
         `;
@@ -328,7 +328,7 @@ function renderProducts(products) {
     if (products.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📦</div>
+                <div class="empty-icon"><svg class="icon"><use href="icons.svg#icon-box"></use></svg></div>
                 <div class="empty-title">لا يوجد منتجات بعد</div>
                 <div class="empty-sub">أضف أول منتج لك الآن!</div>
             </div>`;
@@ -349,13 +349,13 @@ function renderProducts(products) {
                 </span>
             </div>
             <div class="product-item-details">
-                <span>📦 ${productSizeLabels[p.size] || p.size}</span>
-                <span>💰 ${p.price} ريال / ${p.min_days} أيام على الأقل</span>
-                <span>📍 ${p.city} — ${p.neighborhood}</span>
+                <span><svg class="icon"><use href="icons.svg#icon-box"></use></svg> ${productSizeLabels[p.size] || p.size}</span>
+                <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> ${p.price} ريال / ${p.min_days} أيام على الأقل</span>
+                <span><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${p.city} — ${p.neighborhood}</span>
             </div>
             <div class="product-item-actions">
-                <button class="btn-small" onclick='editProduct(${JSON.stringify(p)})'>✏️ تعديل</button>
-                <button class="btn-small btn-delete-product" onclick="deleteProduct(${p.id})">🗑️ حذف</button>
+                <button class="btn-small" onclick='editProduct(${JSON.stringify(p)})'><svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تعديل</button>
+                <button class="btn-small btn-delete-product" onclick="deleteProduct(${p.id})"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg> حذف</button>
             </div>
         </div>
     `).join('');

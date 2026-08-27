@@ -33,6 +33,7 @@
 
         .notfound-icon {
             font-size: 60px;
+            color: #FFFFFF;
             margin-bottom: 20px;
         }
 
@@ -112,7 +113,7 @@
 
         <div class="notfound-line"></div>
 
-        <div class="notfound-icon">🔍</div>
+        <div class="notfound-icon"><svg class="icon"><use href="icons.svg#icon-search"></use></svg></div>
 
         <div class="notfound-title">عذراً! الصفحة غير موجودة</div>
 
@@ -123,7 +124,7 @@
 
         <div class="notfound-btns">
             <button class="btn" onclick="window.location.href='index.html'">
-                🏠 الصفحة الرئيسية
+                <svg class="icon"><use href="icons.svg#icon-home"></use></svg> الصفحة الرئيسية
             </button>
             <button class="btn-white" onclick="window.history.back()">
                 → رجوع

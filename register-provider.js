@@ -17,10 +17,10 @@ function selectLevel(level) {
 
     // تحديث عنوان النموذج
     const titles = {
-        2: '📝 تسجيل المستوى الثاني — مزود موثق',
-        3: '📝 تسجيل المستوى الثالث — شركة / منشأة'
+        2: '<svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تسجيل المستوى الثاني — مزود موثق',
+        3: '<svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تسجيل المستوى الثالث — شركة / منشأة'
     };
-    document.getElementById('regFormTitle').textContent = titles[level];
+    document.getElementById('regFormTitle').innerHTML = titles[level];
 
     // إخفاء / إظهار الحقول
     document.getElementById('level2Fields').style.display = level >= 2 ? 'block' : 'none';

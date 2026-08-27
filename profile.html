@@ -25,11 +25,11 @@
 
     <!-- رأس الصفحة -->
     <div class="profile-hero">
-        <div class="profile-avatar">👤</div>
+        <div class="profile-avatar"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
         <div class="profile-hero-info">
             <div class="profile-name-row">
                 <h1 id="profileName">مستخدم يشجب</h1>
-                <button class="edit-name-btn" onclick="toggleEditName()">✏️ تعديل الاسم</button>
+                <button class="edit-name-btn" onclick="toggleEditName()"><svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تعديل الاسم</button>
             </div>
             <div class="edit-name-form" id="editNameForm" style="display:none">
                 <input type="text" id="editNameInput" placeholder="اكتب اسمك"/>
@@ -48,15 +48,15 @@
             <div class="profile-card-title">معلوماتي</div>
 
             <div class="profile-info-row">
-                <span class="profile-info-label">📱 رقم الجوال</span>
+                <span class="profile-info-label"><svg class="icon"><use href="icons.svg#icon-phone"></use></svg> رقم الجوال</span>
                 <span class="profile-info-value" id="infoPhone">—</span>
             </div>
             <div class="profile-info-row">
-                <span class="profile-info-label">👤 نوع الحساب</span>
+                <span class="profile-info-label"><svg class="icon"><use href="icons.svg#icon-user"></use></svg> نوع الحساب</span>
                 <span class="profile-info-value" id="infoType">—</span>
             </div>
             <div class="profile-info-row">
-                <span class="profile-info-label">📅 تاريخ الانضمام</span>
+                <span class="profile-info-label"><svg class="icon"><use href="icons.svg#icon-calendar"></use></svg> تاريخ الانضمام</span>
                 <span class="profile-info-value" id="infoDate">—</span>
             </div>
         </div>
@@ -86,38 +86,38 @@
             <div class="profile-actions">
 
                 <div class="profile-action" onclick="window.location.href='my-orders.html'">
-                    <span class="profile-action-icon">📋</span>
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span>
                     <span class="profile-action-label">طلباتي</span>
                     <span class="profile-action-arrow">←</span>
                 </div>
 
                 <div class="profile-action" id="providerAction" style="display:none"
                      onclick="window.location.href='provider.html'">
-                    <span class="profile-action-icon">👷</span>
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span>
                     <span class="profile-action-label">لوحة المزود</span>
                     <span class="profile-action-arrow">←</span>
                 </div>
 
                 <div class="profile-action" onclick="window.location.href='about.html'">
-                    <span class="profile-action-icon">ℹ️</span>
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span>
                     <span class="profile-action-label">من نحن</span>
                     <span class="profile-action-arrow">←</span>
                 </div>
 
                 <div class="profile-action" onclick="window.location.href='contact.html'">
-                    <span class="profile-action-icon">📞</span>
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span>
                     <span class="profile-action-label">تواصل معنا</span>
                     <span class="profile-action-arrow">←</span>
                 </div>
 
                 <div class="profile-action" onclick="window.location.href='terms.html'">
-                    <span class="profile-action-icon">📄</span>
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span>
                     <span class="profile-action-label">الشروط والأحكام</span>
                     <span class="profile-action-arrow">←</span>
                 </div>
 
                 <div class="profile-action danger" onclick="logoutProfile()">
-                    <span class="profile-action-icon">🚪</span>
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-door"></use></svg></span>
                     <span class="profile-action-label">تسجيل الخروج</span>
                     <span class="profile-action-arrow">←</span>
                 </div>

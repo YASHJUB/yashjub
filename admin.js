@@ -106,7 +106,7 @@ async function loadDashboard() {
             <tr>
                 <td>
                     <div style="display:flex;align-items:center;gap:8px">
-                        <div class="provider-avatar-sm">👷</div>
+                        <div class="provider-avatar-sm"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
                         <div>
                             <div style="font-size:13px;font-weight:600">${p.name}</div>
                             <div style="font-size:11px;color:var(--text3)">${p.service_type}</div>
@@ -114,7 +114,7 @@ async function loadDashboard() {
                     </div>
                 </td>
                 <td>٠</td>
-                <td>⭐ ${p.rating}</td>
+                <td><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.rating}</td>
                 <td style="color:var(--gold)">٠ ر</td>
                 <td style="color:var(--green)">٠٪</td>
             </tr>
@@ -224,25 +224,29 @@ async function loadProvidersPage() {
         const data = await res.json();
         if (!data.success) return;
 
-        const levelLabel = { basic:'🥈 أساسي', verified:'🥇 موثق', business:'🏆 شركة' };
+        const levelLabel = {
+            basic:'<svg class="icon"><use href="icons.svg#icon-medal-silver"></use></svg> أساسي',
+            verified:'<svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> موثق',
+            business:'<svg class="icon"><use href="icons.svg#icon-trophy"></use></svg> شركة'
+        };
 
         document.getElementById('allProvidersTable').innerHTML = data.providers.map(p => `
             <tr>
                 <td>#${p.id}</td>
                 <td>
                     <div style="display:flex;align-items:center;gap:8px">
-                        <div style="width:32px;height:32px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center">👷</div>
+                        <div style="width:32px;height:32px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
                         ${p.name}
                     </div>
                 </td>
                 <td dir="ltr">+966${p.phone}</td>
                 <td>${p.service_type}</td>
                 <td>${levelLabel[p.level] || p.level}</td>
-                <td>⭐ ${p.rating}</td>
+                <td><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.rating}</td>
                 <td>${p.is_available ? '<span class="badge badge-done">متاح</span>' : '<span class="badge badge-cancel">مشغول</span>'}</td>
                 <td>
-                    ${p.id_document_path ? `<a href="${p.id_document_path}" target="_blank">🪪 الهوية</a>` : '—'}
-                    ${p.certificate_path ? ` &nbsp;<a href="${p.certificate_path}" target="_blank">📄 الشهادة</a>` : ''}
+                    ${p.id_document_path ? `<a href="${p.id_document_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-id-card"></use></svg> الهوية</a>` : '—'}
+                    ${p.certificate_path ? ` &nbsp;<a href="${p.certificate_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-document"></use></svg> الشهادة</a>` : ''}
                 </td>
                 <td>
                     <button class="btn-detail" style="background:#10B981;color:#fff;border-color:#10B981">قبول</button>
@@ -266,7 +270,7 @@ async function loadClientsPage() {
                 <td dir="ltr">+966${u.phone}</td>
                 <td>٠</td>
                 <td style="color:var(--gold)">٠ ر</td>
-                <td>${u.verified ? '✅ موثق' : '❌ غير موثق'}</td>
+                <td>${u.verified ? '<svg class="icon"><use href="icons.svg#icon-check"></use></svg> موثق' : '<svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> غير موثق'}</td>
                 <td>${new Date(u.created_at).toLocaleDateString('ar-SA')}</td>
             </tr>
         `).join('');
