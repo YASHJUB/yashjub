@@ -1,9 +1,46 @@
 // يشجب - كود التفاعل الكامل
 
-const services = {
-    "وايت ماء": { icon: "truck", time: "8 دقائق",        type: "فوري"   },
-    "سطحة":     { icon: "tow-truck", time: "12 دقيقة",       type: "فوري"   },
-    "حاوية":    { icon: "box", time: "غداً 11 صباحاً", type: "مجدول" },
+const API = window.location.origin + '/api';
+
+const SERVICE_BADGE_LABELS = { instant: 'فوري', scheduled: 'مجدول', coming: 'قريباً' };
+
+// تحميل قائمة الخدمات من لوحة الإدارة وعرضها بالصفحة الرئيسية
+async function loadServices() {
+    const container = document.getElementById('servicesList');
+    if (!container) return;
+
+    try {
+        const res  = await fetch(`${API}/services/active`);
+        const data = await res.json();
+
+        if (!data.success || !data.services.length) return;
+
+        container.innerHTML = data.services.map(s => {
+            const badgeLabel = SERVICE_BADGE_LABELS[s.badge_type] || s.badge_type;
+            const soonClass  = s.action_type === 'panel' ? ' soon' : '';
+            const onclick    = s.action_type === 'panel'
+                ? 'showHeavyEquipment()'
+                : `orderService('${s.name.replace(/'/g, "\\'")}', '${s.action_type}')`;
+
+            return `
+                <div class="service-row${soonClass}" onclick="${onclick}">
+                    <div class="service-row-right">
+                        <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-${s.icon}"></use></svg></div>
+                        <div class="service-row-info">
+                            <div class="service-row-name">${s.name}</div>
+                            <div class="service-row-desc">${s.description || ''}</div>
+                        </div>
+                    </div>
+                    <div class="service-row-left">
+                        <span class="service-row-type ${s.badge_type}">${badgeLabel}</span>
+                        <span class="service-row-arrow">←</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (e) {
+        // تعذّر التحميل — تبقى الخدمات الأربع الثابتة بالـ HTML كما هي
+    }
 }
 
 // تحقق من تسجيل الدخول
@@ -58,7 +95,7 @@ function logout() {
 }
 
 // طلب خدمة
-function orderService(name) {
+function orderService(name, actionType) {
     const phone = localStorage.getItem('yashjub_phone');
 
     if (!phone) {
@@ -67,7 +104,7 @@ function orderService(name) {
         return;
     }
 
-    if (name === 'حاوية') {
+    if (actionType === 'container' || (!actionType && name === 'حاوية')) {
         window.location.href = 'container-location.html';
         return;
     }
@@ -86,7 +123,9 @@ function showHeavyEquipment() {
 }
 
 // تشغيل التحقق عند فتح الصفحة
-checkLogin();// الوضع الليلي
+checkLogin();
+loadServices();
+// الوضع الليلي
 function toggleTheme() {
     const body = document.body;
     const btn  = document.getElementById('themeBtn');

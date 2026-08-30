@@ -1413,9 +1413,82 @@
                     </div>
                 </div>
             </div>
+            <!-- ══ SERVICES PAGE ══ -->
             <div id="page-services" style="display:none">
-                <div class="page-header"><div class="page-title">الخدمات <svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الخدمات</p></div>
+                <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                    <div>
+                        <div class="page-title">الخدمات <svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></div>
+                        <div class="page-sub">كتالوج الخدمات المعروضة بالصفحة الرئيسية للعملاء</div>
+                    </div>
+                    <button class="btn-gold" onclick="toggleServiceForm()">+ إضافة خدمة</button>
+                </div>
+
+                <div class="card" id="serviceForm" style="display:none;margin-bottom:16px">
+                    <div class="card-title" id="serviceFormTitle">إضافة خدمة جديدة</div>
+                    <div class="emp-form-grid">
+                        <div class="form-group">
+                            <label>اسم الخدمة</label>
+                            <input type="text" id="serviceName" placeholder="مثال: تنظيف مواقع"/>
+                        </div>
+                        <div class="form-group">
+                            <label>اسم الأيقونة (من icons.svg)</label>
+                            <input type="text" id="serviceIcon" placeholder="مثال: truck"/>
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label>الوصف</label>
+                            <input type="text" id="serviceDescription" placeholder="وصف قصير يظهر تحت اسم الخدمة"/>
+                        </div>
+                        <div class="form-group">
+                            <label>نوع التوقيت</label>
+                            <select id="serviceBadgeType">
+                                <option value="instant">فوري</option>
+                                <option value="scheduled">مجدول</option>
+                                <option value="coming">قريباً</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>ماذا يحصل عند الضغط عليها؟</label>
+                            <select id="serviceActionType">
+                                <option value="order">طلب عادي (صفحة الطلب — العميل يحدد السعر)</option>
+                                <option value="container">تدفق الحاوية (اختيار موقع ثم منتج)</option>
+                                <option value="panel">لوحة "قريباً" فقط (بدون طلب فعلي)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>الحد الأدنى للسعر (ريال — لخدمات "طلب عادي" فقط)</label>
+                            <input type="number" id="serviceMinPrice" placeholder="مثال: 150"/>
+                        </div>
+                        <div class="form-group">
+                            <label>الوقت التقديري (نص حر)</label>
+                            <input type="text" id="serviceTimeEstimate" placeholder="مثال: 8 دقائق"/>
+                        </div>
+                        <div class="form-group">
+                            <label>ترتيب الظهور</label>
+                            <input type="number" id="serviceSortOrder" placeholder="0"/>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding-top:8px">
+                                <input type="checkbox" id="serviceActive" checked style="width:auto"/> الخدمة نشطة (تظهر للعملاء)
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button class="btn-gold" onclick="submitService()">حفظ</button>
+                        <button class="btn-detail" onclick="toggleServiceForm()">إلغاء</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>الأيقونة</th><th>الاسم</th><th>الوصف</th><th>التوقيت</th><th>الإجراء عند الضغط</th><th>الحد الأدنى</th><th>الترتيب</th><th>الحالة</th><th>إجراء</th></tr>
+                            </thead>
+                            <tbody id="allServicesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <!-- ══ PAYMENTS PAGE ══ -->
             <div id="page-payments" style="display:none">

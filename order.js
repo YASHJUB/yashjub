@@ -2,25 +2,42 @@
 
 const API = window.location.origin + '/api';
 
-const servicesData = {
-    "وايت ماء": { icon: "truck", type: "فوري",   minPrice: 150, time: "8 دقائق"        },
-    "سطحة":     { icon: "tow-truck", type: "فوري",   minPrice: 100, time: "12 دقيقة"       },
-    "حاوية":    { icon: "box", type: "مجدول", price: 0,      time: "غداً 11 صباحاً" },
+const SERVICE_BADGE_LABELS = { instant: 'فوري', scheduled: 'مجدول', coming: 'قريباً' };
+
+let servicesData      = {};
+let currentService    = '';
+let selectedProduct   = null;
+let addressMap        = null;
+let addressMarker     = null;
+let appliedCoupon     = null;
+
+// تحميل كتالوج الخدمات من السيرفر (اسم الخدمة → icon/type/minPrice/time)
+async function loadServicesData() {
+    try {
+        const res  = await fetch(`${API}/services/active`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        data.services.forEach(s => {
+            servicesData[s.name] = {
+                icon:     s.icon,
+                type:     SERVICE_BADGE_LABELS[s.badge_type] || s.badge_type,
+                minPrice: s.min_price,
+                time:     s.time_estimate,
+            };
+        });
+    } catch (e) {}
 }
 
-let currentService   = '';
-let selectedProduct  = null;
-let addressMap       = null;
-let addressMarker    = null;
-let appliedCoupon    = null;
-
-function loadService() {
+async function loadService() {
     const phone = localStorage.getItem('yashjub_phone');
     if (!phone) {
         alert("⚠️ يجب تسجيل الدخول أولاً!");
         window.location.href = 'login.html';
         return;
     }
+
+    await loadServicesData();
 
     const params      = new URLSearchParams(window.location.search);
     const serviceName = params.get('service');

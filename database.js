@@ -88,6 +88,21 @@ db.exec(`
         created_at     TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول كتالوج الخدمات (يغذي قائمة الخدمات بالصفحة الرئيسية)
+    CREATE TABLE IF NOT EXISTS services (
+        id            INTEGER PRIMARY KEY AUTOINCREMENT,
+        name          TEXT UNIQUE NOT NULL,
+        icon          TEXT NOT NULL,
+        description   TEXT,
+        badge_type    TEXT NOT NULL DEFAULT 'instant',
+        action_type   TEXT NOT NULL DEFAULT 'order',
+        min_price     INTEGER,
+        time_estimate TEXT,
+        is_active     INTEGER DEFAULT 1,
+        sort_order    INTEGER DEFAULT 0,
+        created_at    TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
@@ -95,6 +110,19 @@ const cityCount = db.prepare('SELECT COUNT(*) AS n FROM cities').get().n;
 if (cityCount === 0) {
     const insertCity = db.prepare('INSERT INTO cities (name) VALUES (?)');
     ['الرياض', 'جدة', 'الدمام', 'مكة', 'المدينة المنورة'].forEach(name => insertCity.run(name));
+}
+
+// زرع الخدمات الأساسية الأربع أول مرة بس (لو الجدول فاضي) — نفس البيانات اللي كانت مكتوبة بالكود سابقاً
+const serviceCount = db.prepare('SELECT COUNT(*) AS n FROM services').get().n;
+if (serviceCount === 0) {
+    const insertService = db.prepare(`
+        INSERT INTO services (name, icon, description, badge_type, action_type, min_price, time_estimate, sort_order)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    insertService.run('وايت ماء', 'truck', 'توصيل المياه لمواقع البناء', 'instant', 'order', 150, '8 دقائق', 1);
+    insertService.run('سطحة', 'tow-truck', 'نقل وسحب المركبات', 'instant', 'order', 100, '12 دقيقة', 2);
+    insertService.run('حاوية', 'box', 'حاويات البناء والنفايات', 'scheduled', 'container', null, 'غداً 11 صباحاً', 3);
+    insertService.run('معدات ثقيلة', 'crane', 'بوكلينات، شيولات، قلابات، رافعات', 'coming', 'panel', null, null, 4);
 }
 
 // ترقية الجداول القديمة (migrations بسيطة — تتجاهل الخطأ لو العمود موجود مسبقاً)

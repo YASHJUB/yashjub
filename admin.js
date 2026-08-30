@@ -136,6 +136,7 @@ function showPage(page) {
     if (page === 'payments')    loadPaymentsPage();
     if (page === 'cities')      loadCitiesPage();
     if (page === 'coupons')     loadCouponsPage();
+    if (page === 'services')    loadServicesPage();
     if (page === 'operations')  startOperationsPage();
 }
 
@@ -776,6 +777,130 @@ async function deleteCoupon(id) {
     try {
         await fetch(`${API}/coupons/${id}`, { method: 'DELETE' });
         loadCouponsPage();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// صفحة الخدمات
+let editingServiceId = null;
+
+const SERVICE_BADGE_LABELS  = { instant: 'فوري', scheduled: 'مجدول', coming: 'قريباً' };
+const SERVICE_ACTION_LABELS = { order: 'طلب عادي', container: 'تدفق الحاوية', panel: 'لوحة قريباً' };
+
+async function loadServicesPage() {
+    try {
+        const res  = await fetch(`${API}/services`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        document.getElementById('allServicesTable').innerHTML = data.services.map(s => `
+            <tr>
+                <td><svg class="icon"><use href="icons.svg#icon-${s.icon}"></use></svg></td>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.description || '—'}</td>
+                <td>${SERVICE_BADGE_LABELS[s.badge_type] || s.badge_type}</td>
+                <td>${SERVICE_ACTION_LABELS[s.action_type] || s.action_type}</td>
+                <td>${s.min_price ? s.min_price + ' ر' : '—'}</td>
+                <td>${s.sort_order}</td>
+                <td>${s.is_active ? '<span class="badge badge-done">نشطة</span>' : '<span class="badge badge-cancel">موقوفة</span>'}</td>
+                <td>
+                    <button class="btn-detail" onclick='openEditService(${JSON.stringify(s)})'>تعديل</button>
+                    <button class="btn-detail" style="color:var(--red);border-color:var(--red)" onclick="deleteService(${s.id})">حذف</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {}
+}
+
+function toggleServiceForm() {
+    const form   = document.getElementById('serviceForm');
+    const isOpen = form.style.display === 'block';
+
+    if (isOpen) {
+        form.style.display = 'none';
+    } else {
+        resetServiceForm();
+        form.style.display = 'block';
+    }
+}
+
+function resetServiceForm() {
+    editingServiceId = null;
+    document.getElementById('serviceFormTitle').textContent = 'إضافة خدمة جديدة';
+    document.getElementById('serviceName').value          = '';
+    document.getElementById('serviceIcon').value           = '';
+    document.getElementById('serviceDescription').value    = '';
+    document.getElementById('serviceBadgeType').value      = 'instant';
+    document.getElementById('serviceActionType').value     = 'order';
+    document.getElementById('serviceMinPrice').value       = '';
+    document.getElementById('serviceTimeEstimate').value   = '';
+    document.getElementById('serviceSortOrder').value      = '';
+    document.getElementById('serviceActive').checked       = true;
+}
+
+function openEditService(service) {
+    editingServiceId = service.id;
+    document.getElementById('serviceFormTitle').textContent = 'تعديل الخدمة';
+    document.getElementById('serviceName').value          = service.name;
+    document.getElementById('serviceIcon').value           = service.icon;
+    document.getElementById('serviceDescription').value    = service.description || '';
+    document.getElementById('serviceBadgeType').value      = service.badge_type;
+    document.getElementById('serviceActionType').value     = service.action_type;
+    document.getElementById('serviceMinPrice').value       = service.min_price || '';
+    document.getElementById('serviceTimeEstimate').value   = service.time_estimate || '';
+    document.getElementById('serviceSortOrder').value      = service.sort_order;
+    document.getElementById('serviceActive').checked       = !!service.is_active;
+
+    const form = document.getElementById('serviceForm');
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitService() {
+    const name         = document.getElementById('serviceName').value.trim();
+    const icon         = document.getElementById('serviceIcon').value.trim();
+    const description  = document.getElementById('serviceDescription').value.trim();
+    const badgeType    = document.getElementById('serviceBadgeType').value;
+    const actionType   = document.getElementById('serviceActionType').value;
+    const minPrice     = document.getElementById('serviceMinPrice').value ? parseInt(document.getElementById('serviceMinPrice').value, 10) : null;
+    const timeEstimate = document.getElementById('serviceTimeEstimate').value.trim() || null;
+    const sortOrder    = document.getElementById('serviceSortOrder').value ? parseInt(document.getElementById('serviceSortOrder').value, 10) : 0;
+    const isActive     = document.getElementById('serviceActive').checked;
+
+    if (!name || !icon) {
+        alert('❌ يرجى تعبئة اسم الخدمة والأيقونة');
+        return;
+    }
+
+    try {
+        const url    = editingServiceId ? `${API}/services/${editingServiceId}` : `${API}/services`;
+        const method = editingServiceId ? 'PUT' : 'POST';
+
+        const res  = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, icon, description, badgeType, actionType, minPrice, timeEstimate, sortOrder, isActive }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('serviceForm').style.display = 'none';
+            loadServicesPage();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function deleteService(id) {
+    if (!confirm('هل أنت متأكد من حذف هذه الخدمة؟ راح تختفي من الصفحة الرئيسية فوراً.')) return;
+
+    try {
+        await fetch(`${API}/services/${id}`, { method: 'DELETE' });
+        loadServicesPage();
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

@@ -530,6 +530,75 @@ app.delete('/api/cities/:id', (req, res) => {
     res.json({ success: true });
 });
 
+// ========== API كتالوج الخدمات ==========
+
+app.get('/api/services', (req, res) => {
+    const services = db.prepare('SELECT * FROM services ORDER BY sort_order, id').all();
+    res.json({ success: true, services });
+});
+
+app.get('/api/services/active', (req, res) => {
+    const services = db.prepare('SELECT * FROM services WHERE is_active = 1 ORDER BY sort_order, id').all();
+    res.json({ success: true, services });
+});
+
+app.post('/api/services', (req, res) => {
+    const { name, icon, description, badgeType, actionType, minPrice, timeEstimate, sortOrder } = req.body;
+
+    if (!name || !name.trim() || !icon || !icon.trim()) {
+        return res.json({ success: false, message: 'اسم الخدمة والأيقونة مطلوبان' });
+    }
+
+    const existing = db.prepare('SELECT * FROM services WHERE name = ?').get(name.trim());
+    if (existing) {
+        return res.json({ success: false, message: 'اسم الخدمة مستخدم مسبقاً' });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO services (name, icon, description, badge_type, action_type, min_price, time_estimate, sort_order)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+        name.trim(), icon.trim(), description || '',
+        badgeType || 'instant', actionType || 'order',
+        minPrice || null, timeEstimate || null, sortOrder || 0,
+    );
+
+    const service = db.prepare('SELECT * FROM services WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, service });
+});
+
+app.put('/api/services/:id', (req, res) => {
+    const { name, icon, description, badgeType, actionType, minPrice, timeEstimate, sortOrder, isActive } = req.body;
+
+    if (!name || !name.trim() || !icon || !icon.trim()) {
+        return res.json({ success: false, message: 'اسم الخدمة والأيقونة مطلوبان' });
+    }
+
+    const existing = db.prepare('SELECT * FROM services WHERE name = ? AND id != ?').get(name.trim(), req.params.id);
+    if (existing) {
+        return res.json({ success: false, message: 'اسم الخدمة مستخدم مسبقاً' });
+    }
+
+    db.prepare(`
+        UPDATE services
+        SET name = ?, icon = ?, description = ?, badge_type = ?, action_type = ?, min_price = ?, time_estimate = ?, sort_order = ?, is_active = ?
+        WHERE id = ?
+    `).run(
+        name.trim(), icon.trim(), description || '',
+        badgeType || 'instant', actionType || 'order',
+        minPrice || null, timeEstimate || null, sortOrder || 0, isActive ? 1 : 0,
+        req.params.id,
+    );
+
+    const service = db.prepare('SELECT * FROM services WHERE id = ?').get(req.params.id);
+    res.json({ success: true, service });
+});
+
+app.delete('/api/services/:id', (req, res) => {
+    db.prepare('DELETE FROM services WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
 // ========== API كوبونات الخصم ==========
 
 app.get('/api/coupons', (req, res) => {
