@@ -25,6 +25,17 @@
             <div id="userNotLogged">
                 <button class="btn-small" onclick="goToLogin()">دخول</button>
             </div>
+            <div id="notifBellWrap" style="display:none;position:relative">
+                <button class="theme-btn" onclick="toggleNotifDropdown()" id="notifBellBtn" style="position:relative">
+                    <svg class="icon"><use href="icons.svg#icon-bell"></use></svg>
+                    <span class="notif-bell-badge" id="notifBellBadge" style="display:none">0</span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown" style="display:none">
+                    <div class="notif-dropdown-header">الإشعارات</div>
+                    <div class="notif-dropdown-list" id="notifDropdownList"></div>
+                    <a href="profile.html#notifications" class="notif-dropdown-viewall">عرض الكل</a>
+                </div>
+            </div>
           <button class="theme-btn" onclick="toggleTheme()" id="themeBtn"><svg class="icon"><use href="icons.svg#icon-moon"></use></svg></button>
 <button class="menu-btn" onclick="toggleSidebar()">☰</button>
         </div>

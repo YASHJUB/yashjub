@@ -114,6 +114,19 @@ db.exec(`
         created_at   TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول الإشعارات
+    CREATE TABLE IF NOT EXISTS notifications (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        title          TEXT NOT NULL,
+        message        TEXT NOT NULL,
+        type           TEXT NOT NULL DEFAULT 'update',
+        target         TEXT NOT NULL DEFAULT 'specific',
+        target_phone   TEXT,
+        receiver_phone TEXT NOT NULL,
+        is_read        INTEGER DEFAULT 0,
+        created_at     TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)

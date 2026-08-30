@@ -3039,6 +3039,135 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     background: rgba(255,255,255,0.1);
 }
 
+/* ══ جرس الإشعارات ══ */
+.notif-bell-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #EF4444;
+    color: #FFFFFF;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.notif-dropdown {
+    position: absolute;
+    top: 44px;
+    left: 0;
+    width: 320px;
+    max-width: 85vw;
+    background: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 500;
+    overflow: hidden;
+}
+
+.notif-dropdown-header {
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #111111;
+    border-bottom: 1px solid #EEEEEE;
+    font-family: 'Cairo', sans-serif;
+}
+
+.notif-dropdown-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.notif-dropdown-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #F5F5F5;
+    cursor: pointer;
+}
+
+.notif-dropdown-item:hover { background: #FAFAFA; }
+.notif-dropdown-item.unread { background: rgba(245,197,24,0.06); }
+
+.notif-dropdown-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+}
+
+.notif-dropdown-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.notif-dropdown-message {
+    font-size: 11px;
+    color: #666666;
+    margin-top: 2px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.notif-dropdown-empty {
+    text-align: center;
+    padding: 24px 16px;
+    font-size: 12px;
+    color: #888888;
+    font-family: 'Cairo', sans-serif;
+}
+
+.notif-dropdown-viewall {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #111111;
+    text-decoration: none;
+    border-top: 1px solid #EEEEEE;
+    font-family: 'Cairo', sans-serif;
+}
+.notif-dropdown-viewall:hover { background: #FAFAFA; }
+
+/* ══ قائمة الإشعارات بالملف الشخصي ══ */
+.profile-notif-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F0F0F0;
+    cursor: pointer;
+}
+.profile-notif-item:last-child { border-bottom: none; }
+.profile-notif-item.unread { background: rgba(245,197,24,0.05); border-radius: 10px; padding: 12px 10px; }
+
+.profile-notif-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.profile-notif-title { font-size: 13px; font-weight: 700; }
+.profile-notif-message { font-size: 12px; color: #666666; margin-top: 2px; }
+.profile-notif-meta { font-size: 11px; color: #999999; margin-top: 4px; display: flex; gap: 8px; align-items: center; }
+
 /* الوضع الليلي */
 body.dark-mode {
     background-color: #0a0a0a;

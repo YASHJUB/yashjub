@@ -48,6 +48,61 @@ async function loadProfile() {
     } catch (error) {
         console.log('خطأ في جلب الإحصائيات');
     }
+
+    loadProfileNotifications(phone);
+}
+
+// ══ إشعاراتي ══
+
+const PROFILE_NOTIF_ICONS = {
+    urgent: { icon: 'siren',    bg: 'rgba(239,68,68,0.1)',   color: '#EF4444' },
+    alert:  { icon: 'warning',  bg: 'rgba(245,158,11,0.1)',  color: '#F59E0B' },
+    update: { icon: 'bell',     bg: 'rgba(16,185,129,0.1)',  color: '#10B981' },
+    offer:  { icon: 'confetti', bg: 'rgba(245,197,24,0.15)', color: '#92700A' },
+};
+
+async function loadProfileNotifications(phone) {
+    try {
+        const res  = await fetch(`${API}/notifications/${phone}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const unread = data.notifications.filter(n => !n.is_read).length;
+        document.getElementById('notifUnreadCount').textContent = unread > 0 ? `${unread} غير مقروءة` : '';
+
+        const list = document.getElementById('profileNotifList');
+
+        if (!data.notifications.length) {
+            list.innerHTML = '<p style="text-align:center;color:#999;font-size:13px;padding:16px 0">لا توجد إشعارات</p>';
+            return;
+        }
+
+        list.innerHTML = data.notifications.map(n => {
+            const meta = PROFILE_NOTIF_ICONS[n.type] || PROFILE_NOTIF_ICONS.update;
+            return `
+                <div class="profile-notif-item ${n.is_read ? '' : 'unread'}" onclick="markProfileNotifRead(${n.id}, '${phone}')">
+                    <div class="profile-notif-icon" style="background:${meta.bg};color:${meta.color}">
+                        <svg class="icon"><use href="icons.svg#icon-${meta.icon}"></use></svg>
+                    </div>
+                    <div style="flex:1">
+                        <div class="profile-notif-title">${n.title}</div>
+                        <div class="profile-notif-message">${n.message}</div>
+                        <div class="profile-notif-meta">
+                            <span>${new Date(n.created_at.replace(' ', 'T') + 'Z').toLocaleString('ar-SA')}</span>
+                            <span>${n.is_read ? '' : '• غير مقروء'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (e) {}
+}
+
+async function markProfileNotifRead(id, phone) {
+    try {
+        await fetch(`${API}/notifications/${id}/read`, { method: 'PUT' });
+        loadProfileNotifications(phone);
+    } catch (e) {}
 }
 
 // إظهار/إخفاء فورم تعديل الاسم

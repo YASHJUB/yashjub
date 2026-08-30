@@ -67,6 +67,14 @@ function checkCoupon(code, amount) {
     return { valid: true, coupon, discount };
 }
 
+// إنشاء إشعار لمستخدم واحد (تستخدمها الإشعارات التلقائية بالنظام)
+function createNotification(title, message, type, target, receiverPhone, targetPhone = null) {
+    db.prepare(`
+        INSERT INTO notifications (title, message, type, target, target_phone, receiver_phone)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(title, message, type, target, targetPhone, receiverPhone);
+}
+
 // ========== API المستخدمين ==========
 
 app.post('/api/auth/send-otp', (req, res) => {
@@ -185,6 +193,15 @@ app.post('/api/orders', (req, res) => {
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(result.lastInsertRowid);
     order.provider_rating = providerRating;
 
+    // إشعار تلقائي للمزوّد المُسند إليه الطلب (صراحة أو بالمطابقة التلقائية)
+    if (providerPhone) {
+        createNotification(
+            'طلب جديد بانتظارك',
+            `لديك طلب ${service} جديد — ${address}`,
+            'update', 'specific', providerPhone, providerPhone,
+        );
+    }
+
     console.log(`✅ طلب جديد #${order.id} — ${service} — ${address}`);
 
     res.json({ success: true, order });
@@ -217,6 +234,23 @@ app.put('/api/orders/:id/status', (req, res) => {
     }
 
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+
+    // إشعار تلقائي للعميل عند قبول الطلب أو اكتماله
+    if (current && current.status !== status) {
+        if (status === 'accepted') {
+            createNotification(
+                'تم قبول طلبك',
+                `${order.provider_name || 'مزوّد'} قبل طلب ${order.service} الخاص بك`,
+                'update', 'specific', order.phone, order.phone,
+            );
+        } else if (status === 'completed') {
+            createNotification(
+                'اكتمل طلبك',
+                `تم اكتمال طلب ${order.service} بنجاح — نتمنى لك تجربة ممتازة`,
+                'update', 'specific', order.phone, order.phone,
+            );
+        }
+    }
 
     res.json({ success: true, order });
 });
@@ -289,6 +323,12 @@ app.post('/api/providers/register', upload.fields([
         phone, fullName, serviceType, providerLevel,
         `/uploads/${idDocFile.filename}`,
         certDocFile ? `/uploads/${certDocFile.filename}` : null,
+    );
+
+    createNotification(
+        'مزوّد جديد انضم',
+        `${fullName} سجّل كمزود ${serviceType} (${providerLevel === 'verified' ? 'موثّق' : 'شركة'}) — يحتاج مراجعة`,
+        'update', 'specific', 'admin', 'admin',
     );
 
     console.log(`✅ مزود جديد #${result.lastInsertRowid} — ${fullName} — ${serviceType}`);
@@ -749,6 +789,84 @@ app.put('/api/chats/:orderId/read', (req, res) => {
     res.json({ success: true });
 });
 
+// ========== API الإشعارات ==========
+
+app.post('/api/notifications/send', (req, res) => {
+    const { title, message, type, target, targetPhone } = req.body;
+
+    if (!title || !title.trim() || !message || !message.trim() || !target) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    let receivers = [];
+
+    if (target === 'specific') {
+        if (!targetPhone || !targetPhone.trim()) {
+            return res.json({ success: false, message: 'رقم جوال المستلم مطلوب' });
+        }
+        receivers = [targetPhone.trim()];
+    } else if (target === 'clients') {
+        receivers = db.prepare('SELECT DISTINCT phone FROM users').all().map(r => r.phone);
+    } else if (target === 'providers') {
+        receivers = db.prepare('SELECT DISTINCT phone FROM providers').all().map(r => r.phone);
+    } else if (target === 'all') {
+        const clientPhones   = db.prepare('SELECT DISTINCT phone FROM users').all().map(r => r.phone);
+        const providerPhones = db.prepare('SELECT DISTINCT phone FROM providers').all().map(r => r.phone);
+        receivers = [...new Set([...clientPhones, ...providerPhones])];
+    } else {
+        return res.json({ success: false, message: 'وجهة إرسال غير صحيحة' });
+    }
+
+    if (!receivers.length) {
+        return res.json({ success: false, message: 'ما فيه أي مستلمين مطابقين لهذي الوجهة' });
+    }
+
+    const insert = db.prepare(`
+        INSERT INTO notifications (title, message, type, target, target_phone, receiver_phone)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    const insertMany = db.transaction((phones) => {
+        phones.forEach(phone => {
+            insert.run(title.trim(), message.trim(), type || 'update', target, target === 'specific' ? targetPhone.trim() : null, phone);
+        });
+    });
+    insertMany(receivers);
+
+    res.json({ success: true, count: receivers.length });
+});
+
+app.get('/api/notifications/:phone', (req, res) => {
+    const notifications = db.prepare(
+        'SELECT * FROM notifications WHERE receiver_phone = ? ORDER BY created_at DESC, id DESC'
+    ).all(req.params.phone);
+
+    res.json({ success: true, notifications });
+});
+
+app.put('/api/notifications/:id/read', (req, res) => {
+    db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+app.put('/api/notifications/read-all/:phone', (req, res) => {
+    db.prepare('UPDATE notifications SET is_read = 1 WHERE receiver_phone = ?').run(req.params.phone);
+    res.json({ success: true });
+});
+
+app.delete('/api/notifications/:id', (req, res) => {
+    db.prepare('DELETE FROM notifications WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+app.get('/api/notifications/admin/all', (req, res) => {
+    const notifications = db.prepare(
+        'SELECT * FROM notifications ORDER BY created_at DESC, id DESC'
+    ).all();
+
+    res.json({ success: true, notifications });
+});
+
 // ========== API التقارير المالية ==========
 
 app.get('/api/reports/commissions', (req, res) => {
@@ -884,7 +1002,34 @@ app.use((err, req, res, next) => {
 // صفحة 404
 app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, '404.html'));
-});// ========== تشغيل السيرفر ==========
+});
+
+// ========== فحص دوري: طلبات بدون مزود منذ أكثر من 10 دقائق (إشعار للإدارة) ==========
+// Set بالذاكرة لتفادي تكرار نفس الإشعار لنفس الطلب (يُعاد ضبطها لو أعيد تشغيل السيرفر)
+const notifiedStaleOrders = new Set();
+
+function checkStaleOrders() {
+    const staleOrders = db.prepare(`
+        SELECT * FROM orders
+        WHERE provider_id IS NULL AND status = 'pending'
+        AND created_at <= datetime('now', '-10 minutes')
+    `).all();
+
+    staleOrders.forEach(o => {
+        if (notifiedStaleOrders.has(o.id)) return;
+        notifiedStaleOrders.add(o.id);
+
+        createNotification(
+            'طلب بدون مزود',
+            `الطلب #${o.id} (${o.service}) بدون مزود منذ أكثر من 10 دقائق — يحتاج تدخل`,
+            'urgent', 'specific', 'admin', 'admin',
+        );
+    });
+}
+
+setInterval(checkStaleOrders, 5 * 60 * 1000);
+
+// ========== تشغيل السيرفر ==========
 app.listen(PORT, () => {
     console.log(`
 🚀 سيرفر يشجب شغال!

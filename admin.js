@@ -29,6 +29,12 @@ let allConversations         = [];
 let currentChatFilter        = 'all';
 let currentChatOrderId       = null;
 
+let notificationsRefreshInterval = null;
+let allNotifications             = [];
+let currentNotifFilter           = 'all';
+let cachedClientPhones           = new Set();
+let cachedProviderPhones         = new Set();
+
 // تسجيل الدخول
 async function doLogin() {
     const user = document.getElementById('adminUser').value;
@@ -143,17 +149,24 @@ function showPage(page) {
         closeChatPanel();
     }
 
-    if (page === 'orders')      loadOrdersPage();
-    if (page === 'providers')   loadProvidersPage();
-    if (page === 'clients')     loadClientsPage();
-    if (page === 'employees')   loadEmployeesPage();
-    if (page === 'commissions') loadCommissionsPage();
-    if (page === 'payments')    loadPaymentsPage();
-    if (page === 'cities')      loadCitiesPage();
-    if (page === 'coupons')     loadCouponsPage();
-    if (page === 'services')    loadServicesPage();
-    if (page === 'chats')       loadChatsPage();
-    if (page === 'operations')  startOperationsPage();
+    // إيقاف التحديث التلقائي لصفحة الإشعارات عند مغادرتها
+    if (page !== 'notifications' && notificationsRefreshInterval) {
+        clearInterval(notificationsRefreshInterval);
+        notificationsRefreshInterval = null;
+    }
+
+    if (page === 'orders')        loadOrdersPage();
+    if (page === 'providers')     loadProvidersPage();
+    if (page === 'clients')       loadClientsPage();
+    if (page === 'employees')     loadEmployeesPage();
+    if (page === 'commissions')   loadCommissionsPage();
+    if (page === 'payments')      loadPaymentsPage();
+    if (page === 'cities')        loadCitiesPage();
+    if (page === 'coupons')       loadCouponsPage();
+    if (page === 'services')      loadServicesPage();
+    if (page === 'chats')         loadChatsPage();
+    if (page === 'notifications') loadNotificationsPage();
+    if (page === 'operations')    startOperationsPage();
 }
 
 // تحميل لوحة التحكم
@@ -208,6 +221,11 @@ async function loadDashboard() {
 
         // شارة المحادثات اللي تحتاج تدخل (تظهر من أي صفحة بلوحة الإدارة)
         fetchConversations();
+
+        // تخزين أرقام العملاء/المزودين مؤقتاً (لمعاينة عدد المستلمين ولفلترة سجل الإشعارات) + شارة الإشعارات
+        cachedClientPhones   = new Set(users.map(u => u.phone));
+        cachedProviderPhones = new Set(providers.map(p => p.phone));
+        fetchNotificationsBadge();
 
         // آخر الطلبات
         const statusBadge = {
@@ -1103,6 +1121,211 @@ async function sendAdminChatMessage() {
         });
         input.value = '';
         await refreshChatPanelMessages();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ الإشعارات ══
+
+const NOTIF_TYPE_META = {
+    urgent: { color: 'var(--red)',    bg: 'rgba(239,68,68,0.1)',   icon: 'siren',    label: 'عاجل' },
+    alert:  { color: 'var(--orange)', bg: 'rgba(245,158,11,0.1)',  icon: 'warning',  label: 'تنبيه' },
+    update: { color: 'var(--green)',  bg: 'rgba(16,185,129,0.1)',  icon: 'bell',     label: 'عام'  },
+    offer:  { color: '#92700A',       bg: 'rgba(245,197,24,0.15)', icon: 'confetti', label: 'عرض'  },
+};
+
+async function loadNotificationsPage() {
+    await fetchNotificationsData();
+    renderNotificationsLog();
+    updateNotifRecipientCount();
+
+    if (!notificationsRefreshInterval) {
+        notificationsRefreshInterval = setInterval(async () => {
+            await fetchNotificationsData();
+            renderNotificationsLog();
+        }, 30000);
+    }
+}
+
+async function fetchNotificationsData() {
+    try {
+        const res  = await fetch(`${API}/notifications/admin/all`);
+        const data = await res.json();
+        if (data.success) allNotifications = data.notifications;
+        updateNotificationsBadge();
+    } catch (e) {}
+}
+
+async function fetchNotificationsBadge() {
+    await fetchNotificationsData();
+}
+
+function updateNotificationsBadge() {
+    const badge = document.getElementById('notificationsBadge');
+    if (!badge) return;
+    const count = allNotifications.filter(n => !n.is_read).length;
+    badge.textContent   = count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+}
+
+// إظهار/إخفاء حقل الجوال حسب المستلم المختار + تحديث معاينة عدد المستلمين
+function onNotifTargetChange() {
+    const target = document.querySelector('input[name="notifTarget"]:checked').value;
+    document.getElementById('notifTargetPhone').style.display = target === 'specific' ? 'block' : 'none';
+    updateNotifRecipientCount();
+}
+
+function updateNotifRecipientCount() {
+    const target = document.querySelector('input[name="notifTarget"]:checked')?.value || 'clients';
+    const el = document.getElementById('notifRecipientCount');
+    let count = 0;
+
+    if (target === 'clients')   count = cachedClientPhones.size;
+    if (target === 'providers') count = cachedProviderPhones.size;
+    if (target === 'all')       count = new Set([...cachedClientPhones, ...cachedProviderPhones]).size;
+    if (target === 'specific')  count = document.getElementById('notifTargetPhone').value.trim() ? 1 : 0;
+
+    el.textContent = `عدد المستلمين المتوقع: ${count}`;
+}
+
+async function submitNotification() {
+    const target      = document.querySelector('input[name="notifTarget"]:checked').value;
+    const targetPhone = document.getElementById('notifTargetPhone').value.trim();
+    const type        = document.getElementById('notifType').value;
+    const title       = document.getElementById('notifTitle').value.trim();
+    const message     = document.getElementById('notifMessage').value.trim();
+
+    if (!title || !message) {
+        alert('❌ يرجى تعبئة العنوان والرسالة');
+        return;
+    }
+
+    if (target === 'specific' && !targetPhone) {
+        alert('❌ يرجى إدخال رقم جوال المستلم');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/notifications/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, message, type, target, targetPhone: target === 'specific' ? targetPhone : undefined }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            alert(`✅ تم إرسال الإشعار إلى ${data.count} مستلم`);
+            document.getElementById('notifTitle').value       = '';
+            document.getElementById('notifMessage').value     = '';
+            document.getElementById('notifTargetPhone').value = '';
+            await fetchNotificationsData();
+            renderNotificationsLog();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// تجميع صفوف الإشعارات المتطابقة (نفس العنوان/الرسالة/النوع/وقت الإرسال) بحدث إرسال واحد
+function groupNotifications(list) {
+    const groups = {};
+    list.forEach(n => {
+        const key = `${n.title}|${n.message}|${n.type}|${n.created_at}`;
+        if (!groups[key]) groups[key] = { title: n.title, message: n.message, type: n.type, created_at: n.created_at, rows: [] };
+        groups[key].rows.push(n);
+    });
+    return Object.values(groups).sort((a, b) => b.rows[0].id - a.rows[0].id);
+}
+
+function setNotifFilter(filter, btn) {
+    currentNotifFilter = filter;
+    document.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderNotificationsLog();
+}
+
+function renderNotificationsLog() {
+    const container = document.getElementById('notificationsLogList');
+
+    let list = allNotifications;
+    if (currentNotifFilter === 'unread') {
+        list = list.filter(n => !n.is_read);
+    } else if (currentNotifFilter === 'clients') {
+        list = list.filter(n => cachedClientPhones.has(n.receiver_phone));
+    } else if (currentNotifFilter === 'providers') {
+        list = list.filter(n => cachedProviderPhones.has(n.receiver_phone));
+    }
+
+    const groups = groupNotifications(list);
+
+    if (!groups.length) {
+        container.innerHTML = '<p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد إشعارات مطابقة</p>';
+        return;
+    }
+
+    container.innerHTML = groups.map((g, i) => {
+        const meta = NOTIF_TYPE_META[g.type] || NOTIF_TYPE_META.update;
+        const unreadCount = g.rows.filter(r => !r.is_read).length;
+        const recipientsLabel = g.rows.length === 1 ? `المستلم: +966${g.rows[0].receiver_phone}` : `${g.rows.length} مستلم`;
+        const groupKey = `notifGroup${i}`;
+        const ids = g.rows.map(r => r.id);
+
+        return `
+            <div class="notif-log-item">
+                <div class="notif-log-top">
+                    <div class="notif-type-icon" style="background:${meta.bg};color:${meta.color}">
+                        <svg class="icon"><use href="icons.svg#icon-${meta.icon}"></use></svg>
+                    </div>
+                    <div style="flex:1">
+                        <div class="notif-log-title">${g.title}</div>
+                        <div class="notif-log-message">${g.message}</div>
+                        <div class="notif-log-meta">
+                            <span>${recipientsLabel}</span>
+                            <span>${new Date(g.created_at.replace(' ', 'T') + 'Z').toLocaleString('ar-SA')}</span>
+                            ${unreadCount > 0 ? `<span class="badge badge-cancel">${unreadCount} غير مقروء</span>` : '<span class="badge badge-done">مقروء بالكامل</span>'}
+                        </div>
+                    </div>
+                    <div class="notif-log-actions">
+                        <button class="btn-detail" onclick="toggleNotifDetails('${groupKey}')">عرض التفاصيل</button>
+                        <button class="btn-detail" style="color:var(--red);border-color:var(--red)" onclick='deleteNotifGroup(${JSON.stringify(ids)})'>حذف</button>
+                    </div>
+                </div>
+                <div class="notif-log-details" id="${groupKey}" style="display:none">
+                    ${g.rows.map(r => `+966${r.receiver_phone} — ${r.is_read ? 'مقروء' : 'غير مقروء'}`).join('<br>')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleNotifDetails(groupKey) {
+    const el = document.getElementById(groupKey);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function deleteNotifGroup(ids) {
+    if (!confirm('هل أنت متأكد من حذف هذا الإشعار؟')) return;
+
+    try {
+        await Promise.all(ids.map(id => fetch(`${API}/notifications/${id}`, { method: 'DELETE' })));
+        await fetchNotificationsData();
+        renderNotificationsLog();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function markAllNotificationsRead() {
+    const unreadIds = allNotifications.filter(n => !n.is_read).map(n => n.id);
+    if (!unreadIds.length) return;
+
+    try {
+        await Promise.all(unreadIds.map(id => fetch(`${API}/notifications/${id}/read`, { method: 'PUT' })));
+        await fetchNotificationsData();
+        renderNotificationsLog();
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

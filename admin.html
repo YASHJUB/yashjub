@@ -488,9 +488,33 @@
         .admin-chat-bubble.sender-provider { align-self: flex-start; background: #FFF3B0;      color: var(--text); border-radius: 14px 14px 14px 2px; }
         .admin-chat-bubble.sender-admin    { align-self: center;     background: var(--black); color: var(--white); border-radius: 14px; }
 
+        /* ══ الإشعارات ══ */
+        .notif-filter-btn.active { background: var(--gold); border-color: var(--gold); color: var(--black); }
+        .notif-target-radios { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; }
+        .notif-target-radios label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; }
+        .notif-recipient-count { font-size: 12px; color: var(--text3); margin-bottom: 14px; }
+
+        .notif-log-item { border-bottom: 1px solid var(--gray2); padding: 14px 4px; }
+        .notif-log-item:last-child { border-bottom: none; }
+        .notif-log-top { display: flex; align-items: flex-start; gap: 12px; }
+        .notif-type-icon {
+            width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .notif-log-title { font-size: 13px; font-weight: 700; }
+        .notif-log-message { font-size: 12px; color: var(--text2); margin-top: 2px; }
+        .notif-log-meta { font-size: 11px; color: var(--text3); margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .notif-log-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-right: auto; }
+        .notif-log-details {
+            margin-top: 10px; padding: 10px 12px; background: var(--gray); border-radius: 8px;
+            font-size: 11px; color: var(--text2); max-height: 140px; overflow-y: auto;
+        }
+
         @media (max-width: 600px) {
             .chat-list-item { flex-direction: column; align-items: flex-start; }
             .chat-list-actions { width: 100%; }
+            .notif-log-top { flex-wrap: wrap; }
+            .notif-log-actions { width: 100%; margin-right: 0; }
         }
 
         /* ══ PAGINATION ══ */
@@ -604,6 +628,7 @@
         </a>
         <a class="sidebar-item" data-page="notifications" onclick="showPage('notifications')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg></span> الإشعارات
+            <span class="sidebar-badge" id="notificationsBadge" style="display:none;background:var(--red)">0</span>
         </a>
         <a class="sidebar-item" data-page="complaints" onclick="showPage('complaints')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></span> البلاغات والشكاوى
@@ -1653,9 +1678,63 @@
                     </div>
                 </div>
             </div>
+            <!-- ══ NOTIFICATIONS PAGE ══ -->
             <div id="page-notifications" style="display:none">
-                <div class="page-header"><div class="page-title">الإشعارات <svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز الإشعارات</p></div>
+                <div class="page-header">
+                    <div class="page-title">الإشعارات <svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div>
+                    <div class="page-sub">إرسال إشعارات للعملاء والمزودين، ومراقبة إشعارات النظام التلقائية</div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">إرسال إشعار جديد</div>
+
+                    <div class="notif-target-radios">
+                        <label><input type="radio" name="notifTarget" value="clients" checked onchange="onNotifTargetChange()"/> كل العملاء</label>
+                        <label><input type="radio" name="notifTarget" value="providers" onchange="onNotifTargetChange()"/> كل المزودين</label>
+                        <label><input type="radio" name="notifTarget" value="all" onchange="onNotifTargetChange()"/> الجميع</label>
+                        <label><input type="radio" name="notifTarget" value="specific" onchange="onNotifTargetChange()"/> مستخدم محدد</label>
+                    </div>
+                    <input type="text" id="notifTargetPhone" placeholder="رقم جوال المستلم (بدون +966)" style="display:none;width:100%;max-width:300px;padding:10px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px;margin-bottom:12px" oninput="updateNotifRecipientCount()"/>
+
+                    <div class="notif-recipient-count" id="notifRecipientCount">عدد المستلمين المتوقع: —</div>
+
+                    <div class="emp-form-grid">
+                        <div class="form-group">
+                            <label>نوع الإشعار</label>
+                            <select id="notifType">
+                                <option value="update">📢 عام</option>
+                                <option value="offer">🎉 عرض</option>
+                                <option value="alert">⚠️ تنبيه</option>
+                                <option value="urgent">🚨 عاجل</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>العنوان</label>
+                            <input type="text" id="notifTitle" placeholder="عنوان الإشعار"/>
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label>الرسالة</label>
+                            <input type="text" id="notifMessage" placeholder="نص الإشعار"/>
+                        </div>
+                    </div>
+                    <button class="btn-gold" onclick="submitNotification()">إرسال الإشعار</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title" style="justify-content:space-between">
+                        <span>سجل الإشعارات</span>
+                        <button class="btn-detail" onclick="markAllNotificationsRead()">تعيين الكل كمقروء</button>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+                        <button class="btn-detail notif-filter-btn active" data-filter="all" onclick="setNotifFilter('all', this)">الكل</button>
+                        <button class="btn-detail notif-filter-btn" data-filter="unread" onclick="setNotifFilter('unread', this)">غير مقروء</button>
+                        <button class="btn-detail notif-filter-btn" data-filter="clients" onclick="setNotifFilter('clients', this)">للعملاء</button>
+                        <button class="btn-detail notif-filter-btn" data-filter="providers" onclick="setNotifFilter('providers', this)">للمزودين</button>
+                    </div>
+                    <div id="notificationsLogList">
+                        <p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد إشعارات بعد</p>
+                    </div>
+                </div>
             </div>
             <div id="page-complaints" style="display:none">
                 <div class="page-header"><div class="page-title">البلاغات والشكاوى <svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div></div>
