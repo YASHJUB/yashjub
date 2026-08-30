@@ -447,6 +447,52 @@
             width: 380px; max-width: 100%;
         }
 
+        /* ══ المحادثات ══ */
+        .chat-filter-btn.active { background: var(--gold); border-color: var(--gold); color: var(--black); }
+
+        .chat-list-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 14px;
+            padding: 14px 4px; border-bottom: 1px solid var(--gray2);
+        }
+        .chat-list-item:last-child { border-bottom: none; }
+        .chat-list-item.needs-intervention { background: rgba(239,68,68,0.05); border-radius: 10px; padding: 14px 10px; }
+        .chat-list-top { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+        .chat-list-people { font-size: 12px; color: var(--text2); margin-top: 3px; }
+        .chat-list-last { font-size: 12px; color: var(--text3); margin-top: 4px; display: flex; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-list-last-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+        .chat-list-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        #chatPanelOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; }
+        .chat-side-panel {
+            position: absolute; top: 0; right: 0; height: 100%; width: 420px; max-width: 92vw;
+            background: var(--white); display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+        }
+        .chat-side-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--gray2);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .chat-side-title { font-size: 15px; font-weight: 800; }
+        .chat-side-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+        .chat-side-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); line-height: 1; }
+        .chat-side-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-side-input-row { padding: 14px 20px; border-top: 1px solid var(--gray2); display: flex; gap: 8px; }
+        .chat-side-input-row input {
+            flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--gray2);
+            font-family: 'Cairo',sans-serif; font-size: 13px;
+        }
+
+        .admin-chat-bubble { max-width: 78%; padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.5; }
+        .admin-chat-bubble .bubble-sender { font-size: 10px; font-weight: 700; margin-bottom: 2px; opacity: 0.7; }
+        .admin-chat-bubble .bubble-time { font-size: 10px; margin-top: 4px; opacity: 0.6; }
+        .admin-chat-bubble.sender-client   { align-self: flex-end;   background: var(--gray);  color: var(--text); border-radius: 14px 14px 2px 14px; }
+        .admin-chat-bubble.sender-provider { align-self: flex-start; background: #FFF3B0;      color: var(--text); border-radius: 14px 14px 14px 2px; }
+        .admin-chat-bubble.sender-admin    { align-self: center;     background: var(--black); color: var(--white); border-radius: 14px; }
+
+        @media (max-width: 600px) {
+            .chat-list-item { flex-direction: column; align-items: flex-start; }
+            .chat-list-actions { width: 100%; }
+        }
+
         /* ══ PAGINATION ══ */
         .pagination {
             display: flex; align-items: center; justify-content: center;
@@ -554,6 +600,7 @@
         <div class="sidebar-section-label">التواصل</div>
         <a class="sidebar-item" data-page="chats" onclick="showPage('chats')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> المحادثات
+            <span class="sidebar-badge" id="chatsBadge" style="display:none;background:var(--red)">0</span>
         </a>
         <a class="sidebar-item" data-page="notifications" onclick="showPage('notifications')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg></span> الإشعارات
@@ -1560,9 +1607,51 @@
                     </div>
                 </div>
             </div>
+            <!-- ══ CHATS PAGE ══ -->
             <div id="page-chats" style="display:none">
-                <div class="page-header"><div class="page-title">المحادثات <svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — مركز المحادثات</p></div>
+                <div class="page-header">
+                    <div class="page-title">المحادثات <svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div>
+                    <div class="page-sub">مراقبة محادثات العملاء والمزودين والتدخل عند الحاجة</div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
+                            <input type="text" id="chatSearchInput" placeholder="بحث برقم الطلب، اسم العميل، أو الجوال..." oninput="renderChatsList()"/>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="btn-detail chat-filter-btn active" data-filter="all" onclick="setChatFilter('all', this)">الكل</button>
+                        <button class="btn-detail chat-filter-btn" data-filter="active" onclick="setChatFilter('active', this)">نشطة</button>
+                        <button class="btn-detail chat-filter-btn" data-filter="completed" onclick="setChatFilter('completed', this)">مكتملة</button>
+                        <button class="btn-detail chat-filter-btn" data-filter="intervention" onclick="setChatFilter('intervention', this)" style="color:var(--red);border-color:var(--red)">تحتاج تدخل</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div id="chatsListContainer">
+                        <p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد محادثات حالياً</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel جانبي لعرض/الرد على محادثة -->
+            <div id="chatPanelOverlay" onclick="if(event.target===this) closeChatPanel()">
+                <div class="chat-side-panel">
+                    <div class="chat-side-header">
+                        <div>
+                            <div class="chat-side-title">الطلب #<span id="chatPanelOrderId"></span> — <span id="chatPanelService"></span></div>
+                            <div class="chat-side-sub" id="chatPanelSub"></div>
+                        </div>
+                        <button class="chat-side-close" onclick="closeChatPanel()">✕</button>
+                    </div>
+                    <div class="chat-side-messages" id="chatPanelMessages"></div>
+                    <div class="chat-side-input-row">
+                        <input type="text" id="chatPanelInput" placeholder="اكتب رسالة كإدارة..." onkeydown="if(event.key==='Enter') sendAdminChatMessage()"/>
+                        <button class="btn-gold" onclick="sendAdminChatMessage()">إرسال</button>
+                    </div>
+                </div>
             </div>
             <div id="page-notifications" style="display:none">
                 <div class="page-header"><div class="page-title">الإشعارات <svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div></div>

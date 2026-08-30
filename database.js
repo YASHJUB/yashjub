@@ -103,6 +103,17 @@ db.exec(`
         created_at    TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول محادثات الطلبات (عميل/مزوّد/إدارة)
+    CREATE TABLE IF NOT EXISTS chats (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id     INTEGER NOT NULL,
+        sender       TEXT NOT NULL,
+        sender_phone TEXT,
+        message      TEXT NOT NULL,
+        is_read      INTEGER DEFAULT 0,
+        created_at   TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)

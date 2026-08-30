@@ -23,6 +23,12 @@ let opsRefreshInterval = null;
 let opsMap             = null;
 let opsMapMarkers       = [];
 
+let chatsListRefreshInterval = null;
+let chatPanelRefreshInterval = null;
+let allConversations         = [];
+let currentChatFilter        = 'all';
+let currentChatOrderId       = null;
+
 // تسجيل الدخول
 async function doLogin() {
     const user = document.getElementById('adminUser').value;
@@ -128,6 +134,15 @@ function showPage(page) {
         opsRefreshInterval = null;
     }
 
+    // إيقاف التحديث التلقائي لقائمة المحادثات + إغلاق أي panel مفتوح عند مغادرة الصفحة
+    if (page !== 'chats') {
+        if (chatsListRefreshInterval) {
+            clearInterval(chatsListRefreshInterval);
+            chatsListRefreshInterval = null;
+        }
+        closeChatPanel();
+    }
+
     if (page === 'orders')      loadOrdersPage();
     if (page === 'providers')   loadProvidersPage();
     if (page === 'clients')     loadClientsPage();
@@ -137,6 +152,7 @@ function showPage(page) {
     if (page === 'cities')      loadCitiesPage();
     if (page === 'coupons')     loadCouponsPage();
     if (page === 'services')    loadServicesPage();
+    if (page === 'chats')       loadChatsPage();
     if (page === 'operations')  startOperationsPage();
 }
 
@@ -189,6 +205,9 @@ async function loadDashboard() {
 
         document.getElementById('pendingBadge').textContent  = pending.length;
         document.getElementById('verifyBadge').textContent   = providers.length;
+
+        // شارة المحادثات اللي تحتاج تدخل (تظهر من أي صفحة بلوحة الإدارة)
+        fetchConversations();
 
         // آخر الطلبات
         const statusBadge = {
@@ -901,6 +920,189 @@ async function deleteService(id) {
     try {
         await fetch(`${API}/services/${id}`, { method: 'DELETE' });
         loadServicesPage();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ المحادثات ══
+
+const CHAT_SENDER_LABELS = { client: 'العميل', provider: 'المزوّد', admin: 'الإدارة' };
+
+async function loadChatsPage() {
+    await fetchConversations();
+    renderChatsList();
+
+    if (!chatsListRefreshInterval) {
+        chatsListRefreshInterval = setInterval(async () => {
+            await fetchConversations();
+            renderChatsList();
+        }, 30000);
+    }
+}
+
+async function fetchConversations() {
+    try {
+        const res  = await fetch(`${API}/chats`);
+        const data = await res.json();
+        if (data.success) allConversations = data.conversations;
+        updateChatsBadge();
+    } catch (e) {}
+}
+
+function updateChatsBadge() {
+    const badge = document.getElementById('chatsBadge');
+    if (!badge) return;
+    const count = allConversations.filter(c => c.needs_intervention).length;
+    badge.textContent   = count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+}
+
+function setChatFilter(filter, btn) {
+    currentChatFilter = filter;
+    document.querySelectorAll('.chat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderChatsList();
+}
+
+function renderChatsList() {
+    const container = document.getElementById('chatsListContainer');
+    const search = (document.getElementById('chatSearchInput')?.value || '').trim().toLowerCase();
+
+    let list = allConversations;
+
+    if (currentChatFilter === 'active') {
+        list = list.filter(c => c.order_status === 'pending' || c.order_status === 'accepted');
+    } else if (currentChatFilter === 'completed') {
+        list = list.filter(c => c.order_status === 'completed' || c.order_status === 'cancelled');
+    } else if (currentChatFilter === 'intervention') {
+        list = list.filter(c => c.needs_intervention);
+    }
+
+    if (search) {
+        list = list.filter(c =>
+            String(c.order_id).includes(search) ||
+            (c.client_name && c.client_name.toLowerCase().includes(search)) ||
+            (c.client_phone && c.client_phone.includes(search))
+        );
+    }
+
+    if (!list.length) {
+        container.innerHTML = '<p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد محادثات مطابقة</p>';
+        return;
+    }
+
+    const statusLabels = {
+        pending:   { label: 'انتظار',  class: 'badge-pending' },
+        accepted:  { label: 'نشطة',    class: 'badge-active'  },
+        completed: { label: 'مكتملة',  class: 'badge-done'    },
+        cancelled: { label: 'ملغية',   class: 'badge-cancel'  },
+    };
+
+    container.innerHTML = list.map(c => {
+        const status = statusLabels[c.order_status] || { label: c.order_status, class: 'badge-active' };
+        const clientLabel = c.client_name || `+966${c.client_phone}`;
+        const lastSenderLabel = CHAT_SENDER_LABELS[c.last_sender] || c.last_sender;
+
+        return `
+            <div class="chat-list-item ${c.needs_intervention ? 'needs-intervention' : ''}">
+                <div class="chat-list-main">
+                    <div class="chat-list-top">
+                        <span>#${c.order_id} — ${c.service}</span>
+                        <span class="badge ${status.class}">${status.label}</span>
+                    </div>
+                    <div class="chat-list-people">${clientLabel} ↔ ${c.provider_name || 'بدون مزوّد'}</div>
+                    <div class="chat-list-last">
+                        <span class="chat-list-last-text"><strong>${lastSenderLabel}:</strong> ${c.last_message}</span>
+                        <span>منذ ${formatAgo(minutesAgo(c.last_message_at))}</span>
+                    </div>
+                </div>
+                <div class="chat-list-actions">
+                    ${c.unread_count > 0 ? `<span class="badge badge-cancel">${c.unread_count} غير مقروءة</span>` : ''}
+                    <button class="btn-detail" onclick="openChatPanel(${c.order_id})">عرض المحادثة</button>
+                    ${c.needs_intervention ? `<button class="btn-detail" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="openChatPanel(${c.order_id})">تدخل الآن</button>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function openChatPanel(orderId) {
+    currentChatOrderId = orderId;
+
+    const convo = allConversations.find(c => c.order_id === orderId);
+    document.getElementById('chatPanelOrderId').textContent = orderId;
+    document.getElementById('chatPanelService').textContent = convo ? convo.service : '';
+    document.getElementById('chatPanelSub').textContent = convo
+        ? `${convo.client_name || '+966' + convo.client_phone} ↔ ${convo.provider_name || 'بدون مزوّد'}`
+        : '';
+
+    document.getElementById('chatPanelOverlay').style.display = 'block';
+
+    await refreshChatPanelMessages();
+    await fetch(`${API}/chats/${orderId}/read`, { method: 'PUT' });
+    await fetchConversations();
+    renderChatsList();
+
+    if (!chatPanelRefreshInterval) {
+        chatPanelRefreshInterval = setInterval(refreshChatPanelMessages, 10000);
+    }
+}
+
+async function refreshChatPanelMessages() {
+    if (!currentChatOrderId) return;
+
+    try {
+        const res  = await fetch(`${API}/chats/${currentChatOrderId}`);
+        const data = await res.json();
+        if (data.success) renderChatPanelMessages(data.messages);
+    } catch (e) {}
+}
+
+function renderChatPanelMessages(messages) {
+    const container = document.getElementById('chatPanelMessages');
+
+    if (!messages.length) {
+        container.innerHTML = '<p style="color:var(--text3);text-align:center;font-size:13px">لا توجد رسائل بعد</p>';
+        return;
+    }
+
+    const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 30;
+
+    container.innerHTML = messages.map(m => `
+        <div class="admin-chat-bubble sender-${m.sender}">
+            <div class="bubble-sender">${CHAT_SENDER_LABELS[m.sender] || m.sender}</div>
+            <div>${m.message}</div>
+            <div class="bubble-time">${new Date(m.created_at.replace(' ', 'T') + 'Z').toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
+        </div>
+    `).join('');
+
+    if (wasAtBottom) container.scrollTop = container.scrollHeight;
+}
+
+function closeChatPanel() {
+    document.getElementById('chatPanelOverlay').style.display = 'none';
+    if (chatPanelRefreshInterval) {
+        clearInterval(chatPanelRefreshInterval);
+        chatPanelRefreshInterval = null;
+    }
+    currentChatOrderId = null;
+}
+
+async function sendAdminChatMessage() {
+    const input = document.getElementById('chatPanelInput');
+    const message = input.value.trim();
+
+    if (!message || !currentChatOrderId) return;
+
+    try {
+        await fetch(`${API}/chats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: currentChatOrderId, sender: 'admin', message }),
+        });
+        input.value = '';
+        await refreshChatPanelMessages();
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

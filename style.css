@@ -4598,6 +4598,22 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 .btn-chat:hover { background: #FFD740; }
 
+.provider-order-chat-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+.provider-order-chat-actions .btn-chat,
+.provider-order-chat-actions .btn-complete-order {
+    flex: 1;
+    width: auto;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
 /* لوحة الشات */
 .chat-panel {
     margin-top: 14px;
@@ -4631,6 +4647,25 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     border-radius: 12px 12px 12px 2px;
     padding: 8px 12px;
 }
+
+/* تمايز الفقاعات حسب المرسل: العميل يمين رمادي، المزوّد يسار أصفر فاتح، الإدارة وسط أسود */
+.chat-bubble.sender-client {
+    align-self: flex-end;
+    background: #F0F0F0;
+    border-radius: 12px 12px 2px 12px;
+}
+.chat-bubble.sender-provider {
+    align-self: flex-start;
+    background: #FFF3B0;
+    border-radius: 12px 12px 12px 2px;
+}
+.chat-bubble.sender-admin {
+    align-self: center;
+    background: #111111;
+    border-radius: 12px;
+}
+.chat-bubble.sender-admin .chat-bubble-text { color: #FFFFFF; }
+.chat-bubble.sender-admin .chat-bubble-time { color: rgba(255,255,255,0.6); }
 
 .chat-bubble-text {
     font-size: 13px;

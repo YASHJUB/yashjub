@@ -689,6 +689,66 @@ app.post('/api/coupons/validate', (req, res) => {
     });
 });
 
+// ========== API المحادثات ==========
+
+app.get('/api/chats', (req, res) => {
+    const rows = db.prepare(`
+        SELECT chats.order_id,
+               orders.service, orders.phone AS client_phone, orders.provider_name, orders.provider_phone,
+               orders.status AS order_status,
+               users.name AS client_name,
+               COUNT(*) AS message_count,
+               SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) AS unread_count,
+               MAX(chats.created_at) AS last_message_at,
+               (SELECT message FROM chats c2 WHERE c2.order_id = chats.order_id ORDER BY c2.created_at DESC, c2.id DESC LIMIT 1) AS last_message,
+               (SELECT sender  FROM chats c2 WHERE c2.order_id = chats.order_id ORDER BY c2.created_at DESC, c2.id DESC LIMIT 1) AS last_sender
+        FROM chats
+        JOIN orders ON orders.id = chats.order_id
+        LEFT JOIN users ON users.phone = orders.phone
+        GROUP BY chats.order_id
+        ORDER BY MAX(chats.id) DESC
+    `).all();
+
+    const now = Date.now();
+    const conversations = rows.map(r => {
+        const lastMs = new Date(r.last_message_at.replace(' ', 'T') + 'Z').getTime();
+        const staleMinutes = (now - lastMs) / 60000;
+        const isActive = r.order_status === 'pending' || r.order_status === 'accepted';
+        return { ...r, needs_intervention: isActive && staleMinutes > 30 ? 1 : 0 };
+    });
+
+    res.json({ success: true, conversations });
+});
+
+app.get('/api/chats/:orderId', (req, res) => {
+    const messages = db.prepare(
+        'SELECT * FROM chats WHERE order_id = ? ORDER BY created_at ASC, id ASC'
+    ).all(req.params.orderId);
+
+    res.json({ success: true, messages });
+});
+
+app.post('/api/chats', (req, res) => {
+    const { orderId, sender, senderPhone, message } = req.body;
+
+    if (!orderId || !sender || !message || !message.trim()) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO chats (order_id, sender, sender_phone, message) VALUES (?, ?, ?, ?)
+    `).run(orderId, sender, senderPhone || null, message.trim());
+
+    const chatMessage = db.prepare('SELECT * FROM chats WHERE id = ?').get(result.lastInsertRowid);
+
+    res.json({ success: true, chatMessage });
+});
+
+app.put('/api/chats/:orderId/read', (req, res) => {
+    db.prepare('UPDATE chats SET is_read = 1 WHERE order_id = ?').run(req.params.orderId);
+    res.json({ success: true });
+});
+
 // ========== API التقارير المالية ==========
 
 app.get('/api/reports/commissions', (req, res) => {

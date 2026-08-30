@@ -162,12 +162,106 @@ function renderOrders(orders) {
                     </div>
                 </div>
                 ${o.status === 'accepted' ? `
-                <button class="btn-complete-order" onclick="completeOrder(${o.id})">
-                    <svg class="icon"><use href="icons.svg#icon-check"></use></svg> تأكيد الاكتمال
-                </button>` : ''}
+                <div class="provider-order-chat-actions">
+                    <button class="btn-chat" onclick="toggleProviderChat(${o.id})">
+                        <svg class="icon"><use href="icons.svg#icon-chat"></use></svg> محادثة العميل
+                    </button>
+                    <button class="btn-complete-order" onclick="completeOrder(${o.id})">
+                        <svg class="icon"><use href="icons.svg#icon-check"></use></svg> تأكيد الاكتمال
+                    </button>
+                </div>
+                <div class="chat-panel" id="chatPanel-${o.id}" style="display:none">
+                    <div class="chat-messages" id="chatMessages-${o.id}"></div>
+                    <div class="chat-input-row">
+                        <input type="text" id="chatInput-${o.id}" placeholder="اكتب ردك..." onkeydown="if(event.key==='Enter') sendProviderChatMessage(${o.id})"/>
+                        <button class="btn-small" onclick="sendProviderChatMessage(${o.id})">إرسال</button>
+                    </div>
+                </div>` : ''}
             </div>
         `;
     }).join('');
+}
+
+// ══ محادثة العميل (للطلبات المقبولة) ══
+
+let openChatOrderId          = null;
+let providerChatPollInterval = null;
+
+function toggleProviderChat(orderId) {
+    // إغلاق أي محادثة ثانية مفتوحة قبل فتح هذي
+    if (openChatOrderId && openChatOrderId !== orderId) {
+        const prevPanel = document.getElementById(`chatPanel-${openChatOrderId}`);
+        if (prevPanel) prevPanel.style.display = 'none';
+    }
+
+    const panel   = document.getElementById(`chatPanel-${orderId}`);
+    const isOpen  = panel.style.display === 'block';
+
+    if (providerChatPollInterval) {
+        clearInterval(providerChatPollInterval);
+        providerChatPollInterval = null;
+    }
+
+    if (isOpen) {
+        panel.style.display = 'none';
+        openChatOrderId = null;
+        return;
+    }
+
+    panel.style.display = 'block';
+    openChatOrderId = orderId;
+    loadProviderChatMessages(orderId);
+    providerChatPollInterval = setInterval(() => loadProviderChatMessages(orderId), 10000);
+}
+
+async function loadProviderChatMessages(orderId) {
+    const container = document.getElementById(`chatMessages-${orderId}`);
+    if (!container) return;
+
+    try {
+        const res  = await fetch(`${API}/chats/${orderId}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        if (!data.messages.length) {
+            container.innerHTML = '<div class="chat-empty">ابدأ المحادثة مع العميل...</div>';
+            return;
+        }
+
+        const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 30;
+
+        container.innerHTML = data.messages.map(m => `
+            <div class="chat-bubble sender-${m.sender}">
+                <div class="chat-bubble-text">${m.message}</div>
+                <div class="chat-bubble-time">${new Date(m.created_at.replace(' ', 'T') + 'Z').toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+        `).join('');
+
+        if (wasAtBottom) container.scrollTop = container.scrollHeight;
+    } catch (e) {}
+}
+
+async function sendProviderChatMessage(orderId) {
+    const input = document.getElementById(`chatInput-${orderId}`);
+    const text  = input.value.trim();
+
+    if (!text) return;
+
+    input.value = '';
+
+    try {
+        await fetch(`${API}/chats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId,
+                sender: 'provider',
+                senderPhone: localStorage.getItem('yashjub_phone'),
+                message: text,
+            }),
+        });
+        loadProviderChatMessages(orderId);
+    } catch (e) {}
 }
 
 // فلتر الطلبات

@@ -1,6 +1,9 @@
 // كود تتبع الطلب في يشجب
 
-let currentOrder = null;
+const API = window.location.origin + '/api';
+
+let currentOrder      = null;
+let chatPollInterval  = null;
 
 // تحميل بيانات الطلب
 function loadOrder() {
@@ -29,6 +32,7 @@ function loadOrder() {
         document.getElementById('providerRatingText').textContent = order.providerRating;
         document.getElementById('contactProviderSection').style.display = 'block';
         loadChatMessages();
+        chatPollInterval = setInterval(loadChatMessages, 10000);
     }
 
     // خريطة الموقع (تظهر فقط لو الطلب فيه إحداثيات محفوظة)
@@ -61,13 +65,18 @@ function toggleChat() {
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
 
-// تحميل رسائل الشات المحفوظة
-function loadChatMessages() {
-    const messages = JSON.parse(localStorage.getItem(`chat_${currentOrder.id}`) || '[]');
-    renderChatMessages(messages);
+// تحميل رسائل الشات من السيرفر
+async function loadChatMessages() {
+    if (!currentOrder) return;
+
+    try {
+        const res  = await fetch(`${API}/chats/${currentOrder.id}`);
+        const data = await res.json();
+        if (data.success) renderChatMessages(data.messages);
+    } catch (e) {}
 }
 
-// عرض رسائل الشات
+// عرض رسائل الشات (تتمايز حسب المرسل: العميل يمين رمادي، المزوّد يسار أصفر، الإدارة وسط أسود)
 function renderChatMessages(messages) {
     const container = document.getElementById('chatMessages');
 
@@ -76,35 +85,40 @@ function renderChatMessages(messages) {
         return;
     }
 
+    const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 30;
+
     container.innerHTML = messages.map(m => `
-        <div class="chat-bubble">
-            <div class="chat-bubble-text">${m.text}</div>
-            <div class="chat-bubble-time">${m.time}</div>
+        <div class="chat-bubble sender-${m.sender}">
+            <div class="chat-bubble-text">${m.message}</div>
+            <div class="chat-bubble-time">${new Date(m.created_at.replace(' ', 'T') + 'Z').toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
         </div>
     `).join('');
 
-    container.scrollTop = container.scrollHeight;
+    if (wasAtBottom) container.scrollTop = container.scrollHeight;
 }
 
 // إرسال رسالة شات
-function sendChatMessage() {
+async function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const text  = input.value.trim();
 
     if (!text || !currentOrder) return;
 
-    const key      = `chat_${currentOrder.id}`;
-    const messages = JSON.parse(localStorage.getItem(key) || '[]');
-
-    messages.push({
-        text,
-        time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
-    });
-
-    localStorage.setItem(key, JSON.stringify(messages));
-    renderChatMessages(messages);
-
     input.value = '';
+
+    try {
+        await fetch(`${API}/chats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId: currentOrder.id,
+                sender: 'client',
+                senderPhone: localStorage.getItem('yashjub_phone'),
+                message: text,
+            }),
+        });
+        loadChatMessages();
+    } catch (e) {}
 }
 
 // محاكاة مراحل الطلب
@@ -136,10 +150,11 @@ function simulateTracking() {
 // إظهار رسالة الاكتمال
 function showComplete() {
     setTimeout(() => {
-        // إغلاق قسم التواصل والشات تلقائياً عند اكتمال الخدمة
+        // إغلاق قسم التواصل والشات تلقائياً عند اكتمال الخدمة (المحادثة تبقى محفوظة بالسيرفر للمرجعية)
         document.getElementById('contactProviderSection').style.display = 'none';
-        if (currentOrder) {
-            localStorage.removeItem(`chat_${currentOrder.id}`);
+        if (chatPollInterval) {
+            clearInterval(chatPollInterval);
+            chatPollInterval = null;
         }
 
         alert('🎉 تم اكتمال الخدمة بنجاح!\nشكراً لاستخدامك يشجب');
