@@ -88,6 +88,30 @@
     </div>
 </div>
 
+    <!-- نافذة تقديم شكوى -->
+    <div class="confirm-overlay" id="complaintFormOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-siren"></use></svg> تقديم شكوى</h3>
+            <label>نوع الشكوى</label>
+            <select id="complaintType">
+                <option value="تأخر">تأخر</option>
+                <option value="سوء تعامل">سوء تعامل</option>
+                <option value="رفض دفع">رفض دفع</option>
+                <option value="لم يحضر">لم يحضر</option>
+                <option value="جودة رديئة">جودة رديئة</option>
+                <option value="عنوان خاطئ">عنوان خاطئ</option>
+                <option value="إلغاء متكرر">إلغاء متكرر</option>
+                <option value="أخرى">أخرى</option>
+            </select>
+            <label>تفاصيل الشكوى</label>
+            <textarea id="complaintDescription" placeholder="اشرح المشكلة بالتفصيل..."></textarea>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitComplaint()">إرسال الشكوى</button>
+                <button class="btn-small" onclick="closeComplaintForm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script src="my-orders.js"></script>
 </body>
 </html>

@@ -108,6 +108,15 @@ app.post('/api/auth/verify-otp', (req, res) => {
         return res.json({ success: false, message: 'رمز التحقق غير صحيح' });
     }
 
+    if (user.suspended_until && new Date(user.suspended_until.replace(' ', 'T') + 'Z') > new Date()) {
+        return res.json({ success: false, message: `حسابك موقوف مؤقتاً حتى ${user.suspended_until}` });
+    }
+
+    const provider = db.prepare('SELECT suspended_until FROM providers WHERE phone = ?').get(phone);
+    if (provider && provider.suspended_until && new Date(provider.suspended_until.replace(' ', 'T') + 'Z') > new Date()) {
+        return res.json({ success: false, message: `حساب المزوّد موقوف مؤقتاً حتى ${provider.suspended_until}` });
+    }
+
     db.prepare('UPDATE users SET verified = 1 WHERE phone = ?').run(phone);
 
     res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone, name: user.name });
@@ -867,6 +876,200 @@ app.get('/api/notifications/admin/all', (req, res) => {
     res.json({ success: true, notifications });
 });
 
+// ========== API البلاغات والشكاوى ==========
+
+const COMPLAINT_JOIN_SQL = `
+    SELECT complaints.*, orders.service AS order_service, orders.address AS order_address, orders.price AS order_price,
+        COALESCE(
+            (SELECT name FROM users WHERE phone = complaints.reporter_phone),
+            (SELECT name FROM providers WHERE phone = complaints.reporter_phone)
+        ) AS reporter_name,
+        COALESCE(
+            (SELECT name FROM users WHERE phone = complaints.reported_phone),
+            (SELECT name FROM providers WHERE phone = complaints.reported_phone)
+        ) AS reported_name
+    FROM complaints
+    LEFT JOIN orders ON orders.id = complaints.order_id
+`;
+
+app.post('/api/complaints', (req, res) => {
+    const { orderId, reporterPhone, reporterType, reportedPhone, reportedType, type, description } = req.body;
+
+    if (!reporterPhone || !reporterType || !type) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO complaints (order_id, reporter_phone, reporter_type, reported_phone, reported_type, type, description)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(orderId || null, reporterPhone, reporterType, reportedPhone || null, reportedType || null, type, description || '');
+
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(result.lastInsertRowid);
+
+    createNotification(
+        'شكوى جديدة',
+        `بلاغ جديد (${type}) من ${reporterType === 'client' ? 'عميل' : 'مزوّد'} — رقم البلاغ #${complaint.id}`,
+        'urgent', 'specific', 'admin', 'admin',
+    );
+
+    // تنبيه عاجل لو تجمّعت 3 شكاوى ضد نفس الشخص (يُطلق مرة وحدة فقط عند الوصول بالضبط لـ 3)
+    if (reportedPhone) {
+        const count = db.prepare('SELECT COUNT(*) AS n FROM complaints WHERE reported_phone = ?').get(reportedPhone).n;
+        if (count === 3) {
+            createNotification(
+                'تكرار شكاوى',
+                `تم استلام 3 شكاوى ضد ${reportedType === 'provider' ? 'المزوّد' : 'المستخدم'} صاحب الرقم ${reportedPhone} — يحتاج مراجعة عاجلة`,
+                'urgent', 'specific', 'admin', 'admin',
+            );
+        }
+    }
+
+    res.json({ success: true, complaint });
+});
+
+app.get('/api/complaints', (req, res) => {
+    const complaints = db.prepare(`${COMPLAINT_JOIN_SQL} ORDER BY complaints.created_at DESC, complaints.id DESC`).all();
+    res.json({ success: true, complaints });
+});
+
+app.get('/api/complaints/user/:phone', (req, res) => {
+    const complaints = db.prepare(
+        `${COMPLAINT_JOIN_SQL} WHERE complaints.reporter_phone = ? ORDER BY complaints.created_at DESC, complaints.id DESC`
+    ).all(req.params.phone);
+    res.json({ success: true, complaints });
+});
+
+app.get('/api/complaints/:id', (req, res) => {
+    const complaint = db.prepare(`${COMPLAINT_JOIN_SQL} WHERE complaints.id = ?`).get(req.params.id);
+
+    if (!complaint) {
+        return res.json({ success: false, message: 'الشكوى غير موجودة' });
+    }
+
+    res.json({ success: true, complaint });
+});
+
+app.put('/api/complaints/:id/status', (req, res) => {
+    const { status, adminNote } = req.body;
+
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id);
+    if (!complaint) {
+        return res.json({ success: false, message: 'الشكوى غير موجودة' });
+    }
+
+    const setsResolvedAt = (status === 'resolved' || status === 'closed') && !complaint.resolved_at;
+
+    if (setsResolvedAt) {
+        db.prepare("UPDATE complaints SET status = ?, admin_note = ?, resolved_at = datetime('now') WHERE id = ?")
+            .run(status, adminNote ?? complaint.admin_note, req.params.id);
+    } else {
+        db.prepare('UPDATE complaints SET status = ?, admin_note = ? WHERE id = ?')
+            .run(status, adminNote ?? complaint.admin_note, req.params.id);
+    }
+
+    const updated = db.prepare(`${COMPLAINT_JOIN_SQL} WHERE complaints.id = ?`).get(req.params.id);
+    res.json({ success: true, complaint: updated });
+});
+
+app.put('/api/complaints/:id/action', (req, res) => {
+    const { actionType, note, duration, replyMessage } = req.body;
+
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id);
+    if (!complaint) {
+        return res.json({ success: false, message: 'الشكوى غير موجودة' });
+    }
+
+    let logEntry  = '';
+    let newStatus = complaint.status;
+
+    if (actionType === 'resolve') {
+        newStatus = 'resolved';
+        logEntry  = `تم الحل${note ? ' — ' + note : ''}`;
+
+    } else if (actionType === 'refund') {
+        const order = complaint.order_id ? db.prepare('SELECT * FROM orders WHERE id = ?').get(complaint.order_id) : null;
+        logEntry = `تم استرداد المبلغ للعميل${order ? ' (' + order.price + ' ريال)' : ''}${note ? ' — ' + note : ''}`;
+        if (complaint.reporter_type === 'client') {
+            createNotification(
+                'تم استرداد مبلغك',
+                `تم استرداد مبلغ طلبك${complaint.order_id ? ' رقم #' + complaint.order_id : ''} بعد مراجعة شكواك`,
+                'update', 'specific', complaint.reporter_phone, complaint.reporter_phone,
+            );
+        }
+
+    } else if (actionType === 'warn') {
+        if (!complaint.reported_phone) {
+            return res.json({ success: false, message: 'ما فيه مُبلَّغ عنه بهذي الشكوى' });
+        }
+        logEntry = `تم إرسال تحذير${note ? ' — ' + note : ''}`;
+        createNotification(
+            'تنبيه من إدارة يشجب',
+            note || 'تم استلام بلاغ بخصوص سلوكك على المنصة، يرجى الالتزام بسياسات الاستخدام',
+            'urgent', 'specific', complaint.reported_phone, complaint.reported_phone,
+        );
+
+    } else if (actionType === 'suspend') {
+        if (!complaint.reported_phone || !complaint.reported_type) {
+            return res.json({ success: false, message: 'ما فيه حساب مُبلَّغ عنه لإيقافه' });
+        }
+        const days = { day: 1, week: 7, month: 30 }[duration] || 1;
+        const suspendedUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
+
+        if (complaint.reported_type === 'provider') {
+            db.prepare('UPDATE providers SET is_available = 0, suspended_until = ? WHERE phone = ?').run(suspendedUntil, complaint.reported_phone);
+        } else {
+            db.prepare('UPDATE users SET suspended_until = ? WHERE phone = ?').run(suspendedUntil, complaint.reported_phone);
+        }
+
+        logEntry = `تم إيقاف الحساب حتى ${suspendedUntil}${note ? ' — ' + note : ''}`;
+        createNotification(
+            'تم إيقاف حسابك مؤقتاً',
+            `تم إيقاف حسابك حتى ${suspendedUntil} بسبب مخالفة سياسات المنصة`,
+            'urgent', 'specific', complaint.reported_phone, complaint.reported_phone,
+        );
+
+    } else if (actionType === 'delete') {
+        if (!complaint.reported_phone || !complaint.reported_type) {
+            return res.json({ success: false, message: 'ما فيه حساب مُبلَّغ عنه لحذفه' });
+        }
+        if (complaint.reported_type === 'provider') {
+            db.prepare('DELETE FROM providers WHERE phone = ?').run(complaint.reported_phone);
+        } else {
+            db.prepare('DELETE FROM users WHERE phone = ?').run(complaint.reported_phone);
+        }
+        logEntry = `تم حذف الحساب نهائياً${note ? ' — ' + note : ''}`;
+
+    } else if (actionType === 'reply') {
+        if (!replyMessage || !replyMessage.trim()) {
+            return res.json({ success: false, message: 'نص الرد مطلوب' });
+        }
+        logEntry = `رد للمُبلِّغ: ${replyMessage.trim()}`;
+        createNotification('رد الإدارة على بلاغك', replyMessage.trim(), 'update', 'specific', complaint.reporter_phone, complaint.reporter_phone);
+
+    } else if (actionType === 'close') {
+        newStatus = 'closed';
+        logEntry  = `تم إغلاق البلاغ بدون إجراء${note ? ' — ' + note : ''}`;
+
+    } else {
+        return res.json({ success: false, message: 'نوع إجراء غير معروف' });
+    }
+
+    const timestamp      = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    const newActionTaken = (complaint.action_taken ? complaint.action_taken + '\n' : '') + `[${timestamp}] ${logEntry}`;
+    const setsResolvedAt = (newStatus === 'resolved' || newStatus === 'closed') && !complaint.resolved_at;
+
+    if (setsResolvedAt) {
+        db.prepare("UPDATE complaints SET status = ?, action_taken = ?, resolved_at = datetime('now') WHERE id = ?")
+            .run(newStatus, newActionTaken, req.params.id);
+    } else {
+        db.prepare('UPDATE complaints SET status = ?, action_taken = ? WHERE id = ?')
+            .run(newStatus, newActionTaken, req.params.id);
+    }
+
+    const updated = db.prepare(`${COMPLAINT_JOIN_SQL} WHERE complaints.id = ?`).get(req.params.id);
+    res.json({ success: true, complaint: updated });
+});
+
 // ========== API التقارير المالية ==========
 
 app.get('/api/reports/commissions', (req, res) => {
@@ -1028,6 +1231,45 @@ function checkStaleOrders() {
 }
 
 setInterval(checkStaleOrders, 5 * 60 * 1000);
+
+// ========== فحص دوري: شكاوى لم تُحل خلال 24 ساعة (إشعار للإدارة) ==========
+const notifiedStaleComplaints = new Set();
+
+function checkStaleComplaints() {
+    const staleComplaints = db.prepare(`
+        SELECT * FROM complaints
+        WHERE status IN ('new', 'reviewing')
+        AND created_at <= datetime('now', '-24 hours')
+    `).all();
+
+    staleComplaints.forEach(c => {
+        if (notifiedStaleComplaints.has(c.id)) return;
+        notifiedStaleComplaints.add(c.id);
+
+        createNotification(
+            'شكوى بدون حل',
+            `الشكوى #${c.id} (${c.type}) لسه بدون حل منذ أكثر من 24 ساعة — تحتاج مراجعة`,
+            'urgent', 'specific', 'admin', 'admin',
+        );
+    });
+}
+
+setInterval(checkStaleComplaints, 5 * 60 * 1000);
+
+// ========== فحص دوري: إعادة تفعيل الحسابات الموقوفة مؤقتاً بعد انتهاء مدتها ==========
+function reactivateSuspendedAccounts() {
+    db.prepare(`
+        UPDATE providers SET is_available = 1, suspended_until = NULL
+        WHERE suspended_until IS NOT NULL AND suspended_until <= datetime('now')
+    `).run();
+
+    db.prepare(`
+        UPDATE users SET suspended_until = NULL
+        WHERE suspended_until IS NOT NULL AND suspended_until <= datetime('now')
+    `).run();
+}
+
+setInterval(reactivateSuspendedAccounts, 5 * 60 * 1000);
 
 // ========== تشغيل السيرفر ==========
 app.listen(PORT, () => {

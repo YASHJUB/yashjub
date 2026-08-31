@@ -35,6 +35,11 @@ let currentNotifFilter           = 'all';
 let cachedClientPhones           = new Set();
 let cachedProviderPhones         = new Set();
 
+let complaintsRefreshInterval = null;
+let allComplaints             = [];
+let currentComplaintFilter    = 'all';
+let currentComplaintId        = null;
+
 // تسجيل الدخول
 async function doLogin() {
     const user = document.getElementById('adminUser').value;
@@ -155,6 +160,15 @@ function showPage(page) {
         notificationsRefreshInterval = null;
     }
 
+    // إيقاف التحديث التلقائي لصفحة الشكاوى + إغلاق أي panel مفتوح عند مغادرتها
+    if (page !== 'complaints') {
+        if (complaintsRefreshInterval) {
+            clearInterval(complaintsRefreshInterval);
+            complaintsRefreshInterval = null;
+        }
+        closeComplaintPanel();
+    }
+
     if (page === 'orders')        loadOrdersPage();
     if (page === 'providers')     loadProvidersPage();
     if (page === 'clients')       loadClientsPage();
@@ -166,6 +180,7 @@ function showPage(page) {
     if (page === 'services')      loadServicesPage();
     if (page === 'chats')         loadChatsPage();
     if (page === 'notifications') loadNotificationsPage();
+    if (page === 'complaints')    loadComplaintsPage();
     if (page === 'operations')    startOperationsPage();
 }
 
@@ -226,6 +241,9 @@ async function loadDashboard() {
         cachedClientPhones   = new Set(users.map(u => u.phone));
         cachedProviderPhones = new Set(providers.map(p => p.phone));
         fetchNotificationsBadge();
+
+        // شارة الشكاوى الجديدة (تظهر من أي صفحة بلوحة الإدارة)
+        fetchComplaintsData();
 
         // آخر الطلبات
         const statusBadge = {
@@ -1326,6 +1344,287 @@ async function markAllNotificationsRead() {
         await Promise.all(unreadIds.map(id => fetch(`${API}/notifications/${id}/read`, { method: 'PUT' })));
         await fetchNotificationsData();
         renderNotificationsLog();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ البلاغات والشكاوى ══
+
+const COMPLAINT_STATUS_LABELS = {
+    new:       { label: 'جديدة',       class: 'complaint-status-new'       },
+    reviewing: { label: 'قيد المراجعة', class: 'complaint-status-reviewing' },
+    resolved:  { label: 'محلولة',      class: 'complaint-status-resolved'  },
+    closed:    { label: 'مغلقة',       class: 'complaint-status-closed'    },
+};
+
+async function loadComplaintsPage() {
+    await fetchComplaintsData();
+    renderComplaintStats();
+    renderComplaintsList();
+
+    if (!complaintsRefreshInterval) {
+        complaintsRefreshInterval = setInterval(async () => {
+            await fetchComplaintsData();
+            renderComplaintStats();
+            renderComplaintsList();
+        }, 30000);
+    }
+}
+
+async function fetchComplaintsData() {
+    try {
+        const res  = await fetch(`${API}/complaints`);
+        const data = await res.json();
+        if (data.success) allComplaints = data.complaints;
+        updateComplaintsBadge();
+    } catch (e) {}
+}
+
+function updateComplaintsBadge() {
+    const badge = document.getElementById('complaintBadge');
+    if (!badge) return;
+    const count = allComplaints.filter(c => c.status === 'new').length;
+    badge.textContent   = count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+}
+
+function renderComplaintStats() {
+    const now      = new Date();
+    const monthStr = now.toISOString().slice(0, 7);
+
+    const newCount          = allComplaints.filter(c => c.status === 'new').length;
+    const reviewingCount    = allComplaints.filter(c => c.status === 'reviewing').length;
+    const resolvedThisMonth = allComplaints.filter(c => c.status === 'resolved' && c.resolved_at && c.resolved_at.slice(0, 7) === monthStr).length;
+
+    const resolvedWithTime = allComplaints.filter(c => c.resolved_at);
+    let avgLabel = '—';
+    if (resolvedWithTime.length) {
+        const totalMinutes = resolvedWithTime.reduce((sum, c) => {
+            const created  = new Date(c.created_at.replace(' ', 'T') + 'Z').getTime();
+            const resolved = new Date(c.resolved_at.replace(' ', 'T') + 'Z').getTime();
+            return sum + Math.max(0, (resolved - created) / 60000);
+        }, 0);
+        const avgMinutes = totalMinutes / resolvedWithTime.length;
+        avgLabel = avgMinutes < 60 ? `${Math.round(avgMinutes)} د` : `${(avgMinutes / 60).toFixed(1)} س`;
+    }
+
+    document.getElementById('comp-new').textContent            = newCount;
+    document.getElementById('comp-reviewing').textContent      = reviewingCount;
+    document.getElementById('comp-resolved-month').textContent = resolvedThisMonth;
+    document.getElementById('comp-avg-resolve').textContent    = avgLabel;
+}
+
+function setComplaintFilter(filter, btn) {
+    currentComplaintFilter = filter;
+    document.querySelectorAll('.complaint-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderComplaintsList();
+}
+
+function renderComplaintsList() {
+    const container = document.getElementById('complaintsListContainer');
+    const search = (document.getElementById('complaintSearchInput')?.value || '').trim().toLowerCase();
+
+    let list = allComplaints;
+    if (currentComplaintFilter !== 'all') {
+        list = list.filter(c => c.status === currentComplaintFilter);
+    }
+    if (search) {
+        list = list.filter(c =>
+            String(c.id).includes(search) ||
+            (c.order_id && String(c.order_id).includes(search)) ||
+            (c.reporter_phone && c.reporter_phone.includes(search)) ||
+            (c.reported_phone && c.reported_phone.includes(search))
+        );
+    }
+
+    if (!list.length) {
+        container.innerHTML = '<p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد شكاوى مطابقة</p>';
+        return;
+    }
+
+    container.innerHTML = list.map(c => {
+        const status = COMPLAINT_STATUS_LABELS[c.status] || COMPLAINT_STATUS_LABELS.new;
+        const reporterLabel = c.reporter_name || `+966${c.reporter_phone}`;
+        const reportedLabel = c.reported_phone ? (c.reported_name || `+966${c.reported_phone}`) : '—';
+
+        return `
+            <div class="complaint-list-item status-${c.status}">
+                <div>
+                    <div class="complaint-list-top">
+                        <span>شكوى #${c.id}${c.order_id ? ' — طلب #' + c.order_id : ''}</span>
+                        <span class="complaint-status-badge ${status.class}">${status.label}</span>
+                        <span class="badge badge-active">${c.type}</span>
+                    </div>
+                    <div class="complaint-list-people">${reporterLabel} (${c.reporter_type === 'client' ? 'عميل' : 'مزوّد'}) ← بلاغ ضد: ${reportedLabel}</div>
+                    <div class="complaint-list-desc">${c.description || 'بدون تفاصيل'}</div>
+                    <div class="complaint-list-meta">${new Date(c.created_at.replace(' ', 'T') + 'Z').toLocaleString('ar-SA')}</div>
+                </div>
+                <div class="complaint-list-actions">
+                    <button class="btn-detail" onclick="openComplaintPanel(${c.id})">عرض التفاصيل</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function openComplaintPanel(id) {
+    currentComplaintId = id;
+
+    try {
+        const res  = await fetch(`${API}/complaints/${id}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const complaint = data.complaint;
+        let order        = null;
+        let chatMessages = [];
+
+        if (complaint.order_id) {
+            const [orderRes, chatRes] = await Promise.all([
+                fetch(`${API}/orders/${complaint.order_id}`),
+                fetch(`${API}/chats/${complaint.order_id}`),
+            ]);
+            const orderData = await orderRes.json();
+            const chatData  = await chatRes.json();
+            if (orderData.success) order = orderData.order;
+            if (chatData.success)  chatMessages = chatData.messages;
+        }
+
+        document.getElementById('compPanelId').textContent  = id;
+        document.getElementById('compPanelSub').textContent = `${complaint.type} — ${new Date(complaint.created_at.replace(' ', 'T') + 'Z').toLocaleString('ar-SA')}`;
+        renderComplaintPanelBody(complaint, order, chatMessages);
+
+        document.getElementById('complaintPanelOverlay').style.display = 'block';
+    } catch (e) {}
+}
+
+function closeComplaintPanel() {
+    const overlay = document.getElementById('complaintPanelOverlay');
+    if (overlay) overlay.style.display = 'none';
+    currentComplaintId = null;
+}
+
+function renderComplaintPanelBody(complaint, order, chatMessages) {
+    const status         = COMPLAINT_STATUS_LABELS[complaint.status] || COMPLAINT_STATUS_LABELS.new;
+    const reporterLabel   = complaint.reporter_name || `+966${complaint.reporter_phone}`;
+    const reportedLabel   = complaint.reported_phone ? (complaint.reported_name || `+966${complaint.reported_phone}`) : 'غير محدد';
+
+    const orderSection = order ? `
+        <div class="complaint-section-title">تفاصيل الطلب المرتبط</div>
+        <div class="complaint-info-row"><span>الخدمة</span><span>${order.service}</span></div>
+        <div class="complaint-info-row"><span>العنوان</span><span>${order.address}</span></div>
+        <div class="complaint-info-row"><span>السعر</span><span>${order.price} ريال</span></div>
+        <div class="complaint-info-row"><span>حالة الطلب</span><span>${order.status}</span></div>
+    ` : '';
+
+    const chatSection = chatMessages.length ? `
+        <div class="complaint-section-title">سجل المحادثة</div>
+        <div class="complaint-chat-preview">
+            ${chatMessages.map(m => `<div style="font-size:12px;margin-bottom:6px"><strong>${CHAT_SENDER_LABELS[m.sender] || m.sender}:</strong> ${m.message}</div>`).join('')}
+        </div>
+    ` : '';
+
+    const actionLog = complaint.action_taken
+        ? complaint.action_taken.split('\n').map(line => `<div class="complaint-log-entry">${line}</div>`).join('')
+        : '<p style="font-size:12px;color:var(--text3)">لا يوجد إجراءات بعد</p>';
+
+    const needsDuration = complaint.reported_type === 'provider' || complaint.reported_type === 'client';
+
+    document.getElementById('complaintPanelBody').innerHTML = `
+        <div class="complaint-section-title">معلومات الشكوى</div>
+        <div class="complaint-info-row"><span>الحالة</span><span class="complaint-status-badge ${status.class}">${status.label}</span></div>
+        <div class="complaint-info-row"><span>النوع</span><span>${complaint.type}</span></div>
+        <div class="complaint-info-row"><span>المُبلِّغ</span><span>${reporterLabel} (${complaint.reporter_type === 'client' ? 'عميل' : 'مزوّد'})</span></div>
+        <div class="complaint-info-row"><span>المُبلَّغ عنه</span><span>${reportedLabel}</span></div>
+        <div style="font-size:13px;color:var(--text2);margin-top:8px;line-height:1.6">${complaint.description || 'بدون تفاصيل'}</div>
+
+        ${orderSection}
+        ${chatSection}
+
+        <div class="complaint-section-title">تغيير الحالة</div>
+        <select id="compStatusSelect" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px;margin-bottom:10px">
+            <option value="new" ${complaint.status === 'new' ? 'selected' : ''}>جديدة</option>
+            <option value="reviewing" ${complaint.status === 'reviewing' ? 'selected' : ''}>قيد المراجعة</option>
+            <option value="resolved" ${complaint.status === 'resolved' ? 'selected' : ''}>محلولة</option>
+            <option value="closed" ${complaint.status === 'closed' ? 'selected' : ''}>مغلقة</option>
+        </select>
+        <button class="btn-detail" style="width:100%;margin-bottom:16px" onclick="updateComplaintStatus()">حفظ الحالة</button>
+
+        <div class="complaint-section-title">ملاحظة / رد (تُستخدم مع الإجراءات بالأسفل)</div>
+        <textarea id="compActionNote" placeholder="اكتب ملاحظة للإجراء أو نص الرد هنا...">${complaint.admin_note || ''}</textarea>
+
+        ${needsDuration ? `
+        <select id="compSuspendDuration" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:12px;margin-bottom:8px">
+            <option value="day">إيقاف يوم واحد</option>
+            <option value="week">إيقاف أسبوع</option>
+            <option value="month">إيقاف شهر</option>
+        </select>` : ''}
+
+        <div class="complaint-section-title">الإجراءات</div>
+        <div class="complaint-action-grid">
+            <button class="complaint-action-btn" onclick="submitComplaintAction('resolve')"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> تم الحل</button>
+            <button class="complaint-action-btn" onclick="submitComplaintAction('refund')"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> استرداد المبلغ</button>
+            <button class="complaint-action-btn" onclick="submitComplaintAction('warn')" ${!complaint.reported_phone ? 'disabled' : ''}><svg class="icon"><use href="icons.svg#icon-warning"></use></svg> إرسال تحذير</button>
+            <button class="complaint-action-btn" onclick="submitComplaintAction('suspend')" ${!complaint.reported_phone ? 'disabled' : ''}><svg class="icon"><use href="icons.svg#icon-lock"></use></svg> إيقاف مؤقت</button>
+            <button class="complaint-action-btn danger" onclick="submitComplaintAction('delete')" ${!complaint.reported_phone ? 'disabled' : ''}><svg class="icon"><use href="icons.svg#icon-trash"></use></svg> حذف الحساب</button>
+            <button class="complaint-action-btn" onclick="submitComplaintAction('reply')"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg> إرسال رد</button>
+            <button class="complaint-action-btn" style="grid-column:1/-1" onclick="submitComplaintAction('close')"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> إغلاق بدون إجراء</button>
+        </div>
+
+        <div class="complaint-section-title">سجل الإجراءات</div>
+        ${actionLog}
+    `;
+}
+
+async function updateComplaintStatus() {
+    const status    = document.getElementById('compStatusSelect').value;
+    const adminNote = document.getElementById('compActionNote').value.trim();
+
+    try {
+        await fetch(`${API}/complaints/${currentComplaintId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status, adminNote }),
+        });
+        await fetchComplaintsData();
+        renderComplaintStats();
+        renderComplaintsList();
+        openComplaintPanel(currentComplaintId);
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function submitComplaintAction(actionType) {
+    const note        = document.getElementById('compActionNote').value.trim();
+    const durationEl   = document.getElementById('compSuspendDuration');
+    const duration     = durationEl ? durationEl.value : null;
+
+    if (actionType === 'reply' && !note) {
+        alert('❌ يرجى كتابة نص الرد بحقل الملاحظة بالأعلى');
+        return;
+    }
+    if (actionType === 'delete' && !confirm('هل أنت متأكد من حذف هذا الحساب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+    if (actionType === 'suspend' && !confirm('هل أنت متأكد من إيقاف هذا الحساب مؤقتاً؟')) return;
+
+    try {
+        const res  = await fetch(`${API}/complaints/${currentComplaintId}/action`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ actionType, note, duration, replyMessage: note }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            await fetchComplaintsData();
+            renderComplaintStats();
+            renderComplaintsList();
+            openComplaintPanel(currentComplaintId);
+        } else {
+            alert(`❌ ${data.message}`);
+        }
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

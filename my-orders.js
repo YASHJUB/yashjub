@@ -88,6 +88,10 @@ async function loadOrders() {
                             <span class="order-detail-value">#${order.id}</span>
                         </div>
                     </div>
+                    ${(order.status === 'completed' || order.status === 'cancelled') ? `
+                    <button class="btn-small" style="width:100%;margin-top:12px" onclick="openComplaintForm(${order.id}, '${order.provider_phone || ''}')">
+                        <svg class="icon"><use href="icons.svg#icon-siren"></use></svg> تقديم شكوى
+                    </button>` : ''}
                 </div>
             `;
         }).join('');
@@ -95,6 +99,61 @@ async function loadOrders() {
     } catch (error) {
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('emptyState').style.display   = 'block';
+    }
+}
+
+// ══ تقديم شكوى ══
+
+let complaintOrderId       = null;
+let complaintReportedPhone = null;
+
+function openComplaintForm(orderId, providerPhone) {
+    complaintOrderId       = orderId;
+    complaintReportedPhone = providerPhone || null;
+    document.getElementById('complaintType').value        = 'تأخر';
+    document.getElementById('complaintDescription').value = '';
+    document.getElementById('complaintFormOverlay').style.display = 'flex';
+}
+
+function closeComplaintForm() {
+    document.getElementById('complaintFormOverlay').style.display = 'none';
+    complaintOrderId       = null;
+    complaintReportedPhone = null;
+}
+
+async function submitComplaint() {
+    const phone       = localStorage.getItem('yashjub_phone');
+    const type        = document.getElementById('complaintType').value;
+    const description = document.getElementById('complaintDescription').value.trim();
+
+    if (!description) {
+        alert('❌ يرجى كتابة تفاصيل الشكوى');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/complaints`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId: complaintOrderId,
+                reporterPhone: phone,
+                reporterType: 'client',
+                reportedPhone: complaintReportedPhone,
+                reportedType: complaintReportedPhone ? 'provider' : null,
+                type, description,
+            }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            closeComplaintForm();
+            alert(`✅ تم إرسال شكواك بنجاح — رقم الشكوى للمتابعة: #${data.complaint.id}`);
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
     }
 }
 

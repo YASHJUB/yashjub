@@ -4931,6 +4931,55 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     font-weight: 700;
 }
 
+/* ══ نافذة تقديم شكوى/بلاغ ══ */
+.complaint-form-modal {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: right;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+.complaint-form-modal h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.complaint-form-modal label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 6px;
+}
+.complaint-form-modal select,
+.complaint-form-modal textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #EEEEEE;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    margin-bottom: 14px;
+}
+.complaint-form-modal textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+.complaint-form-actions {
+    display: flex;
+    gap: 10px;
+}
+
 .confirm-progress-track {
     position: relative;
     height: 8px;

@@ -276,6 +276,30 @@
         </div>
     </div>
 
+    <!-- نافذة تقديم بلاغ -->
+    <div class="confirm-overlay" id="complaintFormOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-siren"></use></svg> تقديم بلاغ</h3>
+            <label>نوع البلاغ</label>
+            <select id="complaintType">
+                <option value="تأخر">تأخر</option>
+                <option value="سوء تعامل">سوء تعامل</option>
+                <option value="رفض دفع">رفض دفع</option>
+                <option value="لم يحضر">لم يحضر</option>
+                <option value="جودة رديئة">جودة رديئة</option>
+                <option value="عنوان خاطئ">عنوان خاطئ</option>
+                <option value="إلغاء متكرر">إلغاء متكرر</option>
+                <option value="أخرى">أخرى</option>
+            </select>
+            <label>تفاصيل البلاغ</label>
+            <textarea id="complaintDescription" placeholder="اشرح المشكلة بالتفصيل..."></textarea>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitComplaint()">إرسال البلاغ</button>
+                <button class="btn-small" onclick="closeComplaintForm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="provider.js"></script>
 </body>

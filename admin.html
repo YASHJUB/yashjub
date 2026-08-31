@@ -515,6 +515,67 @@
             .chat-list-actions { width: 100%; }
             .notif-log-top { flex-wrap: wrap; }
             .notif-log-actions { width: 100%; margin-right: 0; }
+            .complaint-list-item { flex-direction: column; align-items: flex-start; }
+            .complaint-list-actions { width: 100%; }
+        }
+
+        /* ══ البلاغات والشكاوى ══ */
+        .complaint-filter-btn.active { background: var(--gold); border-color: var(--gold); color: var(--black); }
+
+        .complaint-status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .complaint-status-new       { background: rgba(239,68,68,0.1);  color: #B91C1C; }
+        .complaint-status-reviewing { background: rgba(245,158,11,0.1); color: #92700A; }
+        .complaint-status-resolved  { background: rgba(16,185,129,0.1); color: #047857; }
+        .complaint-status-closed    { background: rgba(17,17,17,0.08);  color: #444444; }
+
+        .complaint-list-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 14px;
+            padding: 14px 10px; border-bottom: 1px solid var(--gray2); border-right: 3px solid transparent;
+        }
+        .complaint-list-item:last-child { border-bottom: none; }
+        .complaint-list-item.status-new       { border-right-color: #EF4444; }
+        .complaint-list-item.status-reviewing { border-right-color: #F59E0B; }
+        .complaint-list-item.status-resolved  { border-right-color: #10B981; }
+        .complaint-list-item.status-closed    { border-right-color: #888888; }
+        .complaint-list-top { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; flex-wrap: wrap; }
+        .complaint-list-people { font-size: 12px; color: var(--text2); margin-top: 3px; }
+        .complaint-list-desc { font-size: 12px; color: var(--text3); margin-top: 4px; max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .complaint-list-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+        .complaint-list-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        #complaintPanelOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; }
+        .complaint-side-panel {
+            position: absolute; top: 0; right: 0; height: 100%; width: 480px; max-width: 94vw;
+            background: var(--white); display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+        }
+        .complaint-side-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--gray2);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .complaint-side-title { font-size: 15px; font-weight: 800; }
+        .complaint-side-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+        .complaint-side-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); line-height: 1; }
+        .complaint-side-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+        .complaint-section-title { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px; }
+        .complaint-section-title:first-child { margin-top: 0; }
+        .complaint-info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+        .complaint-info-row span:first-child { color: var(--text3); }
+        .complaint-chat-preview {
+            max-height: 180px; overflow-y: auto; background: var(--gray); border-radius: 10px; padding: 10px 12px;
+        }
+        .complaint-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .complaint-action-btn {
+            padding: 10px; border-radius: 8px; border: 1px solid var(--gray2); background: var(--white);
+            font-family: 'Cairo',sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center;
+        }
+        .complaint-action-btn:hover { border-color: var(--gold); }
+        .complaint-action-btn.danger { color: var(--red); border-color: rgba(239,68,68,0.3); }
+        .complaint-log-entry { font-size: 11px; color: var(--text2); padding: 6px 0; border-bottom: 1px solid var(--gray2); }
+        .complaint-log-entry:last-child { border-bottom: none; }
+        .complaint-side-footer { padding: 14px 20px; border-top: 1px solid var(--gray2); flex-shrink: 0; }
+        .complaint-side-footer textarea {
+            width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--gray2);
+            font-family: 'Cairo',sans-serif; font-size: 13px; resize: vertical; min-height: 60px; margin-bottom: 8px;
         }
 
         /* ══ PAGINATION ══ */
@@ -632,7 +693,7 @@
         </a>
         <a class="sidebar-item" data-page="complaints" onclick="showPage('complaints')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></span> البلاغات والشكاوى
-            <span class="sidebar-badge" id="complaintBadge">2</span>
+            <span class="sidebar-badge" id="complaintBadge" style="display:none;background:var(--red)">0</span>
         </a>
 
         <div class="sidebar-section-label">أخرى</div>
@@ -1736,9 +1797,79 @@
                     </div>
                 </div>
             </div>
+            <!-- ══ COMPLAINTS PAGE ══ -->
             <div id="page-complaints" style="display:none">
-                <div class="page-header"><div class="page-title">البلاغات والشكاوى <svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة الشكاوى</p></div>
+                <div class="page-header">
+                    <div class="page-title">البلاغات والشكاوى <svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div>
+                    <div class="page-sub">مراجعة بلاغات العملاء والمزودين واتخاذ الإجراء المناسب</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">شكاوى جديدة</div>
+                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="comp-new">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">قيد المراجعة</div>
+                            <div class="stat-card-icon" style="background:rgba(245,158,11,0.1)"><svg class="icon"><use href="icons.svg#icon-clock"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="comp-reviewing">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">محلولة هذا الشهر</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="comp-resolved-month">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">متوسط وقت الحل</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="comp-avg-resolve">—</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
+                            <input type="text" id="complaintSearchInput" placeholder="بحث برقم الشكوى، رقم الطلب، أو الجوال..." oninput="renderComplaintsList()"/>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="btn-detail complaint-filter-btn active" data-filter="all" onclick="setComplaintFilter('all', this)">الكل</button>
+                        <button class="btn-detail complaint-filter-btn" data-filter="new" onclick="setComplaintFilter('new', this)">جديدة</button>
+                        <button class="btn-detail complaint-filter-btn" data-filter="reviewing" onclick="setComplaintFilter('reviewing', this)">قيد المراجعة</button>
+                        <button class="btn-detail complaint-filter-btn" data-filter="resolved" onclick="setComplaintFilter('resolved', this)">محلولة</button>
+                        <button class="btn-detail complaint-filter-btn" data-filter="closed" onclick="setComplaintFilter('closed', this)">مغلقة</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div id="complaintsListContainer">
+                        <p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد شكاوى بعد</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel جانبي لتفاصيل الشكوى والإجراءات -->
+            <div id="complaintPanelOverlay" onclick="if(event.target===this) closeComplaintPanel()">
+                <div class="complaint-side-panel">
+                    <div class="complaint-side-header">
+                        <div>
+                            <div class="complaint-side-title">شكوى #<span id="compPanelId"></span></div>
+                            <div class="complaint-side-sub" id="compPanelSub"></div>
+                        </div>
+                        <button class="complaint-side-close" onclick="closeComplaintPanel()">✕</button>
+                    </div>
+                    <div class="complaint-side-body" id="complaintPanelBody"></div>
+                </div>
             </div>
             <div id="page-reviews" style="display:none">
                 <div class="page-header"><div class="page-title">التقييمات <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div></div>

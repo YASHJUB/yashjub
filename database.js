@@ -127,6 +127,23 @@ db.exec(`
         created_at     TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول البلاغات والشكاوى
+    CREATE TABLE IF NOT EXISTS complaints (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id       INTEGER,
+        reporter_phone TEXT NOT NULL,
+        reporter_type  TEXT NOT NULL,
+        reported_phone TEXT,
+        reported_type  TEXT,
+        type           TEXT NOT NULL,
+        description    TEXT,
+        status         TEXT NOT NULL DEFAULT 'new',
+        admin_note     TEXT,
+        action_taken   TEXT,
+        created_at     TEXT DEFAULT (datetime('now')),
+        resolved_at    TEXT
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
@@ -170,6 +187,8 @@ const migrations = [
     'ALTER TABLE orders ADD COLUMN coupon_code TEXT',
     'ALTER TABLE orders ADD COLUMN discount INTEGER DEFAULT 0',
     'ALTER TABLE orders ADD COLUMN accepted_at TEXT',
+    'ALTER TABLE providers ADD COLUMN suspended_until TEXT',
+    'ALTER TABLE users ADD COLUMN suspended_until TEXT',
 ];
 
 for (const sql of migrations) {
