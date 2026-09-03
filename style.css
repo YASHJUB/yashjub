@@ -3190,8 +3190,20 @@ body.dark-mode .hero-gold-corner {
     border-color: #F5C518;
 }
 
+body.dark-mode .hero-content h1 {
+    color: #ffffff;
+}
+
+body.dark-mode .hero-content p {
+    color: #aaaaaa;
+}
+
 body.dark-mode .services-new {
     background-color: #111111;
+}
+
+body.dark-mode .services-new h2 {
+    color: #ffffff;
 }
 
 body.dark-mode .service-row {
@@ -3210,6 +3222,11 @@ body.dark-mode .service-row-name {
 
 body.dark-mode .service-row-desc {
     color: #888888;
+}
+
+body.dark-mode .service-row-icon {
+    background: rgba(245,197,24,0.12);
+    color: #F5C518;
 }
 
 body.dark-mode .heavy-equipment-panel {
