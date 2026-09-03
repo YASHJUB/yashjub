@@ -40,6 +40,11 @@ let allComplaints             = [];
 let currentComplaintFilter    = 'all';
 let currentComplaintId        = null;
 
+let reviewsRefreshInterval = null;
+let allReviews             = [];
+let currentReviewFilter    = 'all';
+let currentReviewId        = null;
+
 // تسجيل الدخول
 async function doLogin() {
     const user = document.getElementById('adminUser').value;
@@ -169,6 +174,15 @@ function showPage(page) {
         closeComplaintPanel();
     }
 
+    // إيقاف التحديث التلقائي لصفحة التقييمات + إغلاق أي panel مفتوح عند مغادرتها
+    if (page !== 'reviews') {
+        if (reviewsRefreshInterval) {
+            clearInterval(reviewsRefreshInterval);
+            reviewsRefreshInterval = null;
+        }
+        closeReviewPanel();
+    }
+
     if (page === 'orders')        loadOrdersPage();
     if (page === 'providers')     loadProvidersPage();
     if (page === 'clients')       loadClientsPage();
@@ -181,6 +195,7 @@ function showPage(page) {
     if (page === 'chats')         loadChatsPage();
     if (page === 'notifications') loadNotificationsPage();
     if (page === 'complaints')    loadComplaintsPage();
+    if (page === 'reviews')       loadReviewsPage();
     if (page === 'operations')    startOperationsPage();
 }
 
@@ -244,6 +259,9 @@ async function loadDashboard() {
 
         // شارة الشكاوى الجديدة (تظهر من أي صفحة بلوحة الإدارة)
         fetchComplaintsData();
+
+        // شارة التقييمات المشبوهة (تظهر من أي صفحة بلوحة الإدارة)
+        fetchReviewsData();
 
         // آخر الطلبات
         const statusBadge = {
@@ -1625,6 +1643,297 @@ async function submitComplaintAction(actionType) {
         } else {
             alert(`❌ ${data.message}`);
         }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ التقييمات ══
+
+function getRatingClass(rating) {
+    if (rating === 5) return 'rating-good';
+    if (rating >= 3)  return 'rating-mid';
+    return 'rating-bad';
+}
+
+function renderStarIcons(rating) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += `<svg class="icon" style="opacity:${i <= rating ? 1 : 0.25}"><use href="icons.svg#icon-star"></use></svg>`;
+    }
+    return html;
+}
+
+async function loadReviewsPage() {
+    await Promise.all([fetchReviewsData(), fetchReviewStats()]);
+    renderReviewsList();
+
+    if (!reviewsRefreshInterval) {
+        reviewsRefreshInterval = setInterval(async () => {
+            await Promise.all([fetchReviewsData(), fetchReviewStats()]);
+            renderReviewsList();
+        }, 30000);
+    }
+}
+
+async function fetchReviewsData() {
+    try {
+        const res  = await fetch(`${API}/reviews`);
+        const data = await res.json();
+        if (data.success) allReviews = data.reviews;
+        updateReviewsBadge();
+    } catch (e) {}
+}
+
+function updateReviewsBadge() {
+    const badge = document.getElementById('reviewsBadge');
+    if (!badge) return;
+    const count = allReviews.filter(r => r.is_flagged).length;
+    badge.textContent   = count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+}
+
+async function fetchReviewStats() {
+    try {
+        const res  = await fetch(`${API}/reviews/stats`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const s = data.stats;
+        document.getElementById('rev-avg').textContent         = s.total ? s.avg : '—';
+        document.getElementById('rev-total').textContent       = s.total;
+        document.getElementById('rev-satisfied').textContent   = `${s.satisfiedPct}%`;
+        document.getElementById('rev-unsatisfied').textContent = `${s.unsatisfiedPct}%`;
+
+        document.getElementById('starDistribution').innerHTML = [5, 4, 3, 2, 1].map(star => {
+            const d = s.distribution[star];
+            return `
+                <div class="star-dist-row">
+                    <div class="star-dist-label">${star} <svg class="icon" style="color:var(--gold)"><use href="icons.svg#icon-star"></use></svg></div>
+                    <div class="star-dist-track"><div class="star-dist-fill" style="width:${d.percent}%"></div></div>
+                    <div class="star-dist-count">${d.count} (${d.percent}%)</div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('topProvidersList').innerHTML = s.topProviders.length
+            ? s.topProviders.map((p, i) => `
+                <div class="provider-rank-item">
+                    <div class="provider-rank-num">${i + 1}</div>
+                    <div class="provider-rank-name">${p.name || '+966' + p.phone}</div>
+                    <div class="star-rating-display ${getRatingClass(Math.round(p.avg_rating))}"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.avg_rating}</div>
+                    <div class="provider-rank-count">(${p.review_count})</div>
+                </div>
+            `).join('')
+            : '<p style="font-size:12px;color:var(--text3)">لا يوجد بيانات كافية</p>';
+
+        document.getElementById('bottomProvidersList').innerHTML = s.bottomProviders.length
+            ? s.bottomProviders.map((p, i) => `
+                <div class="provider-rank-item">
+                    <div class="provider-rank-num">${i + 1}</div>
+                    <div class="provider-rank-name">${p.name || '+966' + p.phone}</div>
+                    <div class="star-rating-display ${getRatingClass(Math.round(p.avg_rating))}"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.avg_rating}</div>
+                    <div class="provider-rank-count">(${p.review_count})</div>
+                </div>
+            `).join('')
+            : '<p style="font-size:12px;color:var(--text3)">لا يوجد بيانات كافية</p>';
+    } catch (e) {}
+}
+
+function setReviewFilter(filter, btn) {
+    currentReviewFilter = filter;
+    document.querySelectorAll('.review-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderReviewsList();
+}
+
+function renderReviewsList() {
+    const container = document.getElementById('reviewsListContainer');
+    const search = (document.getElementById('reviewSearchInput')?.value || '').trim().toLowerCase();
+
+    let list = allReviews;
+    if (currentReviewFilter === 'excellent') list = list.filter(r => r.rating === 5);
+    else if (currentReviewFilter === 'good')  list = list.filter(r => r.rating === 3 || r.rating === 4);
+    else if (currentReviewFilter === 'bad')   list = list.filter(r => r.rating <= 2);
+    else if (currentReviewFilter === 'hidden')  list = list.filter(r => !r.is_visible);
+    else if (currentReviewFilter === 'flagged') list = list.filter(r => r.is_flagged);
+
+    if (search) {
+        list = list.filter(r =>
+            String(r.id).includes(search) ||
+            (r.order_id && String(r.order_id).includes(search)) ||
+            (r.reviewer_name && r.reviewer_name.toLowerCase().includes(search)) ||
+            (r.reviewed_name && r.reviewed_name.toLowerCase().includes(search)) ||
+            (r.reviewer_phone && r.reviewer_phone.includes(search)) ||
+            (r.reviewed_phone && r.reviewed_phone.includes(search))
+        );
+    }
+
+    if (!list.length) {
+        container.innerHTML = '<p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد تقييمات مطابقة</p>';
+        return;
+    }
+
+    container.innerHTML = list.map(r => {
+        const reviewerLabel = r.reviewer_name || `+966${r.reviewer_phone}`;
+        const reviewedLabel = r.reviewed_name || `+966${r.reviewed_phone}`;
+
+        const statusBadges = [];
+        statusBadges.push(r.is_visible
+            ? '<span class="review-status-badge review-status-visible">ظاهر</span>'
+            : '<span class="review-status-badge review-status-hidden">مخفي</span>');
+        if (r.is_flagged) statusBadges.push('<span class="review-status-badge review-status-flagged">مشبوه</span>');
+
+        return `
+            <div class="review-list-item ${getRatingClass(r.rating)}">
+                <div>
+                    <div class="review-list-top">
+                        <span class="star-rating-display ${getRatingClass(r.rating)}">${renderStarIcons(r.rating)}</span>
+                        ${statusBadges.join('')}
+                        ${r.order_id ? `<span class="badge badge-active">${r.order_service || ''} #${r.order_id}</span>` : ''}
+                    </div>
+                    ${r.comment ? `<div class="review-list-comment">${r.comment}</div>` : ''}
+                    <div class="review-list-people">${reviewerLabel} (${r.reviewer_type === 'client' ? 'عميل' : 'مزوّد'}) ← تقييم لـ: ${reviewedLabel}</div>
+                    <div class="review-list-meta">${new Date(r.created_at.replace(' ', 'T') + 'Z').toLocaleString('ar-SA')}</div>
+                </div>
+                <div class="review-list-actions">
+                    <button class="btn-detail" onclick="openReviewPanel(${r.id})">عرض التفاصيل</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openReviewPanel(id) {
+    currentReviewId = id;
+    const review = allReviews.find(r => r.id === id);
+    if (!review) return;
+
+    document.getElementById('revPanelId').textContent = id;
+    renderReviewPanelBody(review);
+    document.getElementById('reviewPanelOverlay').style.display = 'block';
+}
+
+function closeReviewPanel() {
+    const overlay = document.getElementById('reviewPanelOverlay');
+    if (overlay) overlay.style.display = 'none';
+    currentReviewId = null;
+}
+
+function renderReviewPanelBody(review) {
+    const reviewerLabel = review.reviewer_name || `+966${review.reviewer_phone}`;
+    const reviewedLabel = review.reviewed_name || `+966${review.reviewed_phone}`;
+
+    // تقييم عكسي لنفس الطلب (لو موجود) — مثلاً تقييم المزوّد للعميل بنفس الطلب
+    const reverseReview = review.order_id
+        ? allReviews.find(r => r.order_id === review.order_id && r.id !== review.id && r.reviewer_phone === review.reviewed_phone)
+        : null;
+
+    const reverseSection = reverseReview ? `
+        <div class="complaint-section-title">تقييم ${review.reviewed_type === 'provider' ? 'المزوّد للعميل' : 'العميل للمزوّد'}</div>
+        <div class="star-rating-display ${getRatingClass(reverseReview.rating)}">${renderStarIcons(reverseReview.rating)}</div>
+        ${reverseReview.comment ? `<div style="font-size:13px;color:var(--text2);margin-top:6px">${reverseReview.comment}</div>` : ''}
+    ` : '';
+
+    document.getElementById('reviewPanelBody').innerHTML = `
+        <div class="complaint-section-title">التقييم</div>
+        <div class="star-rating-display ${getRatingClass(review.rating)}" style="font-size:18px;margin-bottom:10px">${renderStarIcons(review.rating)}</div>
+        ${review.comment ? `<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px">${review.comment}</div>` : '<p style="font-size:12px;color:var(--text3)">بدون تعليق</p>'}
+
+        <div class="complaint-info-row"><span>المُقيِّم</span><span>${reviewerLabel} (${review.reviewer_type === 'client' ? 'عميل' : 'مزوّد'})</span></div>
+        <div class="complaint-info-row"><span>المُقيَّم</span><span>${reviewedLabel} (${review.reviewed_type === 'client' ? 'عميل' : 'مزوّد'})</span></div>
+        ${review.order_id ? `<div class="complaint-info-row"><span>الطلب</span><span>${review.order_service || ''} #${review.order_id}</span></div>` : ''}
+        <div class="complaint-info-row"><span>التاريخ</span><span>${new Date(review.created_at.replace(' ', 'T') + 'Z').toLocaleString('ar-SA')}</span></div>
+
+        ${reverseSection}
+
+        <div class="complaint-section-title">رد الإدارة</div>
+        ${review.admin_reply ? `<div style="font-size:13px;background:var(--gray);border-radius:8px;padding:10px 12px;margin-bottom:10px">${review.admin_reply}</div>` : ''}
+        <textarea id="reviewReplyInput" placeholder="اكتب رداً على هذا التقييم...">${review.admin_reply || ''}</textarea>
+        <button class="btn-detail" style="width:100%;margin-top:8px;margin-bottom:16px" onclick="submitReviewReply()">إرسال الرد</button>
+
+        <div class="complaint-section-title">الإجراءات</div>
+        <div class="complaint-action-grid">
+            <button class="complaint-action-btn" onclick="toggleReviewVisibility(true)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> موافق (إظهار)</button>
+            <button class="complaint-action-btn" onclick="toggleReviewVisibility(false)"><svg class="icon"><use href="icons.svg#icon-ghost"></use></svg> إخفاء</button>
+            <button class="complaint-action-btn danger" onclick="toggleReviewFlag(${!review.is_flagged})">
+                <svg class="icon"><use href="icons.svg#icon-flag"></use></svg> ${review.is_flagged ? 'إلغاء الإشارة كمشبوه' : 'تحديد كمشبوه'}
+            </button>
+            <button class="complaint-action-btn danger" onclick="deleteReviewAction()"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg> حذف</button>
+        </div>
+    `;
+}
+
+async function toggleReviewVisibility(isVisible) {
+    try {
+        const res  = await fetch(`${API}/reviews/${currentReviewId}/visibility`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isVisible }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            await Promise.all([fetchReviewsData(), fetchReviewStats()]);
+            renderReviewsList();
+            openReviewPanel(currentReviewId);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function toggleReviewFlag(isFlagged) {
+    try {
+        const res  = await fetch(`${API}/reviews/${currentReviewId}/flag`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isFlagged }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            await fetchReviewsData();
+            renderReviewsList();
+            openReviewPanel(currentReviewId);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function submitReviewReply() {
+    const reply = document.getElementById('reviewReplyInput').value.trim();
+    if (!reply) {
+        alert('❌ يرجى كتابة نص الرد');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/reviews/${currentReviewId}/reply`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reply }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            await fetchReviewsData();
+            renderReviewsList();
+            openReviewPanel(currentReviewId);
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function deleteReviewAction() {
+    if (!confirm('هل أنت متأكد من حذف هذا التقييم نهائياً؟')) return;
+
+    try {
+        await fetch(`${API}/reviews/${currentReviewId}`, { method: 'DELETE' });
+        closeReviewPanel();
+        await Promise.all([fetchReviewsData(), fetchReviewStats()]);
+        renderReviewsList();
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

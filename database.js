@@ -144,6 +144,22 @@ db.exec(`
         resolved_at    TEXT
     );
 
+    -- جدول التقييمات
+    CREATE TABLE IF NOT EXISTS reviews (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id       INTEGER,
+        reviewer_phone TEXT NOT NULL,
+        reviewer_type  TEXT NOT NULL,
+        reviewed_phone TEXT NOT NULL,
+        reviewed_type  TEXT NOT NULL,
+        rating         INTEGER NOT NULL,
+        comment        TEXT,
+        admin_reply    TEXT,
+        is_visible     INTEGER DEFAULT 1,
+        is_flagged     INTEGER DEFAULT 0,
+        created_at     TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)

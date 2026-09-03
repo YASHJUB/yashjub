@@ -59,7 +59,7 @@
                 <div class="provider-hero-info">
                     <div class="provider-hero-name" id="providerName">مزود خدمة</div>
                     <div class="provider-hero-phone" id="providerPhone">+966XXXXXXXXX</div>
-                    <div class="provider-hero-rating"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg> <span>4.8</span></div>
+                    <div class="provider-hero-rating"><span id="providerHeroStars"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg></span> <span id="providerHeroRatingNum">5.0</span></div>
                     <div class="provider-hero-badge" id="providerBadge"><svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> مزود موثق</div>
                 </div>
             </div>
@@ -88,7 +88,7 @@
             </div>
             <div class="provider-stat-card">
                 <div class="provider-stat-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
-                <div class="provider-stat-num">4.8</div>
+                <div class="provider-stat-num" id="providerRatingStat">5.0</div>
                 <div class="provider-stat-label">التقييم</div>
             </div>
             <div class="provider-stat-card">
@@ -235,6 +235,20 @@
                     <div class="wallet-stat-label">تم السحب</div>
                 </div>
             </div>
+        </div>
+
+        <!-- تقييماتي -->
+        <div class="wallet-card" style="margin-bottom:20px">
+            <div class="wallet-header">
+                <div class="wallet-title"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> تقييماتي</div>
+            </div>
+            <div class="wallet-balance-wrap">
+                <div class="wallet-balance-label">متوسط تقييمك</div>
+                <div class="wallet-balance" id="myReviewsAvg">—</div>
+                <div style="font-size:12px;color:#888;margin-top:4px" id="myReviewsCount">0 تقييم</div>
+            </div>
+            <div id="myReviewsTrend" class="my-reviews-trend"></div>
+            <div id="myReviewsList" class="my-reviews-list"></div>
         </div>
 
         <!-- الطلبات السابقة -->

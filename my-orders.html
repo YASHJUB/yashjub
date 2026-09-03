@@ -112,6 +112,26 @@
         </div>
     </div>
 
+    <!-- نافذة تقييم الخدمة -->
+    <div class="confirm-overlay" id="ratingFormOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-star"></use></svg> تقييم الخدمة</h3>
+            <div id="ratingStars" style="display:flex;justify-content:center;gap:8px;margin-bottom:18px">
+                <svg class="icon rating-star" data-star="1" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(1)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="2" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(2)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="3" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(3)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="4" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(4)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="5" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(5)"><use href="icons.svg#icon-star"></use></svg>
+            </div>
+            <label>تعليقك (اختياري)</label>
+            <textarea id="ratingComment" placeholder="شاركنا رأيك بالخدمة..."></textarea>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitRating()">إرسال التقييم</button>
+                <button class="btn-small" onclick="closeRatingForm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script src="my-orders.js"></script>
 </body>
 </html>

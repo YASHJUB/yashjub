@@ -53,9 +53,57 @@ async function loadProviderProfile(phone) {
             document.getElementById('myProductsSection').style.display = 'block';
             loadProducts();
         }
+
+        // تحديث عرض التقييم (بطاقة الهيدر + بطاقة الإحصائيات)
+        document.getElementById('providerHeroRatingNum').textContent = me.rating;
+        document.getElementById('providerRatingStat').textContent    = me.rating;
+        document.getElementById('providerHeroStars').innerHTML = Array.from({ length: 5 }, (_, i) =>
+            `<svg class="icon" style="opacity:${i < Math.round(me.rating) ? 1 : 0.3}"><use href="icons.svg#icon-star"></use></svg>`
+        ).join('');
+
+        loadMyReviews(phone);
     } catch (e) {
         console.log('خطأ في تحميل بيانات المزود');
     }
+}
+
+// ══ تقييماتي ══
+
+async function loadMyReviews(phone) {
+    try {
+        const res  = await fetch(`${API}/reviews/provider/${phone}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const reviews = data.reviews.filter(r => r.is_visible);
+
+        document.getElementById('myReviewsCount').textContent = `${reviews.length} تقييم`;
+        if (reviews.length) {
+            const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+            document.getElementById('myReviewsAvg').textContent = avg.toFixed(1);
+        } else {
+            document.getElementById('myReviewsAvg').textContent = '—';
+        }
+
+        // مؤشر التطور — آخر 10 تقييمات بترتيب زمني (الأقدم أولاً)
+        const trendReviews = reviews.slice(0, 10).reverse();
+        const trendColors  = { 5: '#10B981', 4: '#10B981', 3: '#F59E0B', 2: '#EF4444', 1: '#EF4444' };
+        document.getElementById('myReviewsTrend').innerHTML = trendReviews.length
+            ? trendReviews.map(r => `<div class="my-reviews-trend-bar" style="height:${r.rating * 20}%;background:${trendColors[r.rating]}" title="${r.rating} نجوم"></div>`).join('')
+            : '';
+
+        // آخر 5 تقييمات مع التعليقات
+        document.getElementById('myReviewsList').innerHTML = reviews.slice(0, 5).map(r => `
+            <div class="my-review-item">
+                <div class="my-review-stars">${Array.from({ length: 5 }, (_, i) =>
+                    `<svg class="icon" style="opacity:${i < r.rating ? 1 : 0.25}"><use href="icons.svg#icon-star"></use></svg>`
+                ).join('')}</div>
+                ${r.comment ? `<div class="my-review-comment">${r.comment}</div>` : ''}
+                <div class="my-review-date">${new Date(r.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('ar-SA')}</div>
+                ${r.admin_reply ? `<div class="my-review-reply">رد الإدارة: ${r.admin_reply}</div>` : ''}
+            </div>
+        `).join('') || '<p style="font-size:12px;color:#999;text-align:center;padding:12px 0">لا توجد تقييمات بعد</p>';
+    } catch (e) {}
 }
 
 // تحميل الطلبات

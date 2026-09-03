@@ -88,6 +88,14 @@ async function loadOrders() {
                             <span class="order-detail-value">#${order.id}</span>
                         </div>
                     </div>
+                    ${order.status === 'completed' ? `
+                    <div id="ratingSlot-${order.id}" style="margin-top:12px">
+                        ${order.is_reviewed
+                            ? `<div style="text-align:center;font-size:13px;font-weight:700;color:var(--gold)">تم التقييم <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>`
+                            : `<button class="btn-small" style="width:100%" onclick="openRatingForm(${order.id}, '${order.provider_phone || ''}')">
+                                <svg class="icon"><use href="icons.svg#icon-star"></use></svg> تقييم الخدمة
+                               </button>`}
+                    </div>` : ''}
                     ${(order.status === 'completed' || order.status === 'cancelled') ? `
                     <button class="btn-small" style="width:100%;margin-top:12px" onclick="openComplaintForm(${order.id}, '${order.provider_phone || ''}')">
                         <svg class="icon"><use href="icons.svg#icon-siren"></use></svg> تقديم شكوى
@@ -149,6 +157,82 @@ async function submitComplaint() {
         if (data.success) {
             closeComplaintForm();
             alert(`✅ تم إرسال شكواك بنجاح — رقم الشكوى للمتابعة: #${data.complaint.id}`);
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ تقييم الخدمة ══
+
+let ratingOrderId       = null;
+let ratingReportedPhone = null;
+let selectedRating      = 0;
+
+function openRatingForm(orderId, providerPhone) {
+    ratingOrderId       = orderId;
+    ratingReportedPhone = providerPhone || null;
+    selectedRating       = 0;
+
+    document.getElementById('ratingComment').value = '';
+    updateStarDisplay();
+    document.getElementById('ratingFormOverlay').style.display = 'flex';
+}
+
+function closeRatingForm() {
+    document.getElementById('ratingFormOverlay').style.display = 'none';
+    ratingOrderId = null;
+}
+
+function setStarRating(n) {
+    selectedRating = n;
+    updateStarDisplay();
+}
+
+function updateStarDisplay() {
+    document.querySelectorAll('#ratingStars .rating-star').forEach(el => {
+        const val = parseInt(el.dataset.star, 10);
+        el.style.opacity = val <= selectedRating ? '1' : '0.3';
+    });
+}
+
+async function submitRating() {
+    const phone   = localStorage.getItem('yashjub_phone');
+    const comment = document.getElementById('ratingComment').value.trim();
+
+    if (!selectedRating) {
+        alert('❌ يرجى اختيار عدد النجوم');
+        return;
+    }
+    if (!ratingReportedPhone) {
+        alert('❌ ما فيه مزوّد مرتبط بهذا الطلب لتقييمه');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId: ratingOrderId,
+                reviewerPhone: phone,
+                reviewerType: 'client',
+                reviewedPhone: ratingReportedPhone,
+                reviewedType: 'provider',
+                rating: selectedRating,
+                comment,
+            }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            const slot = document.getElementById(`ratingSlot-${ratingOrderId}`);
+            if (slot) {
+                slot.innerHTML = '<div style="text-align:center;font-size:13px;font-weight:700;color:var(--gold)">تم التقييم <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>';
+            }
+            closeRatingForm();
         } else {
             alert(`❌ ${data.message}`);
         }

@@ -62,7 +62,7 @@ function renderProducts(products) {
                     <div class="provider-select-info">
                         <div class="provider-select-name">${p.name}</div>
                         <div class="provider-select-meta">
-                            <span class="provider-select-rating"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.provider_rating}</span>
+                            <span class="provider-select-rating"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.provider_rating} (${p.provider_review_count || 0})</span>
                             <span class="provider-select-badge"><svg class="icon"><use href="icons.svg#icon-${badge.icon}"></use></svg> ${p.provider_name}</span>
                         </div>
                     </div>

@@ -75,6 +75,19 @@ function createNotification(title, message, type, target, receiverPhone, targetP
     `).run(title, message, type, target, targetPhone, receiverPhone);
 }
 
+// إعادة حساب متوسط تقييم مزوّد من التقييمات الظاهرة فقط (يبقى 5.0 الافتراضي لو ماكو تقييمات بعد)
+function recalculateProviderRating(phone) {
+    const result = db.prepare(`
+        SELECT AVG(rating) AS avg, COUNT(*) AS n FROM reviews
+        WHERE reviewed_phone = ? AND reviewed_type = 'provider' AND is_visible = 1
+    `).get(phone);
+
+    if (result.n > 0) {
+        const rounded = Math.round(result.avg * 10) / 10;
+        db.prepare('UPDATE providers SET rating = ? WHERE phone = ?').run(rounded, phone);
+    }
+}
+
 // ========== API المستخدمين ==========
 
 app.post('/api/auth/send-otp', (req, res) => {
@@ -356,9 +369,11 @@ app.get('/api/providers', (req, res) => {
 });
 // جلب طلبات مستخدم محدد
 app.get('/api/orders/user/:phone', (req, res) => {
-    const orders = db.prepare(
-        'SELECT * FROM orders WHERE phone = ? ORDER BY created_at DESC'
-    ).all(req.params.phone);
+    const orders = db.prepare(`
+        SELECT orders.*,
+            EXISTS(SELECT 1 FROM reviews WHERE reviews.order_id = orders.id AND reviews.reviewer_phone = orders.phone) AS is_reviewed
+        FROM orders WHERE phone = ? ORDER BY created_at DESC
+    `).all(req.params.phone);
 
     res.json({ success: true, orders });
 });
@@ -392,7 +407,8 @@ app.get('/api/products/available', (req, res) => {
         SELECT products.*,
                providers.name   AS provider_name,
                providers.rating AS provider_rating,
-               providers.level  AS provider_level
+               providers.level  AS provider_level,
+               (SELECT COUNT(*) FROM reviews WHERE reviews.reviewed_phone = providers.phone AND reviews.reviewed_type = 'provider' AND reviews.is_visible = 1) AS provider_review_count
         FROM products
         JOIN providers ON providers.id = products.provider_id
         WHERE products.city = ? AND products.is_available = 1 AND providers.is_available = 1
@@ -1068,6 +1084,200 @@ app.put('/api/complaints/:id/action', (req, res) => {
 
     const updated = db.prepare(`${COMPLAINT_JOIN_SQL} WHERE complaints.id = ?`).get(req.params.id);
     res.json({ success: true, complaint: updated });
+});
+
+// ========== API التقييمات ==========
+
+const REVIEW_JOIN_SQL = `
+    SELECT reviews.*, orders.service AS order_service,
+        COALESCE(
+            (SELECT name FROM users WHERE phone = reviews.reviewer_phone),
+            (SELECT name FROM providers WHERE phone = reviews.reviewer_phone)
+        ) AS reviewer_name,
+        COALESCE(
+            (SELECT name FROM users WHERE phone = reviews.reviewed_phone),
+            (SELECT name FROM providers WHERE phone = reviews.reviewed_phone)
+        ) AS reviewed_name
+    FROM reviews
+    LEFT JOIN orders ON orders.id = reviews.order_id
+`;
+
+app.post('/api/reviews', (req, res) => {
+    const { orderId, reviewerPhone, reviewerType, reviewedPhone, reviewedType, rating, comment } = req.body;
+
+    if (!reviewerPhone || !reviewerType || !reviewedPhone || !reviewedType || !rating) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const ratingNum = parseInt(rating, 10);
+    if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+        return res.json({ success: false, message: 'التقييم لازم يكون رقم من 1 إلى 5' });
+    }
+
+    // تقييم واحد فقط لكل طلب من نفس المُقيِّم
+    if (orderId) {
+        const existing = db.prepare('SELECT * FROM reviews WHERE order_id = ? AND reviewer_phone = ?').get(orderId, reviewerPhone);
+        if (existing) {
+            return res.json({ success: false, message: 'تم تقييم هذا الطلب مسبقاً' });
+        }
+    }
+
+    const result = db.prepare(`
+        INSERT INTO reviews (order_id, reviewer_phone, reviewer_type, reviewed_phone, reviewed_type, rating, comment)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(orderId || null, reviewerPhone, reviewerType, reviewedPhone, reviewedType, ratingNum, comment || '');
+
+    if (reviewedType === 'provider') {
+        recalculateProviderRating(reviewedPhone);
+    }
+
+    // تنبيه فوري للإدارة عند تقييم سلبي (1-2 نجوم)
+    if (ratingNum <= 2) {
+        createNotification(
+            'تقييم سلبي',
+            `تقييم ${ratingNum} نجوم من ${reviewerType === 'client' ? 'عميل' : 'مزوّد'} — رقم التقييم #${result.lastInsertRowid}`,
+            'urgent', 'specific', 'admin', 'admin',
+        );
+
+        // تنبيه عاجل لو تجمّعت 3 تقييمات سلبية ضد نفس المُقيَّم (يُطلق مرة وحدة بالضبط عند الوصول لـ 3)
+        const negativeCount = db.prepare('SELECT COUNT(*) AS n FROM reviews WHERE reviewed_phone = ? AND rating <= 2').get(reviewedPhone).n;
+        if (negativeCount === 3) {
+            createNotification(
+                'تكرار تقييمات سلبية',
+                `تم استلام 3 تقييمات سلبية ضد ${reviewedType === 'provider' ? 'المزوّد' : 'المستخدم'} صاحب الرقم ${reviewedPhone} — يحتاج مراجعة عاجلة`,
+                'urgent', 'specific', 'admin', 'admin',
+            );
+        }
+    }
+
+    const review = db.prepare(`${REVIEW_JOIN_SQL} WHERE reviews.id = ?`).get(result.lastInsertRowid);
+    res.json({ success: true, review });
+});
+
+app.get('/api/reviews', (req, res) => {
+    const reviews = db.prepare(`${REVIEW_JOIN_SQL} ORDER BY reviews.created_at DESC, reviews.id DESC`).all();
+    res.json({ success: true, reviews });
+});
+
+app.get('/api/reviews/stats', (req, res) => {
+    const visible = db.prepare("SELECT rating FROM reviews WHERE is_visible = 1").all();
+    const total   = visible.length;
+    const avg     = total ? visible.reduce((s, r) => s + r.rating, 0) / total : 0;
+    const satisfied   = visible.filter(r => r.rating >= 4).length;
+    const unsatisfied = visible.filter(r => r.rating <= 2).length;
+
+    const distribution = {};
+    for (let i = 1; i <= 5; i++) {
+        const count = visible.filter(r => r.rating === i).length;
+        distribution[i] = { count, percent: total ? Math.round((count / total) * 100) : 0 };
+    }
+
+    const providerStats = db.prepare(`
+        SELECT reviews.reviewed_phone AS phone,
+               (SELECT name FROM providers WHERE phone = reviews.reviewed_phone) AS name,
+               AVG(reviews.rating) AS avg_rating,
+               COUNT(*) AS review_count
+        FROM reviews
+        WHERE reviews.reviewed_type = 'provider' AND reviews.is_visible = 1
+        GROUP BY reviews.reviewed_phone
+    `).all().map(p => ({ ...p, avg_rating: Math.round(p.avg_rating * 10) / 10 }));
+
+    const sorted = [...providerStats].sort((a, b) => b.avg_rating - a.avg_rating);
+
+    res.json({
+        success: true,
+        stats: {
+            total,
+            avg: Math.round(avg * 10) / 10,
+            satisfiedPct: total ? Math.round((satisfied / total) * 100) : 0,
+            unsatisfiedPct: total ? Math.round((unsatisfied / total) * 100) : 0,
+            distribution,
+            topProviders: sorted.slice(0, 3),
+            bottomProviders: sorted.slice(-3).reverse(),
+        },
+    });
+});
+
+app.get('/api/reviews/provider/:phone', (req, res) => {
+    const reviews = db.prepare(
+        `${REVIEW_JOIN_SQL} WHERE reviews.reviewed_phone = ? AND reviews.reviewed_type = 'provider' ORDER BY reviews.created_at DESC, reviews.id DESC`
+    ).all(req.params.phone);
+    res.json({ success: true, reviews });
+});
+
+app.put('/api/reviews/:id/visibility', (req, res) => {
+    const { isVisible } = req.body;
+
+    const review = db.prepare('SELECT * FROM reviews WHERE id = ?').get(req.params.id);
+    if (!review) {
+        return res.json({ success: false, message: 'التقييم غير موجود' });
+    }
+
+    db.prepare('UPDATE reviews SET is_visible = ? WHERE id = ?').run(isVisible ? 1 : 0, req.params.id);
+
+    if (review.reviewed_type === 'provider') {
+        recalculateProviderRating(review.reviewed_phone);
+    }
+
+    const updated = db.prepare(`${REVIEW_JOIN_SQL} WHERE reviews.id = ?`).get(req.params.id);
+    res.json({ success: true, review: updated });
+});
+
+app.put('/api/reviews/:id/reply', (req, res) => {
+    const { reply } = req.body;
+
+    if (!reply || !reply.trim()) {
+        return res.json({ success: false, message: 'نص الرد مطلوب' });
+    }
+
+    const review = db.prepare('SELECT * FROM reviews WHERE id = ?').get(req.params.id);
+    if (!review) {
+        return res.json({ success: false, message: 'التقييم غير موجود' });
+    }
+
+    db.prepare('UPDATE reviews SET admin_reply = ? WHERE id = ?').run(reply.trim(), req.params.id);
+
+    createNotification('رد الإدارة على تقييمك', reply.trim(), 'update', 'specific', review.reviewer_phone, review.reviewer_phone);
+
+    const updated = db.prepare(`${REVIEW_JOIN_SQL} WHERE reviews.id = ?`).get(req.params.id);
+    res.json({ success: true, review: updated });
+});
+
+app.put('/api/reviews/:id/flag', (req, res) => {
+    const { isFlagged } = req.body;
+
+    const review = db.prepare('SELECT * FROM reviews WHERE id = ?').get(req.params.id);
+    if (!review) {
+        return res.json({ success: false, message: 'التقييم غير موجود' });
+    }
+
+    db.prepare('UPDATE reviews SET is_flagged = ? WHERE id = ?').run(isFlagged ? 1 : 0, req.params.id);
+
+    if (isFlagged) {
+        createNotification(
+            'تقييم مشبوه',
+            `تقييم #${review.id} (${review.rating} نجوم) تم تحديده كمشبوه — يحتاج مراجعة`,
+            'urgent', 'specific', 'admin', 'admin',
+        );
+    }
+
+    const updated = db.prepare(`${REVIEW_JOIN_SQL} WHERE reviews.id = ?`).get(req.params.id);
+    res.json({ success: true, review: updated });
+});
+
+app.delete('/api/reviews/:id', (req, res) => {
+    const review = db.prepare('SELECT * FROM reviews WHERE id = ?').get(req.params.id);
+    if (!review) {
+        return res.json({ success: false, message: 'التقييم غير موجود' });
+    }
+
+    db.prepare('DELETE FROM reviews WHERE id = ?').run(req.params.id);
+
+    if (review.reviewed_type === 'provider') {
+        recalculateProviderRating(review.reviewed_phone);
+    }
+
+    res.json({ success: true });
 });
 
 // ========== API التقارير المالية ==========

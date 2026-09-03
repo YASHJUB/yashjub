@@ -578,6 +578,70 @@
             font-family: 'Cairo',sans-serif; font-size: 13px; resize: vertical; min-height: 60px; margin-bottom: 8px;
         }
 
+        /* ══ التقييمات ══ */
+        .review-filter-btn.active { background: var(--gold); border-color: var(--gold); color: var(--black); }
+
+        .star-rating-display { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; font-size: 13px; }
+        .star-rating-display .icon { width: 14px; height: 14px; }
+        .star-rating-display.rating-good     { color: #10B981; }
+        .star-rating-display.rating-mid      { color: #F59E0B; }
+        .star-rating-display.rating-bad      { color: #EF4444; }
+
+        .star-dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+        .star-dist-label { width: 42px; flex-shrink: 0; display: flex; align-items: center; gap: 3px; font-weight: 700; }
+        .star-dist-track { flex: 1; height: 8px; background: var(--gray2); border-radius: 4px; overflow: hidden; }
+        .star-dist-fill { height: 100%; background: var(--gold); border-radius: 4px; }
+        .star-dist-count { width: 70px; flex-shrink: 0; color: var(--text3); text-align: left; }
+
+        .provider-rank-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 0; border-bottom: 1px solid var(--gray2);
+        }
+        .provider-rank-item:last-child { border-bottom: none; }
+        .provider-rank-num {
+            width: 22px; height: 22px; border-radius: 6px; background: var(--gray);
+            display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;
+        }
+        .provider-rank-name { font-size: 13px; font-weight: 600; flex: 1; }
+        .provider-rank-count { font-size: 11px; color: var(--text3); }
+
+        .review-status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .review-status-visible { background: rgba(16,185,129,0.1); color: #047857; }
+        .review-status-hidden  { background: rgba(17,17,17,0.08);  color: #444444; }
+        .review-status-flagged { background: rgba(239,68,68,0.1);  color: #B91C1C; }
+
+        .review-list-item {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+            padding: 14px 10px; border-bottom: 1px solid var(--gray2); border-right: 3px solid transparent;
+        }
+        .review-list-item:last-child { border-bottom: none; }
+        .review-list-item.rating-good { border-right-color: #10B981; }
+        .review-list-item.rating-mid  { border-right-color: #F59E0B; }
+        .review-list-item.rating-bad  { border-right-color: #EF4444; }
+        .review-list-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+        .review-list-comment { font-size: 13px; color: var(--text); margin: 4px 0; max-width: 480px; }
+        .review-list-people { font-size: 12px; color: var(--text2); }
+        .review-list-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+        .review-list-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-shrink: 0; }
+
+        #reviewPanelOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; }
+        .review-side-panel {
+            position: absolute; top: 0; right: 0; height: 100%; width: 440px; max-width: 94vw;
+            background: var(--white); display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+        }
+        .review-side-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--gray2);
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .review-side-title { font-size: 15px; font-weight: 800; }
+        .review-side-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); line-height: 1; }
+        .review-side-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+        @media (max-width: 700px) {
+            .review-list-item { flex-direction: column; }
+            .review-list-actions { width: 100%; }
+        }
+
         /* ══ PAGINATION ══ */
         .pagination {
             display: flex; align-items: center; justify-content: center;
@@ -699,6 +763,7 @@
         <div class="sidebar-section-label">أخرى</div>
         <a class="sidebar-item" data-page="reviews" onclick="showPage('reviews')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></span> التقييمات
+            <span class="sidebar-badge" id="reviewsBadge" style="display:none;background:var(--red)">0</span>
         </a>
         <a class="sidebar-item" data-page="cities" onclick="showPage('cities')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></span> المدن
@@ -1419,8 +1484,8 @@
                             <input type="text" value="يشجب" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
                         </div>
                         <div class="form-group" style="margin-bottom:14px">
-                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">نسبة العمولة %</label>
-                            <input type="number" value="7" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">نسبة رسوم الخدمة %</label>
+                            <input type="number" value="5" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
                         </div>
                         <div class="form-group" style="margin-bottom:14px">
                             <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">رقم الدعم</label>
@@ -1871,9 +1936,91 @@
                     <div class="complaint-side-body" id="complaintPanelBody"></div>
                 </div>
             </div>
+            <!-- ══ REVIEWS PAGE ══ -->
             <div id="page-reviews" style="display:none">
-                <div class="page-header"><div class="page-title">التقييمات <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div></div>
-                <div class="card"><p style="color:var(--text3);text-align:center;padding:40px">قريباً — إدارة التقييمات</p></div>
+                <div class="page-header">
+                    <div class="page-title">التقييمات <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
+                    <div class="page-sub">مراقبة تقييمات العملاء والمزودين</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">متوسط التقييم العام</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.15)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="rev-avg">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي التقييمات</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="rev-total">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">نسبة الراضين (4-5⭐)</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="rev-satisfied">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">نسبة غير الراضين (1-2⭐)</div>
+                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-warning"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="rev-unsatisfied">0%</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">توزيع التقييمات</div>
+                        <div id="starDistribution"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">أفضل وأسوأ المزودين</div>
+                        <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">الأفضل تقييماً</div>
+                        <div id="topProvidersList" style="margin-bottom:16px"></div>
+                        <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px">يحتاجون متابعة</div>
+                        <div id="bottomProvidersList"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
+                            <input type="text" id="reviewSearchInput" placeholder="بحث باسم المزود، العميل، أو رقم الطلب..." oninput="renderReviewsList()"/>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="btn-detail review-filter-btn active" data-filter="all" onclick="setReviewFilter('all', this)">الكل</button>
+                        <button class="btn-detail review-filter-btn" data-filter="excellent" onclick="setReviewFilter('excellent', this)">ممتازة (5⭐)</button>
+                        <button class="btn-detail review-filter-btn" data-filter="good" onclick="setReviewFilter('good', this)">جيدة (3-4⭐)</button>
+                        <button class="btn-detail review-filter-btn" data-filter="bad" onclick="setReviewFilter('bad', this)">سيئة (1-2⭐)</button>
+                        <button class="btn-detail review-filter-btn" data-filter="hidden" onclick="setReviewFilter('hidden', this)">مخفية</button>
+                        <button class="btn-detail review-filter-btn" data-filter="flagged" onclick="setReviewFilter('flagged', this)">مشبوهة</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div id="reviewsListContainer">
+                        <p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد تقييمات بعد</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel جانبي لتفاصيل التقييم -->
+            <div id="reviewPanelOverlay" onclick="if(event.target===this) closeReviewPanel()">
+                <div class="review-side-panel">
+                    <div class="review-side-header">
+                        <div class="review-side-title">تقييم #<span id="revPanelId"></span></div>
+                        <button class="review-side-close" onclick="closeReviewPanel()">✕</button>
+                    </div>
+                    <div class="review-side-body" id="reviewPanelBody"></div>
+                </div>
             </div>
             <!-- ══ CITIES PAGE ══ -->
             <div id="page-cities" style="display:none">
