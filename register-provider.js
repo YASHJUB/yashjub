@@ -17,8 +17,8 @@ function selectLevel(level) {
 
     // تحديث عنوان النموذج
     const titles = {
-        2: '<svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تسجيل المستوى الثاني — مزود موثق',
-        3: '<svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تسجيل المستوى الثالث — شركة / منشأة'
+        2: '<svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تسجيل مزود فرد — مزود موثق',
+        3: '<svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تسجيل منشأة - شركة — شركة / منشأة'
     };
     document.getElementById('regFormTitle').innerHTML = titles[level];
 
@@ -77,7 +77,7 @@ async function submitRegistration() {
     data.append('serviceType', serviceType);
     data.append('level', selectedLevel);
 
-    // إضافة بيانات المستوى الثاني
+    // إضافة بيانات مزود فرد
     if (selectedLevel >= 2) {
         const freelanceNum = document.getElementById('freelanceNum').value;
         const freelanceDoc = document.getElementById('freelanceDoc').files[0];
@@ -98,7 +98,7 @@ async function submitRegistration() {
         }
     }
 
-    // إضافة بيانات المستوى الثالث
+    // إضافة بيانات منشأة - شركة
     if (selectedLevel === 3) {
         const crNumber    = document.getElementById('crNumber').value;
         const crDoc       = document.getElementById('crDoc').files[0];
