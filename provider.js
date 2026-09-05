@@ -10,6 +10,12 @@ let editingProductId   = null;
 let productMap    = null;
 let productMarker = null;
 
+const LEVEL_BADGES = {
+    basic:    { label: 'مزود أساسي', icon: 'medal-silver' },
+    verified: { label: 'مزود موثق',  icon: 'medal-gold'   },
+    business: { label: 'شركة',       icon: 'trophy'       },
+};
+
 // تحميل الصفحة
 function loadProvider() {
     const phone = localStorage.getItem('yashjub_phone');
@@ -60,6 +66,12 @@ async function loadProviderProfile(phone) {
         document.getElementById('providerHeroStars').innerHTML = Array.from({ length: 5 }, (_, i) =>
             `<svg class="icon" style="opacity:${i < Math.round(me.rating) ? 1 : 0.3}"><use href="icons.svg#icon-star"></use></svg>`
         ).join('');
+
+        // تحديث شارة المستوى (بطاقة الهيدر + السايد بار)
+        const levelBadge = LEVEL_BADGES[me.level] || LEVEL_BADGES.verified;
+        const badgeHTML  = `<svg class="icon"><use href="icons.svg#icon-${levelBadge.icon}"></use></svg> ${levelBadge.label}`;
+        document.getElementById('providerBadge').innerHTML        = badgeHTML;
+        document.getElementById('sidebarProviderBadge').innerHTML = badgeHTML;
 
         loadMyReviews(phone);
     } catch (e) {
