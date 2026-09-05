@@ -95,6 +95,13 @@ async function loadOrders() {
                             : `<button class="btn-small" style="width:100%" onclick="openRatingForm(${order.id}, '${order.provider_phone || ''}')">
                                 <svg class="icon"><use href="icons.svg#icon-star"></use></svg> تقييم الخدمة
                                </button>`}
+                    </div>
+                    <div id="testimonialSlot-${order.id}" style="margin-top:8px">
+                        ${hasSubmittedTestimonial(order.id)
+                            ? `<div style="text-align:center;font-size:12px;color:var(--text3)">شكراً! شهادتك قيد المراجعة وستظهر بعد موافقة الإدارة</div>`
+                            : `<button class="btn-small" style="width:100%" onclick="openTestimonialForm(${order.id}, '${order.service}')">
+                                <svg class="icon"><use href="icons.svg#icon-gem"></use></svg> شارك تجربتك ⭐
+                               </button>`}
                     </div>` : ''}
                     ${(order.status === 'completed' || order.status === 'cancelled') ? `
                     <button class="btn-small" style="width:100%;margin-top:12px" onclick="openComplaintForm(${order.id}, '${order.provider_phone || ''}')">
@@ -233,6 +240,109 @@ async function submitRating() {
                 slot.innerHTML = '<div style="text-align:center;font-size:13px;font-weight:700;color:var(--gold)">تم التقييم <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>';
             }
             closeRatingForm();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ مشاركة تجربة (شهادة عميل) ══
+// ماكو ربط بـ order_id بجدول testimonials، فمنع تكرار الإرسال لنفس الطلب يتم محلياً فقط (localStorage) داخل نفس المتصفح
+
+let testimonialOrderId = null;
+let testimonialService = null;
+let selectedTestimonialRating = 0;
+
+function getSubmittedTestimonialOrders() {
+    try {
+        return JSON.parse(localStorage.getItem('yashjub_testimonial_orders') || '[]');
+    } catch (e) {
+        return [];
+    }
+}
+
+function hasSubmittedTestimonial(orderId) {
+    return getSubmittedTestimonialOrders().includes(orderId);
+}
+
+function markTestimonialSubmitted(orderId) {
+    const list = getSubmittedTestimonialOrders();
+    if (!list.includes(orderId)) {
+        list.push(orderId);
+        localStorage.setItem('yashjub_testimonial_orders', JSON.stringify(list));
+    }
+}
+
+function openTestimonialForm(orderId, service) {
+    testimonialOrderId = orderId;
+    testimonialService = service;
+    selectedTestimonialRating = 0;
+
+    document.getElementById('testimonialName').value    = localStorage.getItem('yashjub_name') || '';
+    document.getElementById('testimonialComment').value = '';
+    document.getElementById('testimonialServiceLabel').textContent = `الخدمة: ${service}`;
+    updateTestimonialStarDisplay();
+    document.getElementById('testimonialFormOverlay').style.display = 'flex';
+}
+
+function closeTestimonialForm() {
+    document.getElementById('testimonialFormOverlay').style.display = 'none';
+    testimonialOrderId = null;
+}
+
+function setTestimonialStarRating(n) {
+    selectedTestimonialRating = n;
+    updateTestimonialStarDisplay();
+}
+
+function updateTestimonialStarDisplay() {
+    document.querySelectorAll('#testimonialStars .testimonial-star').forEach(el => {
+        const val = parseInt(el.dataset.star, 10);
+        el.style.opacity = val <= selectedTestimonialRating ? '1' : '0.3';
+    });
+}
+
+async function submitTestimonial() {
+    const phone   = localStorage.getItem('yashjub_phone');
+    const name    = document.getElementById('testimonialName').value.trim();
+    const comment = document.getElementById('testimonialComment').value.trim();
+
+    if (!name) {
+        alert('❌ يرجى كتابة اسمك');
+        return;
+    }
+    if (!selectedTestimonialRating) {
+        alert('❌ يرجى اختيار عدد النجوم');
+        return;
+    }
+    if (comment.length < 20) {
+        alert('❌ نص الشهادة لازم يكون 20 حرف على الأقل');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/testimonials`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clientPhone: phone,
+                clientName: name,
+                rating: selectedTestimonialRating,
+                comment,
+                service: testimonialService,
+            }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            markTestimonialSubmitted(testimonialOrderId);
+            const slot = document.getElementById(`testimonialSlot-${testimonialOrderId}`);
+            if (slot) {
+                slot.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--text3)">شكراً! شهادتك قيد المراجعة وستظهر بعد موافقة الإدارة</div>';
+            }
+            closeTestimonialForm();
         } else {
             alert(`❌ ${data.message}`);
         }

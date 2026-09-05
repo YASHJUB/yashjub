@@ -45,6 +45,10 @@ let allReviews             = [];
 let currentReviewFilter    = 'all';
 let currentReviewId        = null;
 
+let testimonialsRefreshInterval = null;
+let allTestimonials             = [];
+let currentTestimonialFilter    = 'all';
+
 // تسجيل الدخول
 async function doLogin() {
     const user = document.getElementById('adminUser').value;
@@ -183,6 +187,12 @@ function showPage(page) {
         closeReviewPanel();
     }
 
+    // إيقاف التحديث التلقائي لصفحة الشهادات عند مغادرتها
+    if (page !== 'testimonials' && testimonialsRefreshInterval) {
+        clearInterval(testimonialsRefreshInterval);
+        testimonialsRefreshInterval = null;
+    }
+
     if (page === 'orders')        loadOrdersPage();
     if (page === 'providers')     loadProvidersPage();
     if (page === 'clients')       loadClientsPage();
@@ -196,6 +206,7 @@ function showPage(page) {
     if (page === 'notifications') loadNotificationsPage();
     if (page === 'complaints')    loadComplaintsPage();
     if (page === 'reviews')       loadReviewsPage();
+    if (page === 'testimonials')  loadTestimonialsPage();
     if (page === 'operations')    startOperationsPage();
 }
 
@@ -262,6 +273,9 @@ async function loadDashboard() {
 
         // شارة التقييمات المشبوهة (تظهر من أي صفحة بلوحة الإدارة)
         fetchReviewsData();
+
+        // شارة الشهادات المعلقة (تظهر من أي صفحة بلوحة الإدارة)
+        fetchTestimonialsData();
 
         // آخر الطلبات
         const statusBadge = {
@@ -1934,6 +1948,132 @@ async function deleteReviewAction() {
         closeReviewPanel();
         await Promise.all([fetchReviewsData(), fetchReviewStats()]);
         renderReviewsList();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ شهادات العملاء ══
+
+const TESTIMONIAL_STATUS_LABELS = {
+    pending:  { label: 'معلقة',        cls: 'testimonial-status-pending'  },
+    approved: { label: 'موافق عليها',  cls: 'testimonial-status-approved' },
+    rejected: { label: 'مرفوضة',       cls: 'testimonial-status-rejected' },
+    hidden:   { label: 'مخفية',        cls: 'testimonial-status-hidden'   },
+};
+
+async function loadTestimonialsPage() {
+    await fetchTestimonialsData();
+    renderTestimonialStats();
+    renderTestimonialsList();
+
+    if (!testimonialsRefreshInterval) {
+        testimonialsRefreshInterval = setInterval(async () => {
+            await fetchTestimonialsData();
+            renderTestimonialStats();
+            renderTestimonialsList();
+        }, 30000);
+    }
+}
+
+async function fetchTestimonialsData() {
+    try {
+        const res  = await fetch(`${API}/testimonials/all`);
+        const data = await res.json();
+        if (data.success) allTestimonials = data.testimonials;
+        updateTestimonialsBadge();
+    } catch (e) {}
+}
+
+function updateTestimonialsBadge() {
+    const badge = document.getElementById('testimonialsBadge');
+    if (!badge) return;
+    const count = allTestimonials.filter(t => t.status === 'pending').length;
+    badge.textContent   = count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+}
+
+function renderTestimonialStats() {
+    const pendingEl  = document.getElementById('test-pending');
+    if (!pendingEl) return;
+    document.getElementById('test-pending').textContent  = allTestimonials.filter(t => t.status === 'pending').length;
+    document.getElementById('test-approved').textContent = allTestimonials.filter(t => t.status === 'approved').length;
+    document.getElementById('test-rejected').textContent = allTestimonials.filter(t => t.status === 'rejected').length;
+    document.getElementById('test-hidden').textContent   = allTestimonials.filter(t => t.status === 'hidden').length;
+}
+
+function setTestimonialFilter(filter, btn) {
+    currentTestimonialFilter = filter;
+    document.querySelectorAll('.testimonial-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTestimonialsList();
+}
+
+function renderTestimonialsList() {
+    const container = document.getElementById('testimonialsListContainer');
+    if (!container) return;
+
+    let list = allTestimonials;
+    if (currentTestimonialFilter !== 'all') list = list.filter(t => t.status === currentTestimonialFilter);
+
+    if (!list.length) {
+        container.innerHTML = '<p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد شهادات مطابقة</p>';
+        return;
+    }
+
+    container.innerHTML = list.map(t => {
+        const statusInfo = TESTIMONIAL_STATUS_LABELS[t.status] || TESTIMONIAL_STATUS_LABELS.pending;
+
+        return `
+            <div class="testimonial-list-item status-${t.status}">
+                <div>
+                    <div class="testimonial-list-top">
+                        <strong>${t.client_name}</strong>
+                        <span style="color:var(--text3);font-size:12px">+966${t.client_phone}</span>
+                        <span class="testimonial-status-badge ${statusInfo.cls}">${statusInfo.label}</span>
+                        ${t.service ? `<span class="badge badge-active">${t.service}</span>` : ''}
+                    </div>
+                    <div class="star-rating-display ${getRatingClass(t.rating)}">${renderStarIcons(t.rating)}</div>
+                    <div class="testimonial-list-comment">${t.comment}</div>
+                    <div class="testimonial-list-meta">${new Date(t.created_at.replace(' ', 'T') + 'Z').toLocaleString('ar-SA')}</div>
+                </div>
+                <div class="testimonial-list-actions">
+                    <button class="complaint-action-btn" onclick="setTestimonialStatus(${t.id}, 'approved')"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> موافقة</button>
+                    <button class="complaint-action-btn" onclick="setTestimonialStatus(${t.id}, 'hidden')"><svg class="icon"><use href="icons.svg#icon-ghost"></use></svg> إخفاء</button>
+                    <button class="complaint-action-btn danger" onclick="setTestimonialStatus(${t.id}, 'rejected')"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> رفض</button>
+                    <button class="complaint-action-btn danger" onclick="deleteTestimonialAction(${t.id})"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg> حذف نهائي</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function setTestimonialStatus(id, status) {
+    try {
+        const res  = await fetch(`${API}/testimonials/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            await fetchTestimonialsData();
+            renderTestimonialStats();
+            renderTestimonialsList();
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function deleteTestimonialAction(id) {
+    if (!confirm('هل أنت متأكد من حذف هذه الشهادة نهائياً؟')) return;
+
+    try {
+        await fetch(`${API}/testimonials/${id}`, { method: 'DELETE' });
+        await fetchTestimonialsData();
+        renderTestimonialStats();
+        renderTestimonialsList();
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

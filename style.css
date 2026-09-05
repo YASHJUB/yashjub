@@ -1363,6 +1363,82 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     font-family: 'Cairo', sans-serif;
 }
 
+/* ══ شهادات العملاء ══ */
+
+.testimonials-section {
+    background-color: #FFFFFF;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.testimonials-section h2 {
+    font-size: 30px;
+    font-weight: 800;
+    color: #111111;
+    margin-bottom: 6px;
+}
+
+.testimonials-grid {
+    max-width: 1000px;
+    margin: 40px auto 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.testimonial-card {
+    background: #FAFAFA;
+    border: 1px solid #EEEEEE;
+    border-radius: 16px;
+    padding: 26px 22px 20px;
+    text-align: right;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.testimonial-card:hover {
+    border-color: #F5C518;
+    box-shadow: 0 4px 20px rgba(245,197,24,0.12);
+}
+
+.testimonial-quote-mark {
+    position: absolute;
+    top: 8px;
+    right: 18px;
+    font-size: 54px;
+    font-weight: 800;
+    color: #F5C518;
+    opacity: 0.35;
+    line-height: 1;
+    font-family: Georgia, serif;
+}
+
+.testimonial-stars {
+    color: #F5C518;
+    margin-bottom: 10px;
+}
+
+.testimonial-text {
+    font-size: 13px;
+    color: #444444;
+    line-height: 1.7;
+    margin-bottom: 14px;
+    min-height: 66px;
+}
+
+.testimonial-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.testimonial-meta {
+    font-size: 11px;
+    color: #999999;
+    margin-top: 2px;
+}
+
 /* ══ قسم المزود ══ */
 
 .provider-section {
@@ -3281,6 +3357,27 @@ body.dark-mode .why-desc {
     color: #888888;
 }
 
+body.dark-mode .testimonials-section {
+    background-color: #0a0a0a;
+}
+
+body.dark-mode .testimonials-section h2 {
+    color: #ffffff;
+}
+
+body.dark-mode .testimonial-card {
+    background-color: #1a1a1a;
+    border-color: #333333;
+}
+
+body.dark-mode .testimonial-name {
+    color: #ffffff;
+}
+
+body.dark-mode .testimonial-text {
+    color: #aaaaaa;
+}
+
 body.dark-mode .stat-card {
     background-color: #1a1a1a;
     border-color: #333333;
@@ -3703,6 +3800,10 @@ body.dark-mode .sidebar-footer {
     .why-section h2 { font-size: 22px !important; }
     .why-grid { grid-template-columns: 1fr !important; gap: 10px; }
     .why-card { padding: 14px 12px; }
+    .testimonials-section { padding: 30px 16px; }
+    .testimonials-section h2 { font-size: 22px !important; }
+    .testimonials-grid { grid-template-columns: 1fr !important; gap: 10px; }
+    .testimonial-card { padding: 20px 16px 16px; }
     .why-icon { font-size: 22px; }
     .why-title { font-size: 13px; }
     .why-desc { font-size: 11px; }

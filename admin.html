@@ -642,6 +642,34 @@
             .review-list-actions { width: 100%; }
         }
 
+        /* ══ شهادات العملاء ══ */
+        .testimonial-filter-btn.active { background: var(--gold); border-color: var(--gold); color: var(--black); }
+
+        .testimonial-status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .testimonial-status-pending  { background: rgba(245,158,11,0.1); color: #92700A; }
+        .testimonial-status-approved { background: rgba(16,185,129,0.1); color: #047857; }
+        .testimonial-status-rejected { background: rgba(239,68,68,0.1);  color: #B91C1C; }
+        .testimonial-status-hidden   { background: rgba(17,17,17,0.08);  color: #444444; }
+
+        .testimonial-list-item {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+            padding: 14px 10px; border-bottom: 1px solid var(--gray2); border-right: 3px solid transparent;
+        }
+        .testimonial-list-item:last-child { border-bottom: none; }
+        .testimonial-list-item.status-pending  { border-right-color: #F59E0B; }
+        .testimonial-list-item.status-approved { border-right-color: #10B981; }
+        .testimonial-list-item.status-rejected { border-right-color: #EF4444; }
+        .testimonial-list-item.status-hidden   { border-right-color: #888888; }
+        .testimonial-list-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+        .testimonial-list-comment { font-size: 13px; color: var(--text); margin: 4px 0; max-width: 480px; }
+        .testimonial-list-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+        .testimonial-list-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-shrink: 0; }
+
+        @media (max-width: 700px) {
+            .testimonial-list-item { flex-direction: column; }
+            .testimonial-list-actions { width: 100%; }
+        }
+
         /* ══ PAGINATION ══ */
         .pagination {
             display: flex; align-items: center; justify-content: center;
@@ -764,6 +792,10 @@
         <a class="sidebar-item" data-page="reviews" onclick="showPage('reviews')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></span> التقييمات
             <span class="sidebar-badge" id="reviewsBadge" style="display:none;background:var(--red)">0</span>
+        </a>
+        <a class="sidebar-item" data-page="testimonials" onclick="showPage('testimonials')">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-gem"></use></svg></span> الشهادات
+            <span class="sidebar-badge" id="testimonialsBadge" style="display:none;background:var(--orange)">0</span>
         </a>
         <a class="sidebar-item" data-page="cities" onclick="showPage('cities')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></span> المدن
@@ -2022,6 +2054,62 @@
                     <div class="review-side-body" id="reviewPanelBody"></div>
                 </div>
             </div>
+
+            <!-- ══ TESTIMONIALS PAGE ══ -->
+            <div id="page-testimonials" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">شهادات العملاء <svg class="icon"><use href="icons.svg#icon-gem"></use></svg></div>
+                    <div class="page-sub">مراجعة الشهادات المرسلة من العملاء قبل نشرها بالصفحة الرئيسية</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">معلقة</div>
+                            <div class="stat-card-icon" style="background:rgba(245,158,11,0.1)"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="test-pending">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">موافق عليها</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="test-approved">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">مرفوضة</div>
+                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="test-rejected">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">مخفية</div>
+                            <div class="stat-card-icon" style="background:rgba(17,17,17,0.08)"><svg class="icon"><use href="icons.svg#icon-ghost"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="test-hidden">0</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="btn-detail testimonial-filter-btn active" data-filter="all" onclick="setTestimonialFilter('all', this)">الكل</button>
+                        <button class="btn-detail testimonial-filter-btn" data-filter="pending" onclick="setTestimonialFilter('pending', this)">معلقة</button>
+                        <button class="btn-detail testimonial-filter-btn" data-filter="approved" onclick="setTestimonialFilter('approved', this)">موافق عليها</button>
+                        <button class="btn-detail testimonial-filter-btn" data-filter="rejected" onclick="setTestimonialFilter('rejected', this)">مرفوضة</button>
+                        <button class="btn-detail testimonial-filter-btn" data-filter="hidden" onclick="setTestimonialFilter('hidden', this)">مخفية</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div id="testimonialsListContainer">
+                        <p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد شهادات بعد</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- ══ CITIES PAGE ══ -->
             <div id="page-cities" style="display:none">
                 <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px">

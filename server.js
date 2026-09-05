@@ -1280,6 +1280,70 @@ app.delete('/api/reviews/:id', (req, res) => {
     res.json({ success: true });
 });
 
+// ========== API شهادات العملاء ==========
+
+app.post('/api/testimonials', (req, res) => {
+    const { clientPhone, clientName, rating, comment, service } = req.body;
+
+    if (!clientPhone || !clientName || !clientName.trim() || !rating || !comment || !comment.trim()) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const ratingNum = parseInt(rating, 10);
+    if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+        return res.json({ success: false, message: 'التقييم لازم يكون رقم من 1 إلى 5' });
+    }
+
+    if (comment.trim().length < 20) {
+        return res.json({ success: false, message: 'نص الشهادة لازم يكون 20 حرف على الأقل' });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO testimonials (client_phone, client_name, rating, comment, service)
+        VALUES (?, ?, ?, ?, ?)
+    `).run(clientPhone, clientName.trim(), ratingNum, comment.trim(), service || null);
+
+    const testimonial = db.prepare('SELECT * FROM testimonials WHERE id = ?').get(result.lastInsertRowid);
+
+    res.json({ success: true, testimonial });
+});
+
+app.get('/api/testimonials/approved', (req, res) => {
+    const testimonials = db.prepare(
+        "SELECT * FROM testimonials WHERE status = 'approved' ORDER BY created_at DESC"
+    ).all();
+
+    res.json({ success: true, testimonials });
+});
+
+app.get('/api/testimonials/all', (req, res) => {
+    const testimonials = db.prepare(
+        'SELECT * FROM testimonials ORDER BY created_at DESC, id DESC'
+    ).all();
+
+    res.json({ success: true, testimonials });
+});
+
+app.put('/api/testimonials/:id/status', (req, res) => {
+    const { status } = req.body;
+    const validStatuses = ['pending', 'approved', 'rejected', 'hidden'];
+
+    if (!validStatuses.includes(status)) {
+        return res.json({ success: false, message: 'حالة غير صحيحة' });
+    }
+
+    db.prepare('UPDATE testimonials SET status = ? WHERE id = ?').run(status, req.params.id);
+
+    const testimonial = db.prepare('SELECT * FROM testimonials WHERE id = ?').get(req.params.id);
+
+    res.json({ success: true, testimonial });
+});
+
+app.delete('/api/testimonials/:id', (req, res) => {
+    db.prepare('DELETE FROM testimonials WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
 // ========== API التقارير المالية ==========
 
 app.get('/api/reports/commissions', (req, res) => {

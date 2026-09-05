@@ -132,6 +132,29 @@
         </div>
     </div>
 
+    <!-- نافذة مشاركة تجربة (شهادة عميل) -->
+    <div class="confirm-overlay" id="testimonialFormOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-gem"></use></svg> شارك تجربتك</h3>
+            <label>اسمك</label>
+            <input type="text" id="testimonialName" placeholder="اكتب اسمك...">
+            <div id="testimonialStars" style="display:flex;justify-content:center;gap:8px;margin:14px 0 18px">
+                <svg class="icon testimonial-star" data-star="1" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setTestimonialStarRating(1)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon testimonial-star" data-star="2" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setTestimonialStarRating(2)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon testimonial-star" data-star="3" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setTestimonialStarRating(3)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon testimonial-star" data-star="4" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setTestimonialStarRating(4)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon testimonial-star" data-star="5" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setTestimonialStarRating(5)"><use href="icons.svg#icon-star"></use></svg>
+            </div>
+            <label>تجربتك مع الخدمة</label>
+            <textarea id="testimonialComment" placeholder="شاركنا تجربتك بالتفصيل (20 حرف على الأقل)..."></textarea>
+            <div id="testimonialServiceLabel" style="font-size:12px;color:var(--text3);margin-top:4px"></div>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitTestimonial()">إرسال</button>
+                <button class="btn-small" onclick="closeTestimonialForm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script src="my-orders.js"></script>
 </body>
 </html>

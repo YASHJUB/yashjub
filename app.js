@@ -43,6 +43,45 @@ async function loadServices() {
     }
 }
 
+// تحميل شهادات العملاء الموافق عليها وعرضها بالصفحة الرئيسية (يختفي القسم كلياً لو ماكو شهادات)
+async function loadTestimonials() {
+    const section = document.getElementById('testimonialsSection');
+    const grid    = document.getElementById('testimonialsGrid');
+    if (!section || !grid) return;
+
+    try {
+        const res  = await fetch(`${API}/testimonials/approved`);
+        const data = await res.json();
+
+        if (!data.success || !data.testimonials.length) {
+            section.style.display = 'none';
+            return;
+        }
+
+        grid.innerHTML = data.testimonials.map(t => {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += `<svg class="icon" style="opacity:${i <= t.rating ? 1 : 0.25}"><use href="icons.svg#icon-star"></use></svg>`;
+            }
+            const date = new Date(t.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('ar-SA');
+
+            return `
+                <div class="testimonial-card">
+                    <div class="testimonial-quote-mark">"</div>
+                    <div class="testimonial-stars">${stars}</div>
+                    <div class="testimonial-text">${t.comment}</div>
+                    <div class="testimonial-name">${t.client_name}</div>
+                    <div class="testimonial-meta">${t.service ? t.service + ' • ' : ''}${date}</div>
+                </div>
+            `;
+        }).join('');
+
+        section.style.display = 'block';
+    } catch (e) {
+        section.style.display = 'none';
+    }
+}
+
 // تحقق من تسجيل الدخول
 function checkLogin() {
     const phone = localStorage.getItem('yashjub_phone');
@@ -206,6 +245,7 @@ function showHeavyEquipment() {
 // تشغيل التحقق عند فتح الصفحة
 checkLogin();
 loadServices();
+loadTestimonials();
 // الوضع الليلي
 function toggleTheme() {
     const body = document.body;

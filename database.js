@@ -160,6 +160,18 @@ db.exec(`
         created_at     TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول شهادات العملاء (تسويقية، تظهر بالصفحة الرئيسية بعد موافقة الإدارة)
+    CREATE TABLE IF NOT EXISTS testimonials (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_phone TEXT NOT NULL,
+        client_name  TEXT NOT NULL,
+        rating       INTEGER NOT NULL,
+        comment      TEXT NOT NULL,
+        service      TEXT,
+        status       TEXT NOT NULL DEFAULT 'pending',
+        created_at   TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
