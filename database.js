@@ -1,4 +1,4 @@
-// قاعدة بيانات يشجب
+// قاعدة بيانات غَوْث
 
 const Database = require('better-sqlite3');
 const db = new Database('yashjub.db');

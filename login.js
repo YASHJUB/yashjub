@@ -1,4 +1,4 @@
-// كود تسجيل الدخول في يشجب
+// كود تسجيل الدخول في غَوْث
 
 const API = window.location.origin + '/api';
 
@@ -65,7 +65,7 @@ async function verifyOTP() {
             if (data.name) {
                 // عنده اسم محفوظ مسبقاً
                 localStorage.setItem('yashjub_name', data.name);
-                alert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في يشجب 👷");
+                alert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في غَوْث 👷");
                 redirectAfterLogin();
             } else {
                 // أول مرة يدخل — لازم يحدد اسمه قبل ما يكمل

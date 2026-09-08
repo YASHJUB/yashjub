@@ -1,4 +1,4 @@
-// يشجب - كود التفاعل الكامل
+// غَوْث - كود التفاعل الكامل
 
 const API = window.location.origin + '/api';
 

@@ -1,4 +1,4 @@
-// سيرفر يشجب — مع قاعدة البيانات
+// سيرفر غَوْث — مع قاعدة البيانات
 
 const express = require('express');
 const cors    = require('cors');
@@ -1019,7 +1019,7 @@ app.put('/api/complaints/:id/action', (req, res) => {
         }
         logEntry = `تم إرسال تحذير${note ? ' — ' + note : ''}`;
         createNotification(
-            'تنبيه من إدارة يشجب',
+            'تنبيه من إدارة غَوْث',
             note || 'تم استلام بلاغ بخصوص سلوكك على المنصة، يرجى الالتزام بسياسات الاستخدام',
             'urgent', 'specific', complaint.reported_phone, complaint.reported_phone,
         );
@@ -1548,7 +1548,7 @@ setInterval(reactivateSuspendedAccounts, 5 * 60 * 1000);
 // ========== تشغيل السيرفر ==========
 app.listen(PORT, () => {
     console.log(`
-🚀 سيرفر يشجب شغال!
+🚀 سيرفر غَوْث شغال!
 🌐 افتح المتصفح على: http://localhost:${PORT}
 📡 API جاهز على: http://localhost:${PORT}/api
     `);

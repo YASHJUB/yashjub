@@ -1,7 +1,7 @@
 {
   "name": "yashjub",
   "version": "1.0.0",
-  "description": "منصة يشجب لخدمات البناء",
+  "description": "منصة غَوْث لخدمات البناء",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

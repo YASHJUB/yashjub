@@ -26,7 +26,7 @@ async function loadProfile() {
         document.getElementById('infoType').textContent    = 'مزود خدمة';
         document.getElementById('providerAction').style.display = 'flex';
     } else {
-        document.getElementById('profileName').textContent  = name || 'عميل يشجب';
+        document.getElementById('profileName').textContent  = name || 'عميل غَوْث';
         document.getElementById('profileBadge').innerHTML = '<svg class="icon"><use href="icons.svg#icon-user"></use></svg> عميل';
         document.getElementById('infoType').textContent    = 'عميل';
     }

@@ -54,7 +54,7 @@ async function doLogin() {
     const user = document.getElementById('adminUser').value;
     const pass = document.getElementById('adminPass').value;
 
-    if ((user === 'admin' || user === 'يشجب') && pass === ADMIN_PASS) {
+    if ((user === 'admin' || user === 'غوث') && pass === ADMIN_PASS) {
         enterAdminPanel('admin', 'المدير العام');
         return;
     }

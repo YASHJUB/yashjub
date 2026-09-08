@@ -1,5 +1,5 @@
 /* ===========================
-   يشجب — التصميم الاحترافي
+   غَوْث — التصميم الاحترافي
    أبيض + أصفر + أسود
 =========================== */
 
@@ -1303,7 +1303,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     font-weight: 700;
 }
 
-/* ══ لماذا يشجب ══ */
+/* ══ لماذا غَوْث ══ */
 
 .why-section {
     background-color: #FAFAFA;
@@ -3795,7 +3795,7 @@ body.dark-mode .sidebar-footer {
     .how-desc { font-size: 10px; }
     .how-arrow { display: none !important; }
 
-    /* لماذا يشجب */
+    /* لماذا غَوْث */
     .why-section { padding: 30px 16px; }
     .why-section h2 { font-size: 22px !important; }
     .why-grid { grid-template-columns: 1fr !important; gap: 10px; }

@@ -1,4 +1,4 @@
-// كود تتبع الطلب في يشجب
+// كود تتبع الطلب في غَوْث
 
 const API = window.location.origin + '/api';
 
@@ -157,7 +157,7 @@ function showComplete() {
             chatPollInterval = null;
         }
 
-        alert('🎉 تم اكتمال الخدمة بنجاح!\nشكراً لاستخدامك يشجب');
+        alert('🎉 تم اكتمال الخدمة بنجاح!\nشكراً لاستخدامك غَوْث');
         localStorage.removeItem('yashjub_order');
         window.location.href = 'index.html';
     }, 1000);
