@@ -19,7 +19,7 @@
     <div class="header">
         <div class="header-right">
             <img src="images/logo.png" alt="غَوْث" class="logo-img">
-            <div class="tagline">عتاد البناء</div>
+            <div class="tagline">عــتــاد الـبـنـاء</div>
         </div>
         <div class="header-left">
             <div id="userNotLogged">
@@ -124,7 +124,7 @@
         <div class="hero-content">
             <h1>اطلب خدمتك <span>الآن</span></h1>
             <p>خدمات فورية وجدولة مسبقة بضغطة واحدة</p>
-            <button class="btn hero-btn" onclick="goToLogin()">ابدأ الآن</button>
+            <button class="btn hero-btn" onclick="document.getElementById('servicesSection').scrollIntoView({behavior:'smooth'})">ابدأ الآن</button>
         </div>
         <div class="hero-gold-corner"></div>
     </div>
@@ -155,7 +155,7 @@
     </div>
 
     <!-- قسم الخدمات -->
-    <div class="services-new">
+    <div class="services-new" id="servicesSection">
         <h2>الخدمات</h2>
         <p class="services-subtitle">اختر الخدمة المناسبة لك</p>
 
