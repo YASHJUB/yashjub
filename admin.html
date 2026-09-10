@@ -670,6 +670,9 @@
             .testimonial-list-actions { width: 100%; }
         }
 
+        /* ══ الفواتير ══ */
+        .invoice-filter-btn.active { background: var(--gold); border-color: var(--gold); color: var(--black); }
+
         /* ══ PAGINATION ══ */
         .pagination {
             display: flex; align-items: center; justify-content: center;
@@ -772,6 +775,9 @@
         </a>
         <a class="sidebar-item" data-page="commissions" onclick="showPage('commissions')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></span> العمولات
+        </a>
+        <a class="sidebar-item" data-page="invoices" onclick="showPage('invoices')">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> الفواتير
         </a>
 
         <div class="sidebar-section-label">التواصل</div>
@@ -1790,6 +1796,75 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ══ INVOICES PAGE ══ -->
+            <div id="page-invoices" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">الفواتير <svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></div>
+                    <div class="page-sub">سجل الفواتير الضريبية التلقائي للطلبات المكتملة</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي الفواتير</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="inv-total-count">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي المبالغ</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="inv-total-amount">0 ر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">فواتير اليوم</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-calendar"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="inv-today-count">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">فواتير هذا الشهر</div>
+                            <div class="stat-card-icon" style="background:rgba(139,92,246,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-line"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="inv-month-count">0</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
+                            <input type="text" id="invoiceSearchInput" placeholder="بحث برقم الفاتورة، رقم الطلب، أو جوال العميل..." oninput="renderInvoicesTable()"/>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="btn-detail invoice-filter-btn active" data-filter="all" onclick="setInvoiceFilter('all', this)">الكل</button>
+                        <button class="btn-detail invoice-filter-btn" data-filter="today" onclick="setInvoiceFilter('today', this)">اليوم</button>
+                        <button class="btn-detail invoice-filter-btn" data-filter="week" onclick="setInvoiceFilter('week', this)">هذا الأسبوع</button>
+                        <button class="btn-detail invoice-filter-btn" data-filter="month" onclick="setInvoiceFilter('month', this)">هذا الشهر</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>رقم الفاتورة</th><th>العميل</th><th>الخدمة</th><th>المبلغ</th>
+                                    <th>رسوم الخدمة</th><th>الإجمالي</th><th>التاريخ</th><th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- ══ CHATS PAGE ══ -->
             <div id="page-chats" style="display:none">
                 <div class="page-header">

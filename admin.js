@@ -8,7 +8,7 @@ const ROLE_PAGES = {
     supervisor: ['orders', 'providers', 'clients'],
     support:    ['orders', 'complaints'],
     reviewer:   ['verification'],
-    accountant: ['payments', 'commissions'],
+    accountant: ['payments', 'commissions', 'invoices'],
 };
 
 const ROLE_LABELS = {
@@ -48,6 +48,9 @@ let currentReviewId        = null;
 let testimonialsRefreshInterval = null;
 let allTestimonials             = [];
 let currentTestimonialFilter    = 'all';
+
+let allInvoices          = [];
+let currentInvoiceFilter = 'all';
 
 // تسجيل الدخول
 async function doLogin() {
@@ -207,6 +210,7 @@ function showPage(page) {
     if (page === 'complaints')    loadComplaintsPage();
     if (page === 'reviews')       loadReviewsPage();
     if (page === 'testimonials')  loadTestimonialsPage();
+    if (page === 'invoices')      loadInvoicesPage();
     if (page === 'operations')    startOperationsPage();
 }
 
@@ -655,6 +659,87 @@ async function loadPaymentsPage() {
             </tr>
         `).join('');
     } catch (e) {}
+}
+
+// صفحة الفواتير
+async function loadInvoicesPage() {
+    try {
+        const res  = await fetch(`${API}/invoices/all`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        allInvoices = data.invoices;
+        renderInvoiceStats();
+        renderInvoicesTable();
+    } catch (e) {}
+}
+
+function renderInvoiceStats() {
+    const totalAmount = allInvoices.reduce((sum, i) => sum + i.total, 0);
+
+    const now      = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const monthStr = now.toISOString().slice(0, 7);
+
+    document.getElementById('inv-total-count').textContent  = allInvoices.length;
+    document.getElementById('inv-total-amount').textContent = totalAmount.toLocaleString() + ' ر';
+    document.getElementById('inv-today-count').textContent  = allInvoices.filter(i => i.created_at.slice(0, 10) === todayStr).length;
+    document.getElementById('inv-month-count').textContent  = allInvoices.filter(i => i.created_at.slice(0, 7) === monthStr).length;
+}
+
+function setInvoiceFilter(filter, btn) {
+    currentInvoiceFilter = filter;
+    document.querySelectorAll('.invoice-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderInvoicesTable();
+}
+
+function renderInvoicesTable() {
+    const search = (document.getElementById('invoiceSearchInput')?.value || '').trim().toLowerCase();
+
+    const now     = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    let list = allInvoices;
+    if (currentInvoiceFilter === 'today') {
+        const todayStr = now.toISOString().slice(0, 10);
+        list = list.filter(i => i.created_at.slice(0, 10) === todayStr);
+    } else if (currentInvoiceFilter === 'week') {
+        list = list.filter(i => new Date(i.created_at.replace(' ', 'T') + 'Z') >= weekAgo);
+    } else if (currentInvoiceFilter === 'month') {
+        const monthStr = now.toISOString().slice(0, 7);
+        list = list.filter(i => i.created_at.slice(0, 7) === monthStr);
+    }
+
+    if (search) {
+        list = list.filter(i =>
+            i.invoice_number.toLowerCase().includes(search) ||
+            String(i.order_id).includes(search) ||
+            i.client_phone.includes(search)
+        );
+    }
+
+    const container = document.getElementById('invoicesTable');
+    if (!list.length) {
+        container.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px">لا توجد فواتير مطابقة</td></tr>';
+        return;
+    }
+
+    container.innerHTML = list.map(i => `
+        <tr>
+            <td><strong>${i.invoice_number}</strong></td>
+            <td>${i.client_name || ('+966' + i.client_phone)}</td>
+            <td>${i.service}</td>
+            <td>${i.price.toLocaleString()} ر</td>
+            <td style="color:var(--gold)">${i.commission.toLocaleString()} ر</td>
+            <td style="font-weight:700">${i.total.toLocaleString()} ر</td>
+            <td>${new Date(i.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('ar-SA')}</td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn-detail" onclick="window.open('invoice.html?id=${i.order_id}', '_blank')">عرض الفاتورة</button>
+                <button class="btn-detail" onclick="window.open('invoice.html?id=${i.order_id}&autoprint=1', '_blank')">طباعة</button>
+            </td>
+        </tr>
+    `).join('');
 }
 
 // صفحة المدن

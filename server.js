@@ -75,6 +75,29 @@ function createNotification(title, message, type, target, receiverPhone, targetP
     `).run(title, message, type, target, targetPhone, receiverPhone);
 }
 
+// إنشاء فاتورة تلقائياً لطلب مكتمل (idempotent — لو فيه فاتورة موجودة للطلب مسبقاً ترجعها كما هي بدون تكرار)
+function createInvoiceForOrder(order) {
+    const existing = db.prepare('SELECT * FROM invoices WHERE order_id = ?').get(order.id);
+    if (existing) return existing;
+
+    const client = db.prepare('SELECT name FROM users WHERE phone = ?').get(order.phone);
+
+    const year = new Date().getFullYear();
+    const countThisYear = db.prepare(
+        "SELECT COUNT(*) AS n FROM invoices WHERE invoice_number LIKE ?"
+    ).get(`INV-${year}-%`).n;
+    const invoiceNumber = `INV-${year}-${String(countThisYear + 1).padStart(3, '0')}`;
+
+    const basePrice = order.price - order.commission;
+
+    db.prepare(`
+        INSERT INTO invoices (invoice_number, order_id, client_phone, client_name, service, address, price, commission, total)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(invoiceNumber, order.id, order.phone, client ? client.name : null, order.service, order.address, basePrice, order.commission, order.price);
+
+    return db.prepare('SELECT * FROM invoices WHERE order_id = ?').get(order.id);
+}
+
 // إعادة حساب متوسط تقييم مزوّد من التقييمات الظاهرة فقط (يبقى 5.0 الافتراضي لو ماكو تقييمات بعد)
 function recalculateProviderRating(phone) {
     const result = db.prepare(`
@@ -271,6 +294,7 @@ app.put('/api/orders/:id/status', (req, res) => {
                 `تم اكتمال طلب ${order.service} بنجاح — نتمنى لك تجربة ممتازة`,
                 'update', 'specific', order.phone, order.phone,
             );
+            createInvoiceForOrder(order);
         }
     }
 
@@ -1342,6 +1366,53 @@ app.put('/api/testimonials/:id/status', (req, res) => {
 app.delete('/api/testimonials/:id', (req, res) => {
     db.prepare('DELETE FROM testimonials WHERE id = ?').run(req.params.id);
     res.json({ success: true });
+});
+
+// ========== API الفواتير ==========
+
+app.post('/api/invoices', (req, res) => {
+    const { orderId } = req.body;
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+    if (!order) {
+        return res.json({ success: false, message: 'الطلب غير موجود' });
+    }
+    if (order.status !== 'completed') {
+        return res.json({ success: false, message: 'الفاتورة تُنشأ فقط للطلبات المكتملة' });
+    }
+
+    const invoice = createInvoiceForOrder(order);
+    res.json({ success: true, invoice });
+});
+
+app.get('/api/invoices/all', (req, res) => {
+    const invoices = db.prepare('SELECT * FROM invoices ORDER BY created_at DESC, id DESC').all();
+    res.json({ success: true, invoices });
+});
+
+app.get('/api/invoices/user/:phone', (req, res) => {
+    const invoices = db.prepare(
+        'SELECT * FROM invoices WHERE client_phone = ? ORDER BY created_at DESC'
+    ).all(req.params.phone);
+
+    res.json({ success: true, invoices });
+});
+
+// :id هنا هو رقم الطلب (order_id) — هذا هو المعرّف المتاح دايماً بواجهات العميل (طلباتي، التتبع) ولوحة الإدارة
+app.get('/api/invoices/:id', (req, res) => {
+    const invoice = db.prepare('SELECT * FROM invoices WHERE order_id = ?').get(req.params.id);
+
+    if (!invoice) {
+        return res.json({ success: false, message: 'الفاتورة غير موجودة' });
+    }
+
+    res.json({ success: true, invoice });
+});
+
+// لا يوجد مولّد PDF حقيقي بالمشروع (يحتاج مكتبة إضافية + معالجة خاصة للنص العربي) — يوجّه لصفحة الفاتورة
+// بوضع طباعة تلقائي، والمستخدم يحفظها كـ PDF عبر خاصية "حفظ كـ PDF" المدمجة بمتصفحه عند الطباعة
+app.get('/api/invoices/:id/pdf', (req, res) => {
+    res.redirect(`/invoice.html?id=${req.params.id}&autoprint=1`);
 });
 
 // ========== API التقارير المالية ==========

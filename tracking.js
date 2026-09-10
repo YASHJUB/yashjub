@@ -157,10 +157,15 @@ function showComplete() {
             chatPollInterval = null;
         }
 
+        document.getElementById('invoiceSection').style.display = 'block';
+
         alert('🎉 تم اكتمال الخدمة بنجاح!\nشكراً لاستخدامك غَوْث');
-        localStorage.removeItem('yashjub_order');
-        window.location.href = 'index.html';
     }, 1000);
+}
+
+// الذهاب لصفحة الفاتورة
+function goToInvoice() {
+    if (currentOrder) window.location.href = `invoice.html?id=${currentOrder.id}`;
 }
 
 // تشغيل عند فتح الصفحة

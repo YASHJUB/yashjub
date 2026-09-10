@@ -102,7 +102,10 @@ async function loadOrders() {
                             : `<button class="btn-small" style="width:100%" onclick="openTestimonialForm(${order.id}, '${order.service}')">
                                 <svg class="icon"><use href="icons.svg#icon-gem"></use></svg> شارك تجربتك ⭐
                                </button>`}
-                    </div>` : ''}
+                    </div>
+                    <button class="btn-small" style="width:100%;margin-top:8px" onclick="window.location.href='invoice.html?id=${order.id}'">
+                        <svg class="icon"><use href="icons.svg#icon-receipt"></use></svg> الفاتورة 🧾
+                    </button>` : ''}
                     ${(order.status === 'completed' || order.status === 'cancelled') ? `
                     <button class="btn-small" style="width:100%;margin-top:12px" onclick="openComplaintForm(${order.id}, '${order.provider_phone || ''}')">
                         <svg class="icon"><use href="icons.svg#icon-siren"></use></svg> تقديم شكوى

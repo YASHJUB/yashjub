@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غَوْث - الفاتورة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+
+        body {
+            background: #F0F0F0;
+            padding: 24px 16px 60px;
+            color: #111111;
+        }
+
+        .invoice-toolbar {
+            max-width: 720px;
+            margin: 0 auto 16px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .invoice-toolbar button {
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 22px;
+            cursor: pointer;
+        }
+
+        .btn-print { background: #F5C518; color: #111111; }
+        .btn-back  { background: #111111; color: #ffffff; }
+
+        .invoice-sheet {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 40px 36px;
+        }
+
+        #invoiceLoading, #invoiceError {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888888;
+            font-size: 14px;
+        }
+        #invoiceError { color: #EF4444; font-weight: 700; display: none; }
+
+        .invoice-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            border-bottom: 3px solid #F5C518;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .invoice-logo { height: 60px; width: auto; }
+
+        .invoice-header-text { text-align: left; }
+        .invoice-header-text h1 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+        .invoice-header-text div { font-size: 12px; color: #666666; margin-top: 2px; }
+        .invoice-header-text span { color: #111111; font-weight: 700; }
+
+        .invoice-section { margin-bottom: 22px; }
+        .invoice-section-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #92700A;
+            background: rgba(245,197,24,0.12);
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .invoice-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 7px 0;
+            border-bottom: 1px dashed #eeeeee;
+        }
+        .invoice-row:last-child { border-bottom: none; }
+        .invoice-row span:first-child { color: #888888; }
+        .invoice-row span:last-child { font-weight: 700; }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 22px;
+            font-size: 13px;
+        }
+        .invoice-table td { padding: 10px 4px; }
+        .invoice-table tr:not(:last-child) td { border-bottom: 1px solid #f0f0f0; }
+        .invoice-table td:last-child { text-align: left; font-weight: 700; }
+        .invoice-total-row td {
+            border-top: 2px solid #111111 !important;
+            font-size: 16px;
+            font-weight: 900;
+            padding-top: 14px;
+        }
+
+        .invoice-payment-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 26px;
+        }
+        .invoice-paid-badge {
+            color: #047857;
+            font-weight: 800;
+            font-size: 14px;
+        }
+        .invoice-payment-method { font-size: 12px; color: #555555; }
+
+        .invoice-footer {
+            text-align: center;
+            font-size: 11px;
+            color: #999999;
+            line-height: 1.9;
+            border-top: 1px solid #eeeeee;
+            padding-top: 18px;
+        }
+
+        @media (max-width: 600px) {
+            .invoice-sheet { padding: 24px 18px; }
+            .invoice-header { flex-direction: column; align-items: flex-start; }
+            .invoice-header-text { text-align: right; }
+        }
+
+        @media print {
+            body { background: #ffffff; padding: 0; }
+            .no-print { display: none !important; }
+            .invoice-sheet { box-shadow: none; border-radius: 0; max-width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="invoice-toolbar no-print">
+        <button class="btn-back" onclick="history.back()">→ رجوع</button>
+        <button class="btn-print" onclick="window.print()">طباعة الفاتورة 🖨️</button>
+    </div>
+
+    <div class="invoice-sheet" id="invoiceSheet">
+        <div id="invoiceLoading">جاري تحميل الفاتورة...</div>
+        <div id="invoiceError">الفاتورة غير موجودة — تأكد إن الطلب مكتمل</div>
+
+        <div id="invoiceContent" style="display:none">
+            <div class="invoice-header">
+                <img src="images/logo.png" alt="غَوْث" class="invoice-logo">
+                <div class="invoice-header-text">
+                    <h1>فاتورة ضريبية</h1>
+                    <div>رقم الفاتورة: <span id="invNumber"></span></div>
+                    <div>التاريخ: <span id="invDate"></span></div>
+                </div>
+            </div>
+
+            <div class="invoice-section">
+                <div class="invoice-section-title">بيانات العميل</div>
+                <div class="invoice-row"><span>الاسم</span><span id="invClientName"></span></div>
+                <div class="invoice-row"><span>الجوال</span><span id="invClientPhone" dir="ltr"></span></div>
+            </div>
+
+            <div class="invoice-section">
+                <div class="invoice-section-title">تفاصيل الخدمة</div>
+                <div class="invoice-row"><span>نوع الخدمة</span><span id="invService"></span></div>
+                <div class="invoice-row"><span>الموقع</span><span id="invAddress"></span></div>
+                <div class="invoice-row"><span>رقم الطلب</span><span id="invOrderId"></span></div>
+            </div>
+
+            <table class="invoice-table">
+                <tr><td>سعر الخدمة</td><td id="invPrice"></td></tr>
+                <tr><td>رسوم الخدمة (5%)</td><td id="invCommission"></td></tr>
+                <tr class="invoice-total-row"><td>الإجمالي</td><td id="invTotal"></td></tr>
+            </table>
+
+            <div class="invoice-payment-status">
+                <span class="invoice-paid-badge" id="invPaidBadge">✅ مدفوع</span>
+                <span class="invoice-payment-method">طريقة الدفع: <strong id="invPaymentMethod"></strong></span>
+            </div>
+
+            <div class="invoice-footer">
+                شكراً لثقتك بغَوْث — نتمنى لك تجربة ممتازة<br>
+                للاستفسار: ghowth.sa@gmail.com<br>
+                السجل التجاري: 1010XXXXXX
+            </div>
+        </div>
+    </div>
+
+    <script src="invoice.js"></script>
+</body>
+</html>

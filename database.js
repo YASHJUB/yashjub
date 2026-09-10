@@ -172,6 +172,23 @@ db.exec(`
         created_at   TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول الفواتير (تُنشأ تلقائياً عند اكتمال الطلب)
+    CREATE TABLE IF NOT EXISTS invoices (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        invoice_number TEXT UNIQUE NOT NULL,
+        order_id       INTEGER UNIQUE NOT NULL,
+        client_phone   TEXT NOT NULL,
+        client_name    TEXT,
+        service        TEXT NOT NULL,
+        address        TEXT,
+        price          INTEGER NOT NULL,
+        commission     INTEGER NOT NULL,
+        total          INTEGER NOT NULL,
+        payment_method TEXT DEFAULT 'دفع إلكتروني',
+        payment_status TEXT NOT NULL DEFAULT 'paid',
+        created_at     TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
