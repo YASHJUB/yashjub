@@ -3104,6 +3104,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 .theme-btn {
     background: none;
     border: none;
+    color: #ffffff;
     font-size: 20px;
     cursor: pointer;
     padding: 4px 8px;
