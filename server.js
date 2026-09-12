@@ -363,8 +363,8 @@ app.post('/api/providers/register', upload.fields([
     }
 
     const result = db.prepare(`
-        INSERT INTO providers (phone, name, service_type, level, id_document_path, certificate_path)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO providers (phone, name, service_type, level, id_document_path, certificate_path, is_available, status)
+        VALUES (?, ?, ?, ?, ?, ?, 0, 'pending')
     `).run(
         phone, fullName, serviceType, providerLevel,
         `/uploads/${idDocFile.filename}`,
@@ -390,6 +390,60 @@ app.get('/api/providers', (req, res) => {
         FROM providers ORDER BY created_at DESC
     `).all();
     res.json({ success: true, providers });
+});
+
+// قبول/رفض طلب تسجيل مزوّد جديد (لوحة الإدارة — قسم الموردين / طلبات التوثيق)
+app.put('/api/providers/:id/approve', (req, res) => {
+    const provider = db.prepare('SELECT * FROM providers WHERE id = ?').get(req.params.id);
+    if (!provider) {
+        return res.json({ success: false, message: 'المزوّد غير موجود' });
+    }
+
+    db.prepare("UPDATE providers SET status = 'approved', is_available = 1 WHERE id = ?").run(req.params.id);
+
+    createNotification(
+        'تم قبول تسجيلك',
+        'تهانينا! تمت الموافقة على تسجيلك كمزوّد بمنصة غَوْث، يمكنك الآن استقبال الطلبات',
+        'update', 'specific', provider.phone, provider.phone,
+    );
+
+    res.json({ success: true, provider: db.prepare('SELECT * FROM providers WHERE id = ?').get(req.params.id) });
+});
+
+// تفعيل/تعطيل يدوي لمزوّد معتمد بأي وقت (مستقل عن آلية الإيقاف المؤقت المرتبطة بالشكاوى) — يبقى كما هو حتى الإدارة تغيّره صراحة
+app.put('/api/providers/:id/availability', (req, res) => {
+    const { isAvailable } = req.body;
+    const provider = db.prepare('SELECT * FROM providers WHERE id = ?').get(req.params.id);
+    if (!provider) {
+        return res.json({ success: false, message: 'المزوّد غير موجود' });
+    }
+
+    db.prepare('UPDATE providers SET is_available = ?, suspended_until = NULL WHERE id = ?').run(isAvailable ? 1 : 0, req.params.id);
+
+    createNotification(
+        isAvailable ? 'تم تفعيل حسابك' : 'تم إيقاف حسابك',
+        isAvailable ? 'يمكنك الآن استقبال الطلبات مجدداً' : 'تم إيقاف حسابك من قبل الإدارة — تواصل معنا لمزيد من التفاصيل',
+        isAvailable ? 'update' : 'alert', 'specific', provider.phone, provider.phone,
+    );
+
+    res.json({ success: true, provider: db.prepare('SELECT * FROM providers WHERE id = ?').get(req.params.id) });
+});
+
+app.put('/api/providers/:id/reject', (req, res) => {
+    const provider = db.prepare('SELECT * FROM providers WHERE id = ?').get(req.params.id);
+    if (!provider) {
+        return res.json({ success: false, message: 'المزوّد غير موجود' });
+    }
+
+    db.prepare("UPDATE providers SET status = 'rejected', is_available = 0 WHERE id = ?").run(req.params.id);
+
+    createNotification(
+        'تم رفض طلب التسجيل',
+        'للأسف تم رفض طلب تسجيلك كمزوّد بمنصة غَوْث — تواصل معنا لمزيد من التفاصيل',
+        'alert', 'specific', provider.phone, provider.phone,
+    );
+
+    res.json({ success: true, provider: db.prepare('SELECT * FROM providers WHERE id = ?').get(req.params.id) });
 });
 // جلب طلبات مستخدم محدد
 app.get('/api/orders/user/:phone', (req, res) => {
@@ -1517,14 +1571,13 @@ app.get('/api/operations/live', (req, res) => {
         }
     });
 
-    // تنبيهات: مزودون انضموا خلال آخر 24 ساعة يحتاجون مراجعة
-    const dayAgoIso = new Date(now - 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
-    const newProviders = db.prepare(
-        'SELECT * FROM providers WHERE created_at >= ? ORDER BY created_at DESC'
-    ).all(dayAgoIso);
+    // تنبيهات: مزودون بانتظار موافقة الإدارة (بغض النظر عن تاريخ التسجيل)
+    const pendingProviders = db.prepare(
+        "SELECT * FROM providers WHERE status = 'pending' ORDER BY created_at DESC"
+    ).all();
 
-    newProviders.forEach(p => {
-        alerts.push({ level: 'blue', type: 'provider_review', providerId: p.id, message: `مزود جديد "${p.name}" يحتاج مراجعة توثيق` });
+    pendingProviders.forEach(p => {
+        alerts.push({ level: 'blue', type: 'provider_review', providerId: p.id, message: `مزود جديد "${p.name}" بانتظار الموافقة` });
     });
 
     res.json({

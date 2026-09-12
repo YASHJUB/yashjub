@@ -234,6 +234,7 @@ const migrations = [
     'ALTER TABLE orders ADD COLUMN accepted_at TEXT',
     'ALTER TABLE providers ADD COLUMN suspended_until TEXT',
     'ALTER TABLE users ADD COLUMN suspended_until TEXT',
+    "ALTER TABLE providers ADD COLUMN status TEXT DEFAULT 'approved'",
 ];
 
 for (const sql of migrations) {

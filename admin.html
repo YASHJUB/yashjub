@@ -766,7 +766,7 @@
         </a>
         <a class="sidebar-item" data-page="verification" onclick="showPage('verification')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></span> طلبات التوثيق
-            <span class="sidebar-badge" id="verifyBadge">0</span>
+            <span class="sidebar-badge" id="verifyBadge" style="display:none">0</span>
         </a>
 
         <div class="sidebar-section-label">المالية</div>
@@ -1419,10 +1419,12 @@
             <div id="page-verification" style="display:none">
                 <div class="page-header">
                     <div class="page-title">طلبات التوثيق <svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
-                    <div class="page-sub">مراجعة وثائق الموردين</div>
+                    <div class="page-sub">مراجعة تسجيل المزودين الجدد قبل ظهورهم للعملاء</div>
                 </div>
                 <div class="card">
-                    <p style="color:var(--text3);text-align:center;padding:40px">لا توجد طلبات توثيق معلقة حالياً</p>
+                    <div id="verificationListContainer">
+                        <p style="color:var(--text3);text-align:center;padding:40px">لا توجد طلبات توثيق معلقة حالياً</p>
+                    </div>
                 </div>
             </div>
 

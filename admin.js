@@ -52,6 +52,8 @@ let currentTestimonialFilter    = 'all';
 let allInvoices          = [];
 let currentInvoiceFilter = 'all';
 
+let allProviders = [];
+
 // تسجيل الدخول
 async function doLogin() {
     const user = document.getElementById('adminUser').value;
@@ -198,6 +200,7 @@ function showPage(page) {
 
     if (page === 'orders')        loadOrdersPage();
     if (page === 'providers')     loadProvidersPage();
+    if (page === 'verification')  loadVerificationPage();
     if (page === 'clients')       loadClientsPage();
     if (page === 'employees')     loadEmployeesPage();
     if (page === 'commissions')   loadCommissionsPage();
@@ -262,7 +265,12 @@ async function loadDashboard() {
         }
 
         document.getElementById('pendingBadge').textContent  = pending.length;
-        document.getElementById('verifyBadge').textContent   = providers.length;
+
+        allProviders = providers;
+        const pendingProviders = providers.filter(p => p.status === 'pending').length;
+        const verifyBadge = document.getElementById('verifyBadge');
+        verifyBadge.textContent   = pendingProviders;
+        verifyBadge.style.display = pendingProviders > 0 ? 'inline-block' : 'none';
 
         // شارة المحادثات اللي تحتاج تدخل (تظهر من أي صفحة بلوحة الإدارة)
         fetchConversations();
@@ -415,6 +423,57 @@ async function loadOrdersPage() {
     } catch(e) {}
 }
 
+const PROVIDER_LEVEL_LABELS = {
+    basic:    '<svg class="icon"><use href="icons.svg#icon-medal-silver"></use></svg> أساسي',
+    verified: '<svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> موثق',
+    business: '<svg class="icon"><use href="icons.svg#icon-trophy"></use></svg> شركة',
+};
+
+function providerStatusBadge(p) {
+    if (p.status === 'pending')  return '<span class="badge badge-pending">قيد المراجعة</span>';
+    if (p.status === 'rejected') return '<span class="badge badge-cancel">مرفوض</span>';
+    return p.is_available ? '<span class="badge badge-done">متاح</span>' : '<span class="badge badge-cancel">موقوف</span>';
+}
+
+function providerDocsCell(p) {
+    return `
+        ${p.id_document_path ? `<a href="${p.id_document_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-id-card"></use></svg> الهوية</a>` : '—'}
+        ${p.certificate_path ? ` &nbsp;<a href="${p.certificate_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-document"></use></svg> الشهادة</a>` : ''}
+    `;
+}
+
+function providerActionsCell(p) {
+    if (p.status === 'pending') {
+        return `
+            <button class="btn-detail" style="background:#10B981;color:#fff;border-color:#10B981" onclick="approveProvider(${p.id})">قبول</button>
+            <button class="btn-detail" style="background:#EF4444;color:#fff;border-color:#EF4444;margin-right:4px" onclick="rejectProvider(${p.id})">رفض</button>
+        `;
+    }
+    if (p.status === 'approved') {
+        return p.is_available
+            ? `<button class="btn-detail" style="background:#EF4444;color:#fff;border-color:#EF4444" onclick="setProviderAvailability(${p.id}, false)">تعطيل</button>`
+            : `<button class="btn-detail" style="background:#10B981;color:#fff;border-color:#10B981" onclick="setProviderAvailability(${p.id}, true)">تفعيل</button>`;
+    }
+    return '—';
+}
+
+async function setProviderAvailability(id, isAvailable) {
+    if (!isAvailable && !confirm('هل أنت متأكد من تعطيل هذا المزوّد؟ لن يستقبل أي طلبات جديدة حتى تُفعّله مجدداً')) return;
+
+    try {
+        const res  = await fetch(`${API}/providers/${id}/availability`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isAvailable }),
+        });
+        const data = await res.json();
+        if (!data.success) { alert(`❌ ${data.message}`); return; }
+        await refreshProvidersEverywhere();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
 // صفحة الموردين
 async function loadProvidersPage() {
     try {
@@ -422,11 +481,7 @@ async function loadProvidersPage() {
         const data = await res.json();
         if (!data.success) return;
 
-        const levelLabel = {
-            basic:'<svg class="icon"><use href="icons.svg#icon-medal-silver"></use></svg> أساسي',
-            verified:'<svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> موثق',
-            business:'<svg class="icon"><use href="icons.svg#icon-trophy"></use></svg> شركة'
-        };
+        allProviders = data.providers;
 
         document.getElementById('allProvidersTable').innerHTML = data.providers.map(p => `
             <tr>
@@ -439,20 +494,98 @@ async function loadProvidersPage() {
                 </td>
                 <td dir="ltr">+966${p.phone}</td>
                 <td>${p.service_type}</td>
-                <td>${levelLabel[p.level] || p.level}</td>
+                <td>${PROVIDER_LEVEL_LABELS[p.level] || p.level}</td>
                 <td><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${p.rating}</td>
-                <td>${p.is_available ? '<span class="badge badge-done">متاح</span>' : '<span class="badge badge-cancel">مشغول</span>'}</td>
-                <td>
-                    ${p.id_document_path ? `<a href="${p.id_document_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-id-card"></use></svg> الهوية</a>` : '—'}
-                    ${p.certificate_path ? ` &nbsp;<a href="${p.certificate_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-document"></use></svg> الشهادة</a>` : ''}
-                </td>
-                <td>
-                    <button class="btn-detail" style="background:#10B981;color:#fff;border-color:#10B981">قبول</button>
-                    <button class="btn-detail" style="background:#EF4444;color:#fff;border-color:#EF4444;margin-right:4px">رفض</button>
-                </td>
+                <td>${providerStatusBadge(p)}</td>
+                <td>${providerDocsCell(p)}</td>
+                <td>${providerActionsCell(p)}</td>
             </tr>
         `).join('');
     } catch(e) {}
+}
+
+// صفحة طلبات التوثيق (المزودون الجدد بانتظار موافقة الإدارة)
+async function loadVerificationPage() {
+    try {
+        const res  = await fetch(`${API}/providers`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        allProviders = data.providers;
+        renderVerificationList();
+    } catch (e) {}
+}
+
+function renderVerificationList() {
+    const container = document.getElementById('verificationListContainer');
+    if (!container) return;
+
+    const pending = allProviders.filter(p => p.status === 'pending');
+
+    if (!pending.length) {
+        container.innerHTML = '<p style="color:var(--text3);text-align:center;padding:40px">لا توجد طلبات توثيق معلقة حالياً</p>';
+        return;
+    }
+
+    container.innerHTML = pending.map(p => `
+        <div class="testimonial-list-item status-pending">
+            <div>
+                <div class="testimonial-list-top">
+                    <strong>${p.name}</strong>
+                    <span style="color:var(--text3);font-size:12px" dir="ltr">+966${p.phone}</span>
+                    <span class="badge badge-active">${p.service_type}</span>
+                    <span>${PROVIDER_LEVEL_LABELS[p.level] || p.level}</span>
+                </div>
+                <div class="testimonial-list-meta">${providerDocsCell(p)}</div>
+                <div class="testimonial-list-meta">تاريخ التسجيل: ${new Date(p.created_at).toLocaleDateString('ar-SA')}</div>
+            </div>
+            <div class="testimonial-list-actions">
+                <button class="complaint-action-btn" onclick="approveProvider(${p.id})"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> قبول</button>
+                <button class="complaint-action-btn danger" onclick="rejectProvider(${p.id})"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> رفض</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function approveProvider(id) {
+    try {
+        const res  = await fetch(`${API}/providers/${id}/approve`, { method: 'PUT' });
+        const data = await res.json();
+        if (!data.success) { alert(`❌ ${data.message}`); return; }
+        await refreshProvidersEverywhere();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function rejectProvider(id) {
+    try {
+        const res  = await fetch(`${API}/providers/${id}/reject`, { method: 'PUT' });
+        const data = await res.json();
+        if (!data.success) { alert(`❌ ${data.message}`); return; }
+        await refreshProvidersEverywhere();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// إعادة تحميل بيانات المزودين وتحديث أي صفحة/شارة معروضة حالياً بعد إجراء قبول أو رفض
+async function refreshProvidersEverywhere() {
+    const res  = await fetch(`${API}/providers`);
+    const data = await res.json();
+    if (!data.success) return;
+
+    allProviders = data.providers;
+
+    const pendingCount = allProviders.filter(p => p.status === 'pending').length;
+    const verifyBadge  = document.getElementById('verifyBadge');
+    if (verifyBadge) {
+        verifyBadge.textContent   = pendingCount;
+        verifyBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+    }
+
+    if (document.getElementById('page-providers').style.display !== 'none')    loadProvidersPage();
+    if (document.getElementById('page-verification').style.display !== 'none') renderVerificationList();
 }
 
 // صفحة العملاء
@@ -2273,7 +2406,7 @@ function handleAlertAction(alertItem) {
         const order = opsOrdersCache.find(o => o.id === alertItem.orderId);
         if (order) openAssignModal(order.id, order.service);
     } else if (alertItem.type === 'provider_review') {
-        document.querySelector('.sidebar-item[data-page="providers"]')?.click();
+        document.querySelector('.sidebar-item[data-page="verification"]')?.click();
     }
 }
 
