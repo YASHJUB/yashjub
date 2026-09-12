@@ -33,8 +33,8 @@ const upload = multer({
     }),
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        const allowed = /^image\/|^application\/pdf$/.test(file.mimetype);
-        cb(allowed ? null : new Error('نوع ملف غير مسموح'), allowed);
+        const allowed = file.mimetype === 'image/jpeg' || file.mimetype === 'application/pdf';
+        cb(allowed ? null : new Error('نوع ملف غير مسموح — يُقبل PDF أو JPG فقط'), allowed);
     },
 });
 
@@ -1595,7 +1595,7 @@ app.get('/api/operations/live', (req, res) => {
 // أخطاء رفع الملفات (نوع غير مسموح، حجم كبير)
 app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError || err) {
-        return res.json({ success: false, message: 'تعذّر رفع الملف — تأكد إنه صورة أو PDF أقل من 5MB' });
+        return res.json({ success: false, message: 'تعذّر رفع الملف — يُقبل PDF أو JPG فقط، وبحجم أقل من 5MB' });
     }
     next();
 });
