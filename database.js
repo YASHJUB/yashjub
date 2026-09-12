@@ -235,6 +235,10 @@ const migrations = [
     'ALTER TABLE providers ADD COLUMN suspended_until TEXT',
     'ALTER TABLE users ADD COLUMN suspended_until TEXT',
     "ALTER TABLE providers ADD COLUMN status TEXT DEFAULT 'approved'",
+    'ALTER TABLE providers ADD COLUMN work_lat REAL',
+    'ALTER TABLE providers ADD COLUMN work_lng REAL',
+    'ALTER TABLE providers ADD COLUMN work_radius REAL',
+    'ALTER TABLE providers ADD COLUMN work_city TEXT',
 ];
 
 for (const sql of migrations) {

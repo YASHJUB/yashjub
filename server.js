@@ -67,6 +67,16 @@ function checkCoupon(code, amount) {
     return { valid: true, coupon, discount };
 }
 
+// حساب المسافة بالكيلومتر بين نقطتين (صيغة Haversine)
+function distanceKm(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // إنشاء إشعار لمستخدم واحد (تستخدمها الإشعارات التلقائية بالنظام)
 function createNotification(title, message, type, target, receiverPhone, targetPhone = null) {
     db.prepare(`
@@ -393,6 +403,50 @@ app.get('/api/providers', (req, res) => {
         FROM providers ORDER BY created_at DESC
     `).all();
     res.json({ success: true, providers });
+});
+
+// حفظ نطاق عمل المزوّد (دائرة مركزها work_lat/work_lng ونصف قطرها work_radius كم)
+app.put('/api/providers/:phone/work-area', (req, res) => {
+    const { workLat, workLng, workRadius, workCity } = req.body;
+
+    if (workLat == null || workLng == null || !workRadius) {
+        return res.json({ success: false, message: 'بيانات النطاق ناقصة' });
+    }
+
+    const provider = db.prepare('SELECT * FROM providers WHERE phone = ?').get(req.params.phone);
+    if (!provider) {
+        return res.json({ success: false, message: 'المزوّد غير موجود' });
+    }
+
+    db.prepare(`
+        UPDATE providers SET work_lat = ?, work_lng = ?, work_radius = ?, work_city = ? WHERE phone = ?
+    `).run(workLat, workLng, workRadius, workCity || null, req.params.phone);
+
+    res.json({ success: true, provider: db.prepare('SELECT * FROM providers WHERE phone = ?').get(req.params.phone) });
+});
+
+// المزودون اللي نطاق عملهم يشمل موقع محدد (يُستخدم للتحقق من توفر مزوّد قريب قبل الطلب)
+app.get('/api/providers/nearby', (req, res) => {
+    const lat     = parseFloat(req.query.lat);
+    const lng     = parseFloat(req.query.lng);
+    const service = req.query.service;
+
+    if (!lat || !lng || !service) {
+        return res.json({ success: false, message: 'الموقع ونوع الخدمة مطلوبان' });
+    }
+
+    const candidates = db.prepare(`
+        SELECT * FROM providers
+        WHERE service_type = ? AND is_available = 1
+            AND work_lat IS NOT NULL AND work_lng IS NOT NULL AND work_radius IS NOT NULL
+    `).all(service);
+
+    const nearby = candidates
+        .map(p => ({ ...p, distance: distanceKm(lat, lng, p.work_lat, p.work_lng) }))
+        .filter(p => p.distance <= p.work_radius)
+        .sort((a, b) => a.distance - b.distance);
+
+    res.json({ success: true, providers: nearby });
 });
 
 // قبول/رفض طلب تسجيل مزوّد جديد (لوحة الإدارة — قسم الموردين / طلبات التوثيق)

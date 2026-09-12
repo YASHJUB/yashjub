@@ -10,6 +10,15 @@ let editingProductId   = null;
 let productMap    = null;
 let productMarker = null;
 
+let myWorkArea           = null;
+let workAreaModalMap     = null;
+let workAreaModalMarker  = null;
+let workAreaModalCircle  = null;
+let workAreaPreviewMap   = null;
+let workAreaSelectedLat  = null;
+let workAreaSelectedLng  = null;
+let workAreaSelectedRadius = 10;
+
 const LEVEL_BADGES = {
     basic:    { label: 'مزود أساسي', icon: 'medal-silver' },
     verified: { label: 'مزود موثق',  icon: 'medal-gold'   },
@@ -74,6 +83,7 @@ async function loadProviderProfile(phone) {
         document.getElementById('sidebarProviderBadge').innerHTML = badgeHTML;
 
         loadMyReviews(phone);
+        renderWorkAreaSection(me);
     } catch (e) {
         console.log('خطأ في تحميل بيانات المزود');
     }
@@ -678,6 +688,172 @@ async function deleteProduct(id) {
     try {
         await fetch(`${API}/products/${id}`, { method: 'DELETE' });
         loadProducts();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ نطاق العمل ══
+
+function renderWorkAreaSection(me) {
+    myWorkArea = me;
+
+    const hasWorkArea = me.work_lat && me.work_lng && me.work_radius;
+
+    document.getElementById('workAreaEmptyState').style.display = hasWorkArea ? 'none'  : 'block';
+    document.getElementById('workAreaDisplay').style.display    = hasWorkArea ? 'block' : 'none';
+
+    if (!hasWorkArea) return;
+
+    document.getElementById('workAreaSummaryText').textContent =
+        `نطاق عملك: ${me.work_radius} كم حول ${me.work_city ? me.work_city : 'موقعك'}`;
+
+    setTimeout(() => {
+        if (!workAreaPreviewMap) {
+            workAreaPreviewMap = L.map('workAreaPreviewMap', { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false })
+                .setView([me.work_lat, me.work_lng], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+            }).addTo(workAreaPreviewMap);
+        }
+
+        workAreaPreviewMap.eachLayer(layer => {
+            if (layer instanceof L.Circle || layer instanceof L.Marker) workAreaPreviewMap.removeLayer(layer);
+        });
+
+        L.marker([me.work_lat, me.work_lng]).addTo(workAreaPreviewMap);
+        const circle = L.circle([me.work_lat, me.work_lng], {
+            radius: me.work_radius * 1000,
+            color: '#F5C518',
+            fillColor: '#F5C518',
+            fillOpacity: 0.2,
+        }).addTo(workAreaPreviewMap);
+
+        workAreaPreviewMap.invalidateSize();
+        workAreaPreviewMap.fitBounds(circle.getBounds());
+    }, 100);
+}
+
+function openWorkAreaModal() {
+    document.getElementById('workAreaModalOverlay').style.display = 'flex';
+
+    const startLat    = myWorkArea?.work_lat    || 24.7136;
+    const startLng     = myWorkArea?.work_lng    || 46.6753;
+    workAreaSelectedRadius = myWorkArea?.work_radius || 10;
+
+    document.getElementById('workAreaRadiusSlider').value = workAreaSelectedRadius;
+    document.getElementById('workAreaRadiusLabel').textContent = `${workAreaSelectedRadius} كم`;
+
+    setTimeout(() => {
+        if (!workAreaModalMap) {
+            workAreaModalMap = L.map('workAreaModalMap').setView([startLat, startLng], 11);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+            }).addTo(workAreaModalMap);
+
+            workAreaModalMap.on('click', (e) => setWorkAreaCenter(e.latlng.lat, e.latlng.lng));
+        } else {
+            workAreaModalMap.setView([startLat, startLng], 11);
+        }
+
+        workAreaModalMap.invalidateSize();
+        setWorkAreaCenter(startLat, startLng);
+
+        // لو المزوّد ما حدد نطاق عمل من قبل، نحاول نحدد موقعه الحالي تلقائياً (يبقى الرياض لو رفض/تعذّر)
+        if (!myWorkArea?.work_lat && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    workAreaModalMap.setView([latitude, longitude], 12);
+                    setWorkAreaCenter(latitude, longitude);
+                },
+                () => {},
+            );
+        }
+    }, 100);
+}
+
+function closeWorkAreaModal() {
+    document.getElementById('workAreaModalOverlay').style.display = 'none';
+}
+
+function setWorkAreaCenter(lat, lng) {
+    workAreaSelectedLat = lat;
+    workAreaSelectedLng = lng;
+
+    if (workAreaModalMarker) {
+        workAreaModalMarker.setLatLng([lat, lng]);
+    } else {
+        workAreaModalMarker = L.marker([lat, lng]).addTo(workAreaModalMap);
+    }
+
+    if (workAreaModalCircle) {
+        workAreaModalCircle.setLatLng([lat, lng]);
+    } else {
+        workAreaModalCircle = L.circle([lat, lng], {
+            radius: workAreaSelectedRadius * 1000,
+            color: '#F5C518',
+            fillColor: '#F5C518',
+            fillOpacity: 0.2,
+        }).addTo(workAreaModalMap);
+    }
+}
+
+function useMyLocationForWorkArea() {
+    if (!navigator.geolocation) {
+        alert('❌ المتصفح ما يدعم تحديد الموقع');
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            workAreaModalMap.setView([latitude, longitude], 12);
+            setWorkAreaCenter(latitude, longitude);
+        },
+        () => {
+            alert('❌ ما قدرنا نحدد موقعك — تأكد من تفعيل صلاحية الموقع بالمتصفح');
+        }
+    );
+}
+
+function onWorkAreaRadiusChange(value) {
+    workAreaSelectedRadius = parseInt(value, 10);
+    document.getElementById('workAreaRadiusLabel').textContent = `${workAreaSelectedRadius} كم`;
+
+    if (workAreaModalCircle) {
+        workAreaModalCircle.setRadius(workAreaSelectedRadius * 1000);
+    }
+}
+
+async function saveWorkArea() {
+    if (!workAreaSelectedLat || !workAreaSelectedLng) {
+        alert('❌ يرجى تحديد مركز نطاق العمل بالضغط على الخريطة');
+        return;
+    }
+
+    const phone = localStorage.getItem('yashjub_phone');
+
+    try {
+        const res  = await fetch(`${API}/providers/${phone}/work-area`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                workLat: workAreaSelectedLat,
+                workLng: workAreaSelectedLng,
+                workRadius: workAreaSelectedRadius,
+                workCity: myWorkArea ? myWorkArea.work_city : null,
+            }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            closeWorkAreaModal();
+            renderWorkAreaSection(data.provider);
+        } else {
+            alert(`❌ ${data.message}`);
+        }
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

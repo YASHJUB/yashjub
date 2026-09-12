@@ -240,6 +240,24 @@
             </div>
         </div>
 
+        <!-- نطاق العمل -->
+        <div class="wallet-card" style="margin-bottom:20px" id="workAreaSection">
+            <div class="wallet-header">
+                <div class="wallet-title"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> نطاق العمل</div>
+                <button class="wallet-withdraw-btn" onclick="openWorkAreaModal()">تحديد نطاق العمل</button>
+            </div>
+            <div id="workAreaEmptyState" style="padding:6px 0 4px;color:#888;font-size:13px">
+                لم تحدد نطاق عملك بعد — حدده عشان تستقبل الطلبات القريبة منك تلقائياً.
+            </div>
+            <div id="workAreaDisplay" style="display:none">
+                <div id="workAreaPreviewMap" style="height:180px;border-radius:12px;overflow:hidden;margin-bottom:10px"></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                    <div style="font-size:13px;font-weight:700" id="workAreaSummaryText">نطاق عملك: — كم حول موقعك</div>
+                    <button class="btn-small" onclick="openWorkAreaModal()">تعديل النطاق</button>
+                </div>
+            </div>
+        </div>
+
         <!-- تقييماتي -->
         <div class="wallet-card" style="margin-bottom:20px">
             <div class="wallet-header">
@@ -313,6 +331,29 @@
             <div class="complaint-form-actions">
                 <button class="btn" style="flex:1" onclick="submitComplaint()">إرسال البلاغ</button>
                 <button class="btn-small" onclick="closeComplaintForm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تحديد نطاق العمل -->
+    <div class="confirm-overlay" id="workAreaModalOverlay" style="display:none">
+        <div class="complaint-form-modal" style="max-width:480px">
+            <h3><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> تحديد نطاق العمل</h3>
+
+            <div id="workAreaModalMap" style="height:350px;border-radius:12px;overflow:hidden;margin-bottom:14px"></div>
+
+            <button class="btn-small" style="width:100%;margin-bottom:16px" onclick="useMyLocationForWorkArea()">
+                <svg class="icon"><use href="icons.svg#icon-pin"></use></svg> استخدم موقعي الحالي
+            </button>
+
+            <label>نطاق عملك: <strong id="workAreaRadiusLabel">10 كم</strong></label>
+            <input type="range" id="workAreaRadiusSlider" min="1" max="50" value="10"
+                   style="width:100%;accent-color:#F5C518;margin:8px 0 4px"
+                   oninput="onWorkAreaRadiusChange(this.value)">
+
+            <div class="complaint-form-actions" style="margin-top:16px">
+                <button class="btn" style="flex:1" onclick="saveWorkArea()">حفظ النطاق ✅</button>
+                <button class="btn-small" onclick="closeWorkAreaModal()">إلغاء</button>
             </div>
         </div>
     </div>

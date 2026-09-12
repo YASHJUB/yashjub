@@ -2493,6 +2493,19 @@ function renderOpsMap(activeOrders, availableProviders) {
             .bindPopup(`<strong>${p.name}</strong><br>${p.service_type}<br>⭐ ${p.rating}`);
         opsMapMarkers.push(marker);
     });
+
+    // نطاقات عمل المزودين (دوائر صفراء شفافة)
+    availableProviders.forEach(p => {
+        if (!p.work_lat || !p.work_lng || !p.work_radius) return;
+        const circle = L.circle([p.work_lat, p.work_lng], {
+            radius: p.work_radius * 1000,
+            color: '#F5C518',
+            fillColor: '#F5C518',
+            fillOpacity: 0.2,
+            weight: 1.5,
+        }).addTo(opsMap).bindPopup(`<strong>${p.name}</strong><br>نطاق العمل: ${p.work_radius} كم`);
+        opsMapMarkers.push(circle);
+    });
 }
 
 // تعيين مزود يدوياً

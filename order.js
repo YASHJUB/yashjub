@@ -136,6 +136,21 @@ function setAddressMarker(lat, lng) {
     document.getElementById('addressLng').value = lng;
 
     reverseGeocode(lat, lng);
+    checkNearbyProvider(lat, lng);
+}
+
+// التحقق من وجود مزوّد نطاق عمله يشمل موقع العميل (وايت ماء/سطحة فقط — الحاوية تعتمد على المدينة/المنتج مباشرة)
+async function checkNearbyProvider(lat, lng) {
+    const warning = document.getElementById('noNearbyProviderWarning');
+    if (!warning || currentService === 'حاوية') return;
+
+    try {
+        const res  = await fetch(`${API}/providers/nearby?lat=${lat}&lng=${lng}&service=${encodeURIComponent(currentService)}`);
+        const data = await res.json();
+        warning.style.display = (data.success && data.providers.length === 0) ? 'block' : 'none';
+    } catch (e) {
+        warning.style.display = 'none';
+    }
 }
 
 async function reverseGeocode(lat, lng) {
