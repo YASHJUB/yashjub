@@ -397,7 +397,10 @@ function confirmOrder() {
     const lat = document.getElementById('addressLat').value || null;
     const lng = document.getElementById('addressLng').value || null;
 
-    const discount = computeDiscount(finalPrice);
+    const discount      = computeDiscount(finalPrice);
+    const afterDiscount = finalPrice - discount;
+    const fee           = Math.round(afterDiscount * 0.05);
+    const totalWithFee  = afterDiscount + fee;
 
     // تجهيز بيانات الطلب لحين انتهاء العد التنازلي
     pendingOrder = {
@@ -413,7 +416,7 @@ function confirmOrder() {
             lat, lng,
         },
         service, fullAddress, address,
-        finalPrice: finalPrice - discount,
+        finalPrice: totalWithFee,
         discount,
     };
 

@@ -224,12 +224,15 @@ app.post('/api/orders', (req, res) => {
         }
     }
 
+    // العمولة 5% تُضاف على سعر الخدمة وتُحصَّل من العميل (فوق سعر الخدمة)، ما تُخصم من مستحقات المزوّد —
+    // العميل يدفع price + commission، والمزوّد ياخذ سعر الخدمة كامل (price بعد الخصم بدون أي اقتطاع)
     const commission = Math.round(price * 0.05);
+    const totalCharged = price + commission;
 
     const result = db.prepare(`
         INSERT INTO orders (phone, service, address, price, commission, provider_id, provider_name, provider_phone, product_id, lat, lng, coupon_code, discount)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(phone, service, address, price, commission, providerId || null, providerName || null, providerPhone, productId || null, lat || null, lng || null, usedCoupon ? usedCoupon.code : null, discount);
+    `).run(phone, service, address, totalCharged, commission, providerId || null, providerName || null, providerPhone, productId || null, lat || null, lng || null, usedCoupon ? usedCoupon.code : null, discount);
 
     if (usedCoupon) {
         db.prepare('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?').run(usedCoupon.id);
