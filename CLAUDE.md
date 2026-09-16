@@ -79,6 +79,8 @@
 
 كل تسجيل يتطلب رفع فعلي (ملف JPG أو PDF فقط، ≤5MB — يتحقق منه `multer`'s `fileFilter` بـ`server.js` بدقة على mimetype الملف، مو بس امتداده) لصورة الهوية/الإقامة (إلزامي دائماً)، وملف شهادة العمل الحر (مستوى 2) أو السجل التجاري (مستوى 3). الملفات تُخزَّن محلياً بمجلد `uploads/` (عبر `multer`، مستثنى من git بـ `.gitignore`) وتُقدَّم كملفات ثابتة على `/uploads/...`. **تنبيه:** استضافة Render الحالية (الخطة المجانية) بدون تخزين دائم — أي ملف مرفوع (وكل قاعدة البيانات SQLite نفسها) ينمحي مع أي إعادة نشر/تشغيل جديد للموقع الحي. قرار مقبول مؤقتاً؛ لو احتجنا استمرارية حقيقية لازم ننتقل لتخزين سحابي (مثل Cloudinary) وقاعدة بيانات مُدارة بدل SQLite المحلي.
 
+**وثائق إضافية إلزامية لمزودي السطحة فقط** (`providers.driving_license_path`/`vehicle_registration_path`/`transport_permit_path`) — رخصة القيادة، استمارة المركبة، وتصريح النقل، ثلاثتها ملفات (JPG/PDF، نفس قيود الحجم والنوع) بدون حقول نصية مرافقة (خلافاً لشهادة العمل الحر/السجل التجاري اللي لها رقم نصي + ملف). تظهر بفورم `register-provider.html` فقط لما "نوع الخدمة" = سطحة (`toggleContainerNote()` بـ`register-provider.js` يتحكم بإظهارها، نفس الدالة اللي تتحكم بتنويه الحاوية)، والسيرفر يرفض الطلب صراحة لو ناقصة أي وحدة منها. لوحة الإدارة (صفحة الموردين، عمود المستندات) تعرض روابط الثلاثة زي باقي مستندات المزوّد.
+
 **المدير (Admin):** `admin` / `غوث` مع كلمة السر `yashjub2025` — رابط `/admin.html` — صفحة الموردين فيها روابط تفتح مستندات كل مزود (الهوية/الشهادة) بتبويب جديد للمراجعة.
 
 ### موافقة الإدارة على تسجيل المزودين (عمود `providers.status`)
@@ -173,7 +175,7 @@ yashjub/
 ```sql
 users       -- phone, otp, verified, name, suspended_until
 orders      -- phone, service, address, price, commission, status, provider_id, provider_name, provider_phone, product_id, lat, lng, coupon_code, discount, accepted_at
-providers   -- phone, name, service_type, level, rating, id_document_path, certificate_path, suspended_until, status (pending/approved/rejected — راجع قسم "موافقة الإدارة على تسجيل المزودين")، work_lat/work_lng/work_radius/work_city (نطاق عمل اختياري — راجع قسم "نطاق عمل المزوّد")، city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
+providers   -- phone, name, service_type, level, rating, id_document_path, certificate_path, driving_license_path/vehicle_registration_path/transport_permit_path (إلزامية لمزودي السطحة فقط)، suspended_until, status (pending/approved/rejected — راجع قسم "موافقة الإدارة على تسجيل المزودين")، work_lat/work_lng/work_radius/work_city (نطاق عمل اختياري — راجع قسم "نطاق عمل المزوّد")، city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
 products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available, lat, lng
 employees   -- name, phone, iban, role (admin/supervisor/support/reviewer/accountant), username, password (مشفّرة bcrypt), is_active
 cities      -- name, is_active — مزروعة بـ 5 مدن أساسية أول تشغيل (لو الجدول فاضي)
@@ -314,7 +316,7 @@ GET  /api/orders/user/:phone                  يشمل is_reviewed (هل قيّ�
 PUT  /api/orders/:id/status                   أول تحويل لـ accepted يسجّل accepted_at تلقائياً (للمرة الأولى فقط)
 PUT  /api/orders/:id/assign-provider           body: { providerId } — تعيين/تغيير مزوّد الطلب يدوياً (مركز العمليات)
 GET  /api/users                               يشمل name لكل مستخدم
-POST /api/providers/register                  multipart/form-data: fullName, phone, idNumber, idDocument(ملف), iban, serviceType, level (2/3) + حقول المستوى + certificateDocument(ملف)
+POST /api/providers/register                  multipart/form-data: fullName, phone, idNumber, idDocument(ملف), iban, serviceType, level (2/3) + حقول المستوى + certificateDocument(ملف) + لمزودي السطحة: drivingLicense/vehicleRegistration/transportPermit (3 ملفات إلزامية)
 GET  /api/providers                           كل المزودين (بدون فلترة) — يشمل lat/lng محسوبة من آخر منتج للمزوّد له إحداثيات (فاضية لمزودي وايت ماء/سطحة)
 PUT  /api/providers/:id/approve               قبول تسجيل مزوّد معلّق — status→approved, is_available→1، يرسل إشعار للمزوّد
 PUT  /api/providers/:id/reject                رفض تسجيل مزوّد معلّق — status→rejected, is_available→0 دائماً، يرسل إشعار للمزوّد

@@ -347,6 +347,9 @@ app.get('/api/users', (req, res) => {
 app.post('/api/providers/register', upload.fields([
     { name: 'idDocument', maxCount: 1 },
     { name: 'certificateDocument', maxCount: 1 },
+    { name: 'drivingLicense', maxCount: 1 },
+    { name: 'vehicleRegistration', maxCount: 1 },
+    { name: 'transportPermit', maxCount: 1 },
 ]), (req, res) => {
     const { fullName, phone, idNumber, iban, serviceType, level } = req.body;
     const levelNum = parseInt(level, 10);
@@ -357,6 +360,9 @@ app.post('/api/providers/register', upload.fields([
 
     const idDocFile = req.files?.idDocument?.[0];
     const certDocFile = req.files?.certificateDocument?.[0];
+    const drivingLicenseFile = req.files?.drivingLicense?.[0];
+    const vehicleRegistrationFile = req.files?.vehicleRegistration?.[0];
+    const transportPermitFile = req.files?.transportPermit?.[0];
 
     if (!idDocFile) {
         return res.json({ success: false, message: 'يرجى إرفاق صورة الهوية أو الإقامة' });
@@ -364,6 +370,11 @@ app.post('/api/providers/register', upload.fields([
 
     if (levelNum >= 2 && !certDocFile) {
         return res.json({ success: false, message: 'يرجى إرفاق شهادة العمل الحر أو السجل التجاري' });
+    }
+
+    // وثائق إضافية إلزامية لمزودي السطحة (مركبة حقيقية تحتاج رخصة قيادة + استمارة + تصريح نقل)
+    if (serviceType === 'سطحة' && (!drivingLicenseFile || !vehicleRegistrationFile || !transportPermitFile)) {
+        return res.json({ success: false, message: 'يرجى إرفاق رخصة القيادة واستمارة المركبة وتصريح النقل' });
     }
 
     const providerLevel = levelNum === 2 ? 'verified' : 'business';
@@ -376,12 +387,15 @@ app.post('/api/providers/register', upload.fields([
     }
 
     const result = db.prepare(`
-        INSERT INTO providers (phone, name, service_type, level, id_document_path, certificate_path, is_available, status)
-        VALUES (?, ?, ?, ?, ?, ?, 0, 'pending')
+        INSERT INTO providers (phone, name, service_type, level, id_document_path, certificate_path, driving_license_path, vehicle_registration_path, transport_permit_path, is_available, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'pending')
     `).run(
         phone, fullName, serviceType, providerLevel,
         `/uploads/${idDocFile.filename}`,
         certDocFile ? `/uploads/${certDocFile.filename}` : null,
+        drivingLicenseFile ? `/uploads/${drivingLicenseFile.filename}` : null,
+        vehicleRegistrationFile ? `/uploads/${vehicleRegistrationFile.filename}` : null,
+        transportPermitFile ? `/uploads/${transportPermitFile.filename}` : null,
     );
 
     createNotification(

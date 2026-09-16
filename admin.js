@@ -439,6 +439,9 @@ function providerDocsCell(p) {
     return `
         ${p.id_document_path ? `<a href="${p.id_document_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-id-card"></use></svg> الهوية</a>` : '—'}
         ${p.certificate_path ? ` &nbsp;<a href="${p.certificate_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-document"></use></svg> الشهادة</a>` : ''}
+        ${p.driving_license_path ? ` &nbsp;<a href="${p.driving_license_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-id-card"></use></svg> رخصة القيادة</a>` : ''}
+        ${p.vehicle_registration_path ? ` &nbsp;<a href="${p.vehicle_registration_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-car"></use></svg> الاستمارة</a>` : ''}
+        ${p.transport_permit_path ? ` &nbsp;<a href="${p.transport_permit_path}" target="_blank"><svg class="icon"><use href="icons.svg#icon-document"></use></svg> تصريح النقل</a>` : ''}
     `;
 }
 

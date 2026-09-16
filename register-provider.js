@@ -30,10 +30,11 @@ function selectLevel(level) {
     document.getElementById('regFormSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-// إظهار/إخفاء تنويه مزود الحاوية حسب نوع الخدمة
+// إظهار/إخفاء حقول إضافية حسب نوع الخدمة (تنويه الحاوية، وثائق السطحة)
 function toggleContainerNote() {
     const serviceType = document.getElementById('serviceType').value;
     document.getElementById('containerNote').style.display = serviceType === 'حاوية' ? 'block' : 'none';
+    document.getElementById('towingFields').style.display  = serviceType === 'سطحة'  ? 'block' : 'none';
 }
 
 // إرسال التسجيل
@@ -76,6 +77,22 @@ async function submitRegistration() {
     data.append('iban', iban);
     data.append('serviceType', serviceType);
     data.append('level', selectedLevel);
+
+    // وثائق مزود السطحة (مركبة حقيقية)
+    if (serviceType === 'سطحة') {
+        const drivingLicense      = document.getElementById('drivingLicense').files[0];
+        const vehicleRegistration = document.getElementById('vehicleRegistration').files[0];
+        const transportPermit     = document.getElementById('transportPermit').files[0];
+
+        if (!drivingLicense || !vehicleRegistration || !transportPermit) {
+            alert('❌ يرجى إرفاق رخصة القيادة واستمارة المركبة وتصريح النقل');
+            return;
+        }
+
+        data.append('drivingLicense', drivingLicense);
+        data.append('vehicleRegistration', vehicleRegistration);
+        data.append('transportPermit', transportPermit);
+    }
 
     // إضافة بيانات مزود فرد
     if (selectedLevel >= 2) {
