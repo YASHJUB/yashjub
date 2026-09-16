@@ -4,6 +4,8 @@ const API = window.location.origin + '/api';
 
 let countdownInterval;
 let countdownSeconds = 60;
+let activeOrderPollInterval = null;
+let currentActiveOrder      = null;
 let allOrders = [];
 let currentProviderId = null;
 let editingProductId   = null;
@@ -47,8 +49,11 @@ function loadProvider() {
     // تحميل بيانات المزود (لمعرفة نوع الخدمة وإظهار قسم المنتجات)
     loadProviderProfile(phone);
 
-    // محاكاة طلب وارد
-    simulateIncomingOrder();
+    // بطاقة الطلب النشط (تتحول قبول → وصلت للموقع → اكتملت الخدمة ثم تختفي)
+    checkActiveOrder();
+    if (!activeOrderPollInterval) {
+        activeOrderPollInterval = setInterval(checkActiveOrder, 15000);
+    }
 }
 
 // تحميل بيانات المزود الحالي
@@ -358,26 +363,84 @@ function filterOrders(status, btn) {
     }
 }
 
-// محاكاة طلب وارد
-function simulateIncomingOrder() {
-    const phone = localStorage.getItem('yashjub_phone');
+// ══ بطاقة الطلب النشط (تتحول: قبول الطلب → وصلت للموقع → اكتملت الخدمة، ثم تختفي) ══
 
-    // شوف إذا في طلب في localStorage
-    const savedOrder = localStorage.getItem('yashjub_order');
-    if (savedOrder) {
-        const order = JSON.parse(savedOrder);
-        document.getElementById('newOrderService').textContent = `${order.icon} ${order.service}`;
-        document.getElementById('newOrderAddress').textContent = order.address;
-        document.getElementById('newOrderAmount').textContent  = `${order.price} ريال`;
-        document.getElementById('newOrderClient').textContent  = `+966${phone}`;
-        document.getElementById('newOrderSection').style.display = 'block';
+const ACTIVE_ORDER_ICONS = {
+    'وايت ماء': 'truck', 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane'
+};
+
+// يجلب طلبات المزوّد الحقيقية ويعرض أقدم طلب نشط (لسه ما اكتمل) بالبطاقة
+async function checkActiveOrder() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) return;
+
+    try {
+        const res  = await fetch(`${API}/orders/provider/${phone}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const active = data.orders.find(o => ['pending', 'accepted', 'arrived'].includes(o.status));
+        renderActiveOrderCard(active || null);
+    } catch (e) {}
+}
+
+function renderActiveOrderCard(order) {
+    const section = document.getElementById('newOrderSection');
+
+    if (!order) {
+        section.style.display = 'none';
+        clearInterval(countdownInterval);
+        currentActiveOrder = null;
+        return;
+    }
+
+    // ما نعيد بناء البطاقة لو نفس الطلب بنفس الحالة (يحافظ على العداد التنازلي شغال بدون تصفير كل استطلاع)
+    const isSameState = currentActiveOrder && currentActiveOrder.id === order.id && currentActiveOrder.status === order.status;
+    currentActiveOrder = order;
+    if (isSameState) return;
+
+    const icon = ACTIVE_ORDER_ICONS[order.service] || 'wrench';
+    document.getElementById('newOrderService').innerHTML   = `<svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${order.service}`;
+    document.getElementById('newOrderAddress').textContent = order.address;
+    document.getElementById('newOrderAmount').textContent  = `${order.price} ريال`;
+    document.getElementById('newOrderClient').textContent  = `+966${order.phone}`;
+    section.style.display = 'block';
+
+    renderActiveOrderActions(order);
+}
+
+// يبني عنوان البطاقة وزر الإجراء المناسب حسب الحالة الحقيقية للطلب
+function renderActiveOrderActions(order) {
+    const titleEl      = document.getElementById('newOrderTitle');
+    const actionsEl    = document.getElementById('newOrderActions');
+    const countdownEl  = document.getElementById('countdownWrap');
+
+    if (order.status === 'pending') {
+        titleEl.innerHTML = '<svg class="icon"><use href="icons.svg#icon-bell"></use></svg> طلب جديد وارد!';
+        actionsEl.innerHTML = `
+            <button class="btn-accept-order" onclick="acceptRealOrder(${order.id})"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> قبول الطلب</button>
+            <button class="btn-reject-order" onclick="rejectActiveOrder(${order.id})"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> رفض</button>
+        `;
+        countdownEl.style.display = 'block';
         startCountdown();
-    } else {
-        document.getElementById('newOrderSection').style.display = 'none';
+    } else if (order.status === 'accepted') {
+        titleEl.innerHTML = '<svg class="icon"><use href="icons.svg#icon-car"></use></svg> الطلب مقبول — توجّه للموقع';
+        actionsEl.innerHTML = `
+            <button class="btn-accept-order" style="grid-column:1 / -1" onclick="markOrderArrived(${order.id})"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> وصلت للموقع</button>
+        `;
+        clearInterval(countdownInterval);
+        countdownEl.style.display = 'none';
+    } else if (order.status === 'arrived') {
+        titleEl.innerHTML = '<svg class="icon"><use href="icons.svg#icon-car"></use></svg> وصلت للموقع — أكمل الخدمة';
+        actionsEl.innerHTML = `
+            <button class="btn-accept-order" style="grid-column:1 / -1" onclick="markOrderCompleted(${order.id})"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> اكتملت الخدمة</button>
+        `;
+        clearInterval(countdownInterval);
+        countdownEl.style.display = 'none';
     }
 }
 
-// العداد التنازلي
+// العداد التنازلي (يظهر بس أثناء انتظار قرار القبول)
 function startCountdown() {
     countdownSeconds = 60;
     const fill = document.getElementById('countdownFill');
@@ -391,42 +454,24 @@ function startCountdown() {
 
         if (countdownSeconds <= 0) {
             clearInterval(countdownInterval);
-            rejectOrder();
+            if (currentActiveOrder) rejectActiveOrder(currentActiveOrder.id);
         }
     }, 1000);
 }
 
-// قبول الطلب (من نافذة الطلب الوارد) — يستدعي endpoint القبول الحقيقي
-async function acceptOrder() {
+// رفض/انتهاء مهلة الرد — يلغي الطلب فعلياً بقاعدة البيانات
+async function rejectActiveOrder(id) {
     clearInterval(countdownInterval);
     document.getElementById('newOrderSection').style.display = 'none';
+    currentActiveOrder = null;
 
-    const savedOrder = localStorage.getItem('yashjub_order');
-    if (savedOrder) {
-        const order = JSON.parse(savedOrder);
-        const net   = Math.round(order.price * 0.95);
-
-        try {
-            await fetch(`${API}/orders/${order.id}/accept`, { method: 'PUT' });
-        } catch (e) {}
-
-        // تحديث الإحصائيات
-        const current = parseInt(document.getElementById('statToday').textContent) || 0;
-        document.getElementById('statToday').textContent = current + 1;
-
-        alert(`✅ تم قبول الطلب!\n\nتوجه للموقع المحدد:\n📍 ${order.address}\n\nصافي أرباحك: ${net} ريال`);
-        localStorage.removeItem('yashjub_order');
-
-        // تحديث الصفحة
-        loadProvider();
-    }
-}
-
-// رفض الطلب
-function rejectOrder() {
-    clearInterval(countdownInterval);
-    document.getElementById('newOrderSection').style.display = 'none';
-    localStorage.removeItem('yashjub_order');
+    try {
+        await fetch(`${API}/orders/${id}/status`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ status: 'cancelled' }),
+        });
+    } catch (e) {}
 }
 
 // قبول طلب حقيقي (pending → accepted)

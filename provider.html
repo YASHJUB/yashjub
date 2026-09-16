@@ -171,10 +171,10 @@
         </div>
 
         <!-- الطلب الوارد -->
-        <div class="new-order-section" id="newOrderSection">
+        <div class="new-order-section" id="newOrderSection" style="display:none">
             <div class="new-order-header">
                 <div class="new-order-pulse"></div>
-                <div class="new-order-title"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg> طلب جديد وارد!</div>
+                <div class="new-order-title" id="newOrderTitle"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg> طلب جديد وارد!</div>
             </div>
 
             <div class="new-order-body">
@@ -198,12 +198,11 @@
                     </div>
                 </div>
 
-                <div class="new-order-actions">
-                    <button class="btn-accept-order" onclick="acceptOrder()"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> قبول الطلب</button>
-                    <button class="btn-reject-order" onclick="rejectOrder()"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> رفض</button>
+                <div class="new-order-actions" id="newOrderActions">
+                    <!-- تُبنى ديناميكياً بـ renderActiveOrderActions() حسب حالة الطلب الحقيقية -->
                 </div>
 
-                <div class="countdown-wrap">
+                <div class="countdown-wrap" id="countdownWrap">
                     <div class="countdown-bar-wrap">
                         <div class="countdown-bar-fill" id="countdownFill"></div>
                     </div>
