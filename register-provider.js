@@ -145,8 +145,7 @@ async function submitRegistration() {
         const result = await response.json();
 
         if (result.success) {
-            alert(`✅ تم استلام طلبك بنجاح!\n\nسيتم مراجعة بياناتك والتواصل معك خلال 24 ساعة\n\nرقم طلبك: #${result.id}`);
-            window.location.href = 'index.html';
+            showAppAlert(`✅ تم استلام طلبك بنجاح!\n\nسيتم مراجعة بياناتك والتواصل معك خلال 24 ساعة\n\nرقم طلبك: #${result.id}`, () => window.location.href = 'index.html');
         } else {
             alert(`❌ ${result.message}`);
         }

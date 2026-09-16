@@ -65,8 +65,7 @@ async function verifyOTP() {
             if (data.name) {
                 // عنده اسم محفوظ مسبقاً
                 localStorage.setItem('yashjub_name', data.name);
-                alert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في غَوْث 👷");
-                redirectAfterLogin();
+                showAppAlert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في غَوْث 👷", redirectAfterLogin);
             } else {
                 // أول مرة يدخل — لازم يحدد اسمه قبل ما يكمل
                 document.getElementById('namePopupOverlay').style.display = 'flex';

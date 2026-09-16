@@ -15,8 +15,7 @@ let containerLocation = null;
 async function loadProducts() {
     const phone = localStorage.getItem('yashjub_phone');
     if (!phone) {
-        alert("⚠️ يجب تسجيل الدخول أولاً!");
-        window.location.href = 'login.html';
+        showAppAlert("⚠️ يجب تسجيل الدخول أولاً!", () => window.location.href = 'login.html');
         return;
     }
 

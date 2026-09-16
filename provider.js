@@ -31,8 +31,7 @@ function loadProvider() {
     const type  = localStorage.getItem('yashjub_type');
 
     if (!phone || type !== 'provider') {
-        alert('⚠️ هذه الصفحة للمزودين فقط');
-        window.location.href = 'login.html';
+        showAppAlert('⚠️ هذه الصفحة للمزودين فقط', () => window.location.href = 'login.html');
         return;
     }
 

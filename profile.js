@@ -8,8 +8,7 @@ async function loadProfile() {
     const name  = localStorage.getItem('yashjub_name');
 
     if (!phone) {
-        alert('⚠️ يجب تسجيل الدخول أولاً');
-        window.location.href = 'login.html';
+        showAppAlert('⚠️ يجب تسجيل الدخول أولاً', () => window.location.href = 'login.html');
         return;
     }
 

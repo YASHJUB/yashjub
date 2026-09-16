@@ -5195,6 +5195,50 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     .confirm-modal { padding: 22px 18px; }
 }
 
+/* ══ نافذة تنبيه موحّدة بتصميم المنصة (بديل alert() الافتراضي بالمتصفح — alert.js) ══ */
+
+.app-alert-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.app-alert-icon .icon { width: 28px; height: 28px; }
+
+.app-alert-icon.success { background: rgba(16,185,129,0.12); color: #10B981; }
+.app-alert-icon.error   { background: rgba(239,68,68,0.12);  color: #EF4444; }
+.app-alert-icon.warning { background: rgba(245,158,11,0.12); color: #F59E0B; }
+.app-alert-icon.info    { background: rgba(245,197,24,0.15); color: #92700A; }
+
+.app-alert-message {
+    font-size: 14px;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+    line-height: 1.8;
+    white-space: pre-line;
+    margin-bottom: 22px;
+}
+
+.app-alert-btn {
+    width: 100%;
+    background: #F5C518;
+    color: #111111;
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.app-alert-btn:hover { background: #e0b010; }
+
 /* ══ تحديد سعر العميل (وايت ماء / سطحة) ══ */
 
 #customPrice {
