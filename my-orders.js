@@ -13,6 +13,7 @@ const serviceIcons = {
 const statusLabels = {
     'pending':   { label: 'قيد الانتظار', color: '#F59E0B', bg: 'rgba(245,158,11,0.1)'  },
     'accepted':  { label: 'تم القبول',    color: '#3B82F6', bg: 'rgba(59,130,246,0.1)'  },
+    'arrived':   { label: 'المزوّد وصل',  color: '#92700A', bg: 'rgba(245,197,24,0.15)' },
     'completed': { label: 'مكتمل',        color: '#10B981', bg: 'rgba(16,185,129,0.1)'  },
     'cancelled': { label: 'ملغي',         color: '#EF4444', bg: 'rgba(239,68,68,0.1)'   },
 }

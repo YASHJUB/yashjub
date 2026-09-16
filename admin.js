@@ -293,6 +293,7 @@ async function loadDashboard() {
         const statusBadge = {
             pending:   '<span class="badge badge-pending">انتظار</span>',
             accepted:  '<span class="badge badge-active">مقبول</span>',
+            arrived:   '<span class="badge badge-gold">وصل الموقع</span>',
             completed: '<span class="badge badge-done">مكتمل</span>',
             cancelled: '<span class="badge badge-cancel">ملغي</span>',
         };
@@ -395,6 +396,7 @@ async function loadOrdersPage() {
         const statusBadge = {
             pending:   '<span class="badge badge-pending">انتظار</span>',
             accepted:  '<span class="badge badge-active">مقبول</span>',
+            arrived:   '<span class="badge badge-gold">وصل الموقع</span>',
             completed: '<span class="badge badge-done">مكتمل</span>',
             cancelled: '<span class="badge badge-cancel">ملغي</span>',
         };
@@ -414,6 +416,7 @@ async function loadOrdersPage() {
                         style="font-family:Cairo,sans-serif;font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #ddd;cursor:pointer">
                         <option value="pending"   ${o.status==='pending'   ?'selected':''}>انتظار</option>
                         <option value="accepted"  ${o.status==='accepted'  ?'selected':''}>قبول</option>
+                        <option value="arrived"   ${o.status==='arrived'   ?'selected':''}>وصل الموقع</option>
                         <option value="completed" ${o.status==='completed' ?'selected':''}>مكتمل</option>
                         <option value="cancelled" ${o.status==='cancelled' ?'selected':''}>إلغاء</option>
                     </select>
@@ -776,6 +779,7 @@ async function loadPaymentsPage() {
         const statusBadge = {
             pending:   '<span class="badge badge-pending">انتظار</span>',
             accepted:  '<span class="badge badge-active">مقبول</span>',
+            arrived:   '<span class="badge badge-gold">وصل الموقع</span>',
             completed: '<span class="badge badge-done">مكتمل</span>',
             cancelled: '<span class="badge badge-cancel">ملغي</span>',
         };
@@ -1261,7 +1265,7 @@ function renderChatsList() {
     let list = allConversations;
 
     if (currentChatFilter === 'active') {
-        list = list.filter(c => c.order_status === 'pending' || c.order_status === 'accepted');
+        list = list.filter(c => c.order_status === 'pending' || c.order_status === 'accepted' || c.order_status === 'arrived');
     } else if (currentChatFilter === 'completed') {
         list = list.filter(c => c.order_status === 'completed' || c.order_status === 'cancelled');
     } else if (currentChatFilter === 'intervention') {
@@ -1282,10 +1286,11 @@ function renderChatsList() {
     }
 
     const statusLabels = {
-        pending:   { label: 'انتظار',  class: 'badge-pending' },
-        accepted:  { label: 'نشطة',    class: 'badge-active'  },
-        completed: { label: 'مكتملة',  class: 'badge-done'    },
-        cancelled: { label: 'ملغية',   class: 'badge-cancel'  },
+        pending:   { label: 'انتظار',      class: 'badge-pending' },
+        accepted:  { label: 'نشطة',        class: 'badge-active'  },
+        arrived:   { label: 'المزود وصل',  class: 'badge-gold'    },
+        completed: { label: 'مكتملة',      class: 'badge-done'    },
+        cancelled: { label: 'ملغية',       class: 'badge-cancel'  },
     };
 
     container.innerHTML = list.map(c => {
@@ -2363,7 +2368,7 @@ async function loadOperationsPage() {
         if (!live.success || !ordersData.success || !providersData.success) return;
 
         const allOrders = ordersData.orders;
-        const activeOrders    = allOrders.filter(o => o.status === 'pending' || o.status === 'accepted');
+        const activeOrders    = allOrders.filter(o => o.status === 'pending' || o.status === 'accepted' || o.status === 'arrived');
         const availableProviders = providersData.providers.filter(p => p.is_available);
 
         opsOrdersCache    = activeOrders;
@@ -2418,6 +2423,7 @@ function renderOpsOrdersTable(orders) {
     const statusBadge = {
         pending:   '<span class="badge badge-pending">انتظار</span>',
         accepted:  '<span class="badge badge-active">مقبول</span>',
+        arrived:   '<span class="badge badge-gold">وصل الموقع</span>',
     };
 
     document.getElementById('opsOrdersTable').innerHTML = orders.map(o => {

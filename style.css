@@ -540,9 +540,35 @@ body {
 }
 
 .step-icon {
-    font-size: 26px;
     width: 40px;
-    text-align: center;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #EFEFEF;
+    color: #AAAAAA;
+    transition: all 0.4s;
+}
+
+.step-icon .icon { width: 20px; height: 20px; }
+
+.step.done .step-icon {
+    background: #F5C518;
+    color: #111111;
+}
+
+.step.active .step-icon {
+    background: #F5C518;
+    color: #111111;
+    animation: stepIconPulse 1.6s infinite;
+}
+
+@keyframes stepIconPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(245,197,24,0.5); }
+    70%  { box-shadow: 0 0 0 10px rgba(245,197,24,0); }
+    100% { box-shadow: 0 0 0 0 rgba(245,197,24,0); }
 }
 
 .step-title {
@@ -4901,7 +4927,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     margin-top: 12px;
 }
 .provider-order-chat-actions .btn-chat,
-.provider-order-chat-actions .btn-complete-order {
+.provider-order-chat-actions .btn-complete-order,
+.provider-order-chat-actions .btn-arrived-order {
     flex: 1;
     width: auto;
     margin-top: 0;
@@ -4910,6 +4937,40 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     justify-content: center;
     gap: 6px;
 }
+
+.btn-arrived-order {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #F5C518;
+    color: #111111;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+}
+.btn-arrived-order:hover { background: #FFD740; }
+
+.btn-accept-real-order {
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: #10B981;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-accept-real-order:hover { background: #059669; }
 
 /* لوحة الشات */
 .chat-panel {

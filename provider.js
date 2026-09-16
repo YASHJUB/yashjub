@@ -130,7 +130,7 @@ async function loadMyReviews(phone) {
 // تحميل الطلبات
 async function loadOrders(phone) {
     try {
-        const res  = await fetch(`${API}/orders/user/${phone}`);
+        const res  = await fetch(`${API}/orders/provider/${phone}`);
         const data = await res.json();
 
         if (data.success) {
@@ -190,10 +190,11 @@ function renderOrders(orders) {
     }
 
     const statusLabels = {
-        pending:   { label: 'انتظار',  color: '#F59E0B', bg: 'rgba(245,158,11,0.1)'  },
-        accepted:  { label: 'مقبول',   color: '#3B82F6', bg: 'rgba(59,130,246,0.1)'  },
-        completed: { label: 'مكتمل',   color: '#10B981', bg: 'rgba(16,185,129,0.1)'  },
-        cancelled: { label: 'ملغي',    color: '#EF4444', bg: 'rgba(239,68,68,0.1)'   },
+        pending:   { label: 'انتظار',    color: '#F59E0B', bg: 'rgba(245,158,11,0.1)'  },
+        accepted:  { label: 'مقبول',     color: '#3B82F6', bg: 'rgba(59,130,246,0.1)'  },
+        arrived:   { label: 'وصلت',      color: '#92700A', bg: 'rgba(245,197,24,0.15)' },
+        completed: { label: 'مكتمل',     color: '#10B981', bg: 'rgba(16,185,129,0.1)'  },
+        cancelled: { label: 'ملغي',      color: '#EF4444', bg: 'rgba(239,68,68,0.1)'   },
     };
 
     const serviceIcons = {
@@ -230,14 +231,22 @@ function renderOrders(orders) {
                         <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> صافي الأرباح: <strong>${net} ريال</strong></span>
                     </div>
                 </div>
-                ${o.status === 'accepted' ? `
+                ${o.status === 'pending' ? `
+                <button class="btn-accept-real-order" onclick="acceptRealOrder(${o.id})">
+                    <svg class="icon"><use href="icons.svg#icon-check"></use></svg> قبول الطلب
+                </button>` : ''}
+                ${(o.status === 'accepted' || o.status === 'arrived') ? `
                 <div class="provider-order-chat-actions">
                     <button class="btn-chat" onclick="toggleProviderChat(${o.id})">
                         <svg class="icon"><use href="icons.svg#icon-chat"></use></svg> محادثة العميل
                     </button>
-                    <button class="btn-complete-order" onclick="completeOrder(${o.id})">
-                        <svg class="icon"><use href="icons.svg#icon-check"></use></svg> تأكيد الاكتمال
-                    </button>
+                    ${o.status === 'accepted' ? `
+                    <button class="btn-arrived-order" onclick="markOrderArrived(${o.id})">
+                        <svg class="icon"><use href="icons.svg#icon-pin"></use></svg> وصلت للموقع
+                    </button>` : `
+                    <button class="btn-complete-order" onclick="markOrderCompleted(${o.id})">
+                        <svg class="icon"><use href="icons.svg#icon-check"></use></svg> اكتملت الخدمة
+                    </button>`}
                 </div>
                 <div class="chat-panel" id="chatPanel-${o.id}" style="display:none">
                     <div class="chat-messages" id="chatMessages-${o.id}"></div>
@@ -387,8 +396,8 @@ function startCountdown() {
     }, 1000);
 }
 
-// قبول الطلب
-function acceptOrder() {
+// قبول الطلب (من نافذة الطلب الوارد) — يستدعي endpoint القبول الحقيقي
+async function acceptOrder() {
     clearInterval(countdownInterval);
     document.getElementById('newOrderSection').style.display = 'none';
 
@@ -396,6 +405,10 @@ function acceptOrder() {
     if (savedOrder) {
         const order = JSON.parse(savedOrder);
         const net   = Math.round(order.price * 0.95);
+
+        try {
+            await fetch(`${API}/orders/${order.id}/accept`, { method: 'PUT' });
+        } catch (e) {}
 
         // تحديث الإحصائيات
         const current = parseInt(document.getElementById('statToday').textContent) || 0;
@@ -416,21 +429,60 @@ function rejectOrder() {
     localStorage.removeItem('yashjub_order');
 }
 
-// تأكيد اكتمال الطلب
-async function completeOrder(id) {
-    if (!confirm('هل اكتملت الخدمة؟')) return;
+// قبول طلب حقيقي (pending → accepted)
+async function acceptRealOrder(id) {
+    if (!confirm('هل تريد قبول هذا الطلب؟')) return;
 
     try {
-        await fetch(`${API}/orders/${id}/status`, {
-            method:  'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ status: 'completed' })
-        });
+        const res  = await fetch(`${API}/orders/${id}/accept`, { method: 'PUT' });
+        const data = await res.json();
 
-        alert('✅ تم تأكيد اكتمال الخدمة!');
-        loadProvider();
-    } catch(e) {
-        alert('❌ خطأ في الاتصال');
+        if (data.success) {
+            alert('✅ تم قبول الطلب!');
+            loadProvider();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// تسجيل وصول المزوّد لموقع الخدمة (accepted → arrived)
+async function markOrderArrived(id) {
+    if (!confirm('هل أنت متأكد إنك وصلت لموقع الخدمة؟')) return;
+
+    try {
+        const res  = await fetch(`${API}/orders/${id}/arrived`, { method: 'PUT' });
+        const data = await res.json();
+
+        if (data.success) {
+            alert('📍 تم تسجيل وصولك للموقع!');
+            loadProvider();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// تأكيد اكتمال الخدمة (arrived → completed)
+async function markOrderCompleted(id) {
+    if (!confirm('هل أنت متأكد من اكتمال الخدمة؟')) return;
+
+    try {
+        const res  = await fetch(`${API}/orders/${id}/complete`, { method: 'PUT' });
+        const data = await res.json();
+
+        if (data.success) {
+            alert('✅ تم تأكيد اكتمال الخدمة!');
+            loadProvider();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
     }
 }
 

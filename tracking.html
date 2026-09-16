@@ -55,11 +55,11 @@
 
                 <div class="step-line done" id="line1"></div>
 
-                <div class="step active" id="step2">
-                    <div class="step-icon"><svg class="icon"><use href="icons.svg#icon-search"></use></svg></div>
+                <div class="step" id="step2">
+                    <div class="step-icon"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg></div>
                     <div class="step-info">
-                        <div class="step-title">جاري البحث عن مزود</div>
-                        <div class="step-sub">نبحث عن أقرب مزود لك</div>
+                        <div class="step-title">تم قبول المزود</div>
+                        <div class="step-sub" id="step2Sub">بانتظار قبول المزود لطلبك</div>
                     </div>
                 </div>
 
@@ -69,7 +69,7 @@
                     <div class="step-icon"><svg class="icon"><use href="icons.svg#icon-car"></use></svg></div>
                     <div class="step-info">
                         <div class="step-title">المزود في الطريق</div>
-                        <div class="step-sub">في انتظار قبول المزود</div>
+                        <div class="step-sub" id="step3Sub">بانتظار قبول المزود</div>
                     </div>
                 </div>
 
@@ -79,7 +79,7 @@
                     <div class="step-icon"><svg class="icon"><use href="icons.svg#icon-confetti"></use></svg></div>
                     <div class="step-info">
                         <div class="step-title">تم التوصيل</div>
-                        <div class="step-sub">اكتملت الخدمة بنجاح</div>
+                        <div class="step-sub" id="step4Sub">بانتظار إنهاء الخدمة</div>
                     </div>
                 </div>
 
@@ -139,6 +139,14 @@
                 </div>
             </div>
 
+            <!-- تقييم الخدمة (تظهر بعد اكتمال الطلب) -->
+            <div id="ratingSection" style="display:none">
+                <div class="order-divider"></div>
+                <div id="ratingSlot">
+                    <button class="btn" style="width:100%" onclick="openTrackingRatingForm()">تقييم الخدمة ⭐</button>
+                </div>
+            </div>
+
             <!-- تحميل الفاتورة (تظهر بعد اكتمال الطلب) -->
             <div id="invoiceSection" style="display:none">
                 <div class="order-divider"></div>
@@ -147,6 +155,26 @@
 
         </div>
 
+    </div>
+
+    <!-- نافذة تقييم الخدمة -->
+    <div class="confirm-overlay" id="ratingFormOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-star"></use></svg> تقييم الخدمة</h3>
+            <div id="ratingStars" style="display:flex;justify-content:center;gap:8px;margin-bottom:18px">
+                <svg class="icon rating-star" data-star="1" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(1)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="2" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(2)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="3" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(3)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="4" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(4)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="5" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setStarRating(5)"><use href="icons.svg#icon-star"></use></svg>
+            </div>
+            <label>تعليقك (اختياري)</label>
+            <textarea id="ratingComment" placeholder="شاركنا رأيك بالخدمة..."></textarea>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitTrackingRating()">إرسال التقييم</button>
+                <button class="btn-small" onclick="closeTrackingRatingForm()">إلغاء</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

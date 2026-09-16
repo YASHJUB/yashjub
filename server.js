@@ -92,11 +92,12 @@ function createInvoiceForOrder(order) {
 
     const client = db.prepare('SELECT name FROM users WHERE phone = ?').get(order.phone);
 
+    // نستخدم أعلى رقم تسلسلي مستخدم فعلياً (مو COUNT الصفوف) عشان ما تتكرر الأرقام لو انحذفت فاتورة قديمة وصار فجوة
     const year = new Date().getFullYear();
-    const countThisYear = db.prepare(
-        "SELECT COUNT(*) AS n FROM invoices WHERE invoice_number LIKE ?"
-    ).get(`INV-${year}-%`).n;
-    const invoiceNumber = `INV-${year}-${String(countThisYear + 1).padStart(3, '0')}`;
+    const maxSeq = db.prepare(
+        "SELECT MAX(CAST(SUBSTR(invoice_number, -3) AS INTEGER)) AS maxNum FROM invoices WHERE invoice_number LIKE ?"
+    ).get(`INV-${year}-%`).maxNum || 0;
+    const invoiceNumber = `INV-${year}-${String(maxSeq + 1).padStart(3, '0')}`;
 
     const basePrice = order.price - order.commission;
 
@@ -271,7 +272,11 @@ app.get('/api/orders', (req, res) => {
 });
 
 app.get('/api/orders/:id', (req, res) => {
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+    const order = db.prepare(`
+        SELECT orders.*,
+            EXISTS(SELECT 1 FROM reviews WHERE reviews.order_id = orders.id AND reviews.reviewer_phone = orders.phone) AS is_reviewed
+        FROM orders WHERE id = ?
+    `).get(req.params.id);
 
     if (!order) {
         return res.json({ success: false, message: 'الطلب غير موجود' });
@@ -287,18 +292,28 @@ app.put('/api/orders/:id/status', (req, res) => {
 
     if (status === 'accepted' && current && !current.accepted_at) {
         db.prepare("UPDATE orders SET status = ?, accepted_at = datetime('now') WHERE id = ?").run(status, req.params.id);
+    } else if (status === 'arrived' && current && !current.arrived_at) {
+        db.prepare("UPDATE orders SET status = ?, arrived_at = datetime('now') WHERE id = ?").run(status, req.params.id);
+    } else if (status === 'completed' && current && !current.completed_at) {
+        db.prepare("UPDATE orders SET status = ?, completed_at = datetime('now') WHERE id = ?").run(status, req.params.id);
     } else {
         db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, req.params.id);
     }
 
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
 
-    // إشعار تلقائي للعميل عند قبول الطلب أو اكتماله
+    // إشعار تلقائي للعميل عند قبول الطلب أو وصول المزوّد أو اكتماله
     if (current && current.status !== status) {
         if (status === 'accepted') {
             createNotification(
                 'تم قبول طلبك',
                 `${order.provider_name || 'مزوّد'} قبل طلب ${order.service} الخاص بك`,
+                'update', 'specific', order.phone, order.phone,
+            );
+        } else if (status === 'arrived') {
+            createNotification(
+                'وصل المزوّد',
+                `${order.provider_name || 'المزوّد'} وصل لموقعك — طلب ${order.service}`,
                 'update', 'specific', order.phone, order.phone,
             );
         } else if (status === 'completed') {
@@ -312,6 +327,69 @@ app.put('/api/orders/:id/status', (req, res) => {
     }
 
     res.json({ success: true, order });
+});
+
+// طلبات مزوّد معيّن (مرتبطة به عبر provider_phone) — تستخدمها لوحة المزود لعرض طلباتها الحقيقية
+app.get('/api/orders/provider/:phone', (req, res) => {
+    const orders = db.prepare(
+        'SELECT * FROM orders WHERE provider_phone = ? ORDER BY created_at DESC'
+    ).all(req.params.phone);
+
+    res.json({ success: true, orders });
+});
+
+// المزوّد يقبل الطلب (pending → accepted)
+app.put('/api/orders/:id/accept', (req, res) => {
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+    if (!order) return res.json({ success: false, message: 'الطلب غير موجود' });
+    if (order.status !== 'pending') return res.json({ success: false, message: 'هذا الطلب ليس بانتظار القبول' });
+
+    db.prepare("UPDATE orders SET status = 'accepted', accepted_at = datetime('now') WHERE id = ?").run(order.id);
+
+    createNotification(
+        'تم قبول طلبك',
+        `${order.provider_name || 'مزوّد'} قبل طلب ${order.service} الخاص بك`,
+        'update', 'specific', order.phone, order.phone,
+    );
+
+    res.json({ success: true, order: db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id) });
+});
+
+// المزوّد وصل لموقع الخدمة (accepted → arrived)
+app.put('/api/orders/:id/arrived', (req, res) => {
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+    if (!order) return res.json({ success: false, message: 'الطلب غير موجود' });
+    if (order.status !== 'accepted') return res.json({ success: false, message: 'الطلب لازم يكون مقبولاً قبل تسجيل الوصول' });
+
+    db.prepare("UPDATE orders SET status = 'arrived', arrived_at = datetime('now') WHERE id = ?").run(order.id);
+
+    createNotification(
+        'وصل المزوّد',
+        `${order.provider_name || 'المزوّد'} وصل لموقعك — طلب ${order.service}`,
+        'update', 'specific', order.phone, order.phone,
+    );
+
+    res.json({ success: true, order: db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id) });
+});
+
+// المزوّد أكمل الخدمة (arrived → completed) — ينشئ فاتورة تلقائياً
+app.put('/api/orders/:id/complete', (req, res) => {
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+    if (!order) return res.json({ success: false, message: 'الطلب غير موجود' });
+    if (order.status !== 'arrived') return res.json({ success: false, message: 'المزوّد لازم يسجّل وصوله قبل إكمال الخدمة' });
+
+    db.prepare("UPDATE orders SET status = 'completed', completed_at = datetime('now') WHERE id = ?").run(order.id);
+
+    const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id);
+
+    createNotification(
+        'اكتمل طلبك',
+        `تم اكتمال طلب ${order.service} بنجاح — نتمنى لك تجربة ممتازة`,
+        'update', 'specific', order.phone, order.phone,
+    );
+    createInvoiceForOrder(updated);
+
+    res.json({ success: true, order: updated });
 });
 
 // تعيين/تغيير مزود الطلب يدوياً (مركز العمليات المباشر)
@@ -927,7 +1005,7 @@ app.get('/api/chats', (req, res) => {
     const conversations = rows.map(r => {
         const lastMs = new Date(r.last_message_at.replace(' ', 'T') + 'Z').getTime();
         const staleMinutes = (now - lastMs) / 60000;
-        const isActive = r.order_status === 'pending' || r.order_status === 'accepted';
+        const isActive = r.order_status === 'pending' || r.order_status === 'accepted' || r.order_status === 'arrived';
         return { ...r, needs_intervention: isActive && staleMinutes > 30 ? 1 : 0 };
     });
 
@@ -1596,7 +1674,7 @@ app.get('/api/reports/payments', (req, res) => {
 
 app.get('/api/operations/live', (req, res) => {
     const activeOrders = db.prepare(`
-        SELECT * FROM orders WHERE status IN ('pending', 'accepted') ORDER BY created_at DESC
+        SELECT * FROM orders WHERE status IN ('pending', 'accepted', 'arrived') ORDER BY created_at DESC
     `).all();
 
     const availableProvidersCount = db.prepare(
@@ -1663,12 +1741,16 @@ app.get('/api/operations/live', (req, res) => {
     });
 });
 
-// أخطاء رفع الملفات (نوع غير مسموح، حجم كبير)
+// معالج أخطاء عام — أخطاء رفع الملفات (نوع غير مسموح، حجم كبير) لها رسالة مخصصة، وأي خطأ آخر غير متوقع يُسجَّل بالطرفية ويرجع رسالة عامة (بدل ما ينكسر الاتصال بصمت)
 app.use((err, req, res, next) => {
-    if (err instanceof multer.MulterError || err) {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError || err.message === 'نوع ملف غير مسموح — يُقبل PDF أو JPG فقط') {
         return res.json({ success: false, message: 'تعذّر رفع الملف — يُقبل PDF أو JPG فقط، وبحجم أقل من 5MB' });
     }
-    next();
+
+    console.error('❌ خطأ غير متوقع بالسيرفر:', err);
+    res.status(500).json({ success: false, message: 'حدث خطأ غير متوقع بالسيرفر' });
 });
 
 // صفحة 404

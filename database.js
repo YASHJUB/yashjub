@@ -242,6 +242,8 @@ const migrations = [
     'ALTER TABLE providers ADD COLUMN driving_license_path TEXT',
     'ALTER TABLE providers ADD COLUMN vehicle_registration_path TEXT',
     'ALTER TABLE providers ADD COLUMN transport_permit_path TEXT',
+    'ALTER TABLE orders ADD COLUMN arrived_at TEXT',
+    'ALTER TABLE orders ADD COLUMN completed_at TEXT',
 ];
 
 for (const sql of migrations) {

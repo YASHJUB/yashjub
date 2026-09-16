@@ -2,8 +2,10 @@
 
 const API = window.location.origin + '/api';
 
-let currentOrder      = null;
-let chatPollInterval  = null;
+let currentOrder        = null;
+let chatPollInterval    = null;
+let trackingPollInterval = null;
+let lastKnownStatus     = null;
 
 // تحميل بيانات الطلب
 function loadOrder() {
@@ -49,8 +51,8 @@ function loadOrder() {
         L.marker([order.lat, order.lng]).addTo(map);
     }
 
-    // تشغيل محاكاة التتبع
-    simulateTracking();
+    // بدء التتبع الحقيقي (استطلاع حالة الطلب من السيرفر)
+    startTrackingPoll();
 }
 
 // اتصال مباشر بالمزود
@@ -121,46 +123,180 @@ async function sendChatMessage() {
     } catch (e) {}
 }
 
-// محاكاة مراحل الطلب
-function simulateTracking() {
+// ══ تتبع حقيقي لحالة الطلب (استطلاع كل 10 ثواني) ══
 
-    // بعد 3 ثواني — تم إيجاد مزود
-    setTimeout(() => {
-        document.getElementById('line2').classList.add('done');
-        document.getElementById('step3').classList.add('active');
-        document.getElementById('step3').classList.remove('step');
-        document.querySelector('#step2 .step-icon').innerHTML = '<svg class="icon"><use href="icons.svg#icon-check"></use></svg>';
-    }, 3000);
+const STEP_DONE_COUNT = { pending: 1, accepted: 2, arrived: 3, completed: 4 };
 
-    // بعد 6 ثواني — المزود في الطريق
-    setTimeout(() => {
-        document.getElementById('line3').classList.add('done');
-        document.getElementById('step4').classList.add('active');
-        document.querySelector('#step3 .step-icon').innerHTML = '<svg class="icon"><use href="icons.svg#icon-check"></use></svg>';
-    }, 6000);
+const STEP_WAITING_ICONS = {
+    2: '<svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg>',
+    3: '<svg class="icon"><use href="icons.svg#icon-car"></use></svg>',
+    4: '<svg class="icon"><use href="icons.svg#icon-confetti"></use></svg>',
+};
 
-    // بعد 10 ثواني — تم التوصيل
-    setTimeout(() => {
-        document.querySelector('#step4 .step-icon').innerHTML = '<svg class="icon"><use href="icons.svg#icon-check"></use></svg>';
-        document.querySelector('#step4 .step-sub').innerHTML  = 'اكتملت الخدمة بنجاح <svg class="icon"><use href="icons.svg#icon-confetti"></use></svg>';
-        showComplete();
-    }, 10000);
+function startTrackingPoll() {
+    pollOrderStatus();
+    trackingPollInterval = setInterval(pollOrderStatus, 10000);
 }
 
-// إظهار رسالة الاكتمال
-function showComplete() {
-    setTimeout(() => {
-        // إغلاق قسم التواصل والشات تلقائياً عند اكتمال الخدمة (المحادثة تبقى محفوظة بالسيرفر للمرجعية)
-        document.getElementById('contactProviderSection').style.display = 'none';
-        if (chatPollInterval) {
-            clearInterval(chatPollInterval);
-            chatPollInterval = null;
+async function pollOrderStatus() {
+    if (!currentOrder) return;
+
+    try {
+        const res  = await fetch(`${API}/orders/${currentOrder.id}`);
+        const data = await res.json();
+        if (data.success) applyOrderStatus(data.order);
+    } catch (e) {}
+}
+
+function applyOrderStatus(order) {
+    currentOrder.isReviewed = order.is_reviewed;
+
+    // لو صار فيه مزوّد مرتبط بالطلب بعد ما ما كان (المطابقة التلقائية ما زالت قيد الحل)
+    if (order.provider_name && document.getElementById('contactProviderSection').style.display === 'none') {
+        currentOrder.providerPhone  = order.provider_phone;
+        currentOrder.providerRating = order.provider_rating;
+        document.getElementById('providerNameText').textContent   = order.provider_name;
+        document.getElementById('providerRatingText').textContent = order.provider_rating || '—';
+        document.getElementById('contactProviderSection').style.display = 'block';
+        loadChatMessages();
+        if (!chatPollInterval) chatPollInterval = setInterval(loadChatMessages, 10000);
+    }
+
+    updateSteps(order.status);
+
+    if (lastKnownStatus !== null && order.status !== lastKnownStatus) {
+        announceStatusChange(order.status);
+    }
+    lastKnownStatus = order.status;
+
+    if (order.status === 'completed') {
+        onOrderCompleted();
+    }
+}
+
+// تحديث المراحل الأربع حسب الحالة الحقيقية للطلب
+function updateSteps(status) {
+    const doneCount = STEP_DONE_COUNT[status] || 1;
+
+    for (let i = 1; i <= 4; i++) {
+        const step = document.getElementById(`step${i}`);
+        step.classList.remove('done', 'active');
+
+        if (i <= doneCount) {
+            step.classList.add('done');
+            step.querySelector('.step-icon').innerHTML = '<svg class="icon"><use href="icons.svg#icon-check"></use></svg>';
+        } else {
+            if (i === doneCount + 1) step.classList.add('active');
+            step.querySelector('.step-icon').innerHTML = STEP_WAITING_ICONS[i] || '';
         }
+    }
 
-        document.getElementById('invoiceSection').style.display = 'block';
+    for (let i = 1; i <= 3; i++) {
+        document.getElementById(`line${i}`).classList.toggle('done', i <= doneCount);
+    }
 
-        alert('🎉 تم اكتمال الخدمة بنجاح!\nشكراً لاستخدامك غَوْث');
-    }, 1000);
+    document.getElementById('step2Sub').textContent = doneCount >= 2 ? 'تم قبول طلبك من المزود' : 'بانتظار قبول المزود لطلبك';
+    document.getElementById('step3Sub').textContent = doneCount >= 3 ? 'وصل المزود لموقعك' : (doneCount >= 2 ? 'المزود بالطريق إليك' : 'بانتظار قبول المزود');
+    document.getElementById('step4Sub').textContent = doneCount >= 4 ? 'اكتملت الخدمة بنجاح' : 'بانتظار إنهاء الخدمة';
+}
+
+// إشعار داخلي للعميل عند كل تغيّر حقيقي بحالة الطلب
+function announceStatusChange(status) {
+    const messages = {
+        accepted:  '✅ تم قبول طلبك من المزود',
+        arrived:   '🚗 المزود وصل لموقعك',
+        completed: '🎉 اكتملت خدمتك بنجاح',
+    };
+    if (messages[status]) alert(messages[status]);
+}
+
+// إجراءات اكتمال الطلب
+function onOrderCompleted() {
+    if (trackingPollInterval) {
+        clearInterval(trackingPollInterval);
+        trackingPollInterval = null;
+    }
+
+    // إغلاق قسم التواصل والشات تلقائياً عند اكتمال الخدمة (المحادثة تبقى محفوظة بالسيرفر للمرجعية)
+    document.getElementById('contactProviderSection').style.display = 'none';
+    if (chatPollInterval) {
+        clearInterval(chatPollInterval);
+        chatPollInterval = null;
+    }
+
+    document.getElementById('invoiceSection').style.display = 'block';
+
+    if (currentOrder.isReviewed) {
+        document.getElementById('ratingSlot').innerHTML = '<div style="text-align:center;font-size:13px;font-weight:700;color:var(--gold)">تم التقييم <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>';
+    }
+    document.getElementById('ratingSection').style.display = 'block';
+}
+
+// ══ تقييم الخدمة ══
+
+let selectedTrackingRating = 0;
+
+function openTrackingRatingForm() {
+    selectedTrackingRating = 0;
+    document.getElementById('ratingComment').value = '';
+    updateTrackingStarDisplay();
+    document.getElementById('ratingFormOverlay').style.display = 'flex';
+}
+
+function closeTrackingRatingForm() {
+    document.getElementById('ratingFormOverlay').style.display = 'none';
+}
+
+function setStarRating(n) {
+    selectedTrackingRating = n;
+    updateTrackingStarDisplay();
+}
+
+function updateTrackingStarDisplay() {
+    document.querySelectorAll('#ratingStars .rating-star').forEach(el => {
+        const val = parseInt(el.dataset.star, 10);
+        el.style.opacity = val <= selectedTrackingRating ? '1' : '0.3';
+    });
+}
+
+async function submitTrackingRating() {
+    const phone   = localStorage.getItem('yashjub_phone');
+    const comment = document.getElementById('ratingComment').value.trim();
+
+    if (!selectedTrackingRating) {
+        alert('❌ يرجى اختيار عدد النجوم');
+        return;
+    }
+    if (!currentOrder.providerPhone) {
+        alert('❌ ما فيه مزوّد مرتبط بهذا الطلب لتقييمه');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId: currentOrder.id,
+                reviewerPhone: phone,
+                reviewerType: 'client',
+                reviewedPhone: currentOrder.providerPhone,
+                reviewedType: 'provider',
+                rating: selectedTrackingRating,
+                comment,
+            }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('ratingSlot').innerHTML = '<div style="text-align:center;font-size:13px;font-weight:700;color:var(--gold)">تم التقييم <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>';
+            closeTrackingRatingForm();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
 }
 
 // الذهاب لصفحة الفاتورة
