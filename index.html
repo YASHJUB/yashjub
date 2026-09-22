@@ -91,6 +91,22 @@
         </div>
     </div>
 
+    <!-- شريط تتبع الطلب النشط -->
+    <div class="active-order-bar" id="activeOrderBar" style="display:none" onclick="goToActiveOrderTracking()">
+        <div class="active-order-icon"><svg class="icon"><use href="icons.svg#icon-truck" id="activeOrderIconUse"></use></svg></div>
+        <div class="active-order-info">
+            <div class="active-order-top">
+                <span class="active-order-service" id="activeOrderService">—</span>
+                <span class="active-order-number" id="activeOrderNumber">#0</span>
+            </div>
+            <div class="active-order-status" id="activeOrderStatus">—</div>
+            <div class="active-order-progress-track">
+                <div class="active-order-progress-fill" id="activeOrderProgressFill"></div>
+            </div>
+        </div>
+        <div class="active-order-arrow"><svg class="icon"><use href="icons.svg#icon-arrow-left"></use></svg></div>
+    </div>
+
     <!-- البنر الرئيسي -->
     <div class="hero-new">
         <div class="hero-corner-tl"></div>

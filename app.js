@@ -4,6 +4,90 @@ const API = window.location.origin + '/api';
 
 const SERVICE_BADGE_LABELS = { instant: 'فوري', scheduled: 'مجدول', coming: 'قريباً' };
 
+let activeOrderBarInterval = null;
+
+const ACTIVE_ORDER_BAR_STATUS = {
+    pending:  { text: '🔍 جاري البحث عن مزود...',            progress: 25 },
+    accepted: { text: '✅ تم قبول طلبك — المزود في الطريق',  progress: 60 },
+    arrived:  { text: '📍 المزود وصل لموقعك',                progress: 90 },
+};
+
+// شريط تتبع الطلب النشط — يتحدّث كل 30 ثانية
+function startActiveOrderBar() {
+    checkActiveOrderBar();
+    activeOrderBarInterval = setInterval(checkActiveOrderBar, 30000);
+}
+
+function checkActiveOrderBar() {
+    const phone     = localStorage.getItem('yashjub_phone');
+    const orderData = localStorage.getItem('yashjub_order');
+
+    if (!phone || !orderData) {
+        hideActiveOrderBar();
+        return;
+    }
+
+    let localOrder;
+    try {
+        localOrder = JSON.parse(orderData);
+    } catch (e) {
+        hideActiveOrderBar();
+        return;
+    }
+
+    fetchActiveOrderStatus(localOrder);
+}
+
+async function fetchActiveOrderStatus(localOrder) {
+    try {
+        const res  = await fetch(`${API}/orders/${localOrder.id}`);
+        const data = await res.json();
+
+        if (!data.success) {
+            hideActiveOrderBar();
+            return;
+        }
+
+        const order = data.order;
+
+        if (order.status === 'completed' || order.status === 'cancelled') {
+            localStorage.removeItem('yashjub_order');
+            hideActiveOrderBar();
+            return;
+        }
+
+        showActiveOrderBar(order, localOrder.icon);
+    } catch (e) {
+        hideActiveOrderBar();
+    }
+}
+
+function showActiveOrderBar(order, icon) {
+    const bar  = document.getElementById('activeOrderBar');
+    const meta = ACTIVE_ORDER_BAR_STATUS[order.status];
+    if (!bar || !meta) {
+        hideActiveOrderBar();
+        return;
+    }
+
+    document.getElementById('activeOrderIconUse').setAttribute('href', `icons.svg#icon-${icon || 'truck'}`);
+    document.getElementById('activeOrderService').textContent = order.service;
+    document.getElementById('activeOrderNumber').textContent  = `#${order.id}`;
+    document.getElementById('activeOrderStatus').textContent  = meta.text;
+    document.getElementById('activeOrderProgressFill').style.width = `${meta.progress}%`;
+
+    bar.style.display = 'flex';
+}
+
+function hideActiveOrderBar() {
+    const bar = document.getElementById('activeOrderBar');
+    if (bar) bar.style.display = 'none';
+}
+
+function goToActiveOrderTracking() {
+    window.location.href = 'tracking.html';
+}
+
 // تحميل قائمة الخدمات من لوحة الإدارة وعرضها بالصفحة الرئيسية
 async function loadServices() {
     const container = document.getElementById('servicesList');
@@ -245,6 +329,7 @@ function showHeavyEquipment() {
 checkLogin();
 loadServices();
 loadTestimonials();
+startActiveOrderBar();
 // الوضع الليلي
 function toggleTheme() {
     const body = document.body;
