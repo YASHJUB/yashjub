@@ -7,6 +7,11 @@ let chatPollInterval    = null;
 let trackingPollInterval = null;
 let lastKnownStatus     = null;
 
+let trackingMap        = null;
+let customerMapMarker  = null;
+let providerMapMarker  = null;
+let providerRouteLine  = null;
+
 // تحميل بيانات الطلب
 function loadOrder() {
     const orderData = localStorage.getItem('yashjub_order');
@@ -41,14 +46,14 @@ function loadOrder() {
     if (order.lat && order.lng) {
         document.getElementById('trackingMapSection').style.display = 'block';
 
-        const map = L.map('trackingMap', { zoomControl: true, dragging: true, scrollWheelZoom: false })
+        trackingMap = L.map('trackingMap', { zoomControl: true, dragging: true, scrollWheelZoom: false })
             .setView([order.lat, order.lng], 14);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
-        }).addTo(map);
+        }).addTo(trackingMap);
 
-        L.marker([order.lat, order.lng]).addTo(map);
+        customerMapMarker = L.marker([order.lat, order.lng], { icon: customerPinIcon() }).addTo(trackingMap);
     }
 
     // بدء التتبع الحقيقي (استطلاع حالة الطلب من السيرفر)
@@ -169,8 +174,149 @@ function applyOrderStatus(order) {
     }
     lastKnownStatus = order.status;
 
+    if (order.status === 'accepted' || order.status === 'arrived') {
+        updateProviderTracking(order);
+    } else {
+        clearProviderTracking();
+    }
+
     if (order.status === 'completed') {
         onOrderCompleted();
+    }
+}
+
+// ══ تتبع المزوّد على الخريطة (محاكاة حركة حقيقية عبر API) ══
+
+function customerPinIcon() {
+    return L.divIcon({
+        className: '',
+        html: '<div class="map-pin map-pin-customer"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg></div>',
+        iconSize: [34, 34],
+        iconAnchor: [17, 34],
+    });
+}
+
+function providerPinIcon() {
+    return L.divIcon({
+        className: '',
+        html: '<div class="map-pin map-pin-provider"><svg class="icon"><use href="icons.svg#icon-car"></use></svg></div>',
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+    });
+}
+
+// نقطة تبعد عن (lat,lng) بمسافة distanceKm وزاوية bearingDeg
+function offsetLatLng(lat, lng, distanceKm, bearingDeg) {
+    const R = 6371;
+    const bearing = bearingDeg * Math.PI / 180;
+    const lat1 = lat * Math.PI / 180;
+    const lng1 = lng * Math.PI / 180;
+
+    const lat2 = Math.asin(
+        Math.sin(lat1) * Math.cos(distanceKm / R) +
+        Math.cos(lat1) * Math.sin(distanceKm / R) * Math.cos(bearing)
+    );
+    const lng2 = lng1 + Math.atan2(
+        Math.sin(bearing) * Math.sin(distanceKm / R) * Math.cos(lat1),
+        Math.cos(distanceKm / R) - Math.sin(lat1) * Math.sin(lat2)
+    );
+
+    return { lat: lat2 * 180 / Math.PI, lng: lng2 * 180 / Math.PI };
+}
+
+function moveTowards(from, to, fraction) {
+    return {
+        lat: from.lat + (to.lat - from.lat) * fraction,
+        lng: from.lng + (to.lng - from.lng) * fraction,
+    };
+}
+
+function haversineKm(a, b) {
+    const R = 6371;
+    const dLat = (b.lat - a.lat) * Math.PI / 180;
+    const dLng = (b.lng - a.lng) * Math.PI / 180;
+    const s = Math.sin(dLat / 2) ** 2 +
+        Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+}
+
+async function saveProviderLocation(orderId, lat, lng) {
+    try {
+        await fetch(`${API}/orders/${orderId}/location`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat, lng }),
+        });
+    } catch (e) {}
+}
+
+async function updateProviderTracking(order) {
+    if (!trackingMap || !order.lat || !order.lng) return;
+
+    const customerPos = { lat: order.lat, lng: order.lng };
+
+    // وصل المزود فعلياً — نثبّت موقعه بالضبط على موقع العميل
+    if (order.status === 'arrived') {
+        await saveProviderLocation(order.id, customerPos.lat, customerPos.lng);
+        renderProviderOnMap(customerPos, customerPos, 0);
+        return;
+    }
+
+    // status === 'accepted' — نحرّك المزود تدريجياً نحو العميل
+    let current = (order.provider_lat != null && order.provider_lng != null)
+        ? { lat: order.provider_lat, lng: order.provider_lng }
+        : null;
+
+    if (!current) {
+        // أول مرة بعد القبول — نقطة بداية عشوائية على بعد 2-3 كم
+        const bearing  = Math.random() * 360;
+        const distance = 2 + Math.random();
+        current = offsetLatLng(customerPos.lat, customerPos.lng, distance, bearing);
+    } else {
+        // نقرّب المزود 15% من المسافة المتبقية بكل مرة
+        current = moveTowards(current, customerPos, 0.15);
+    }
+
+    await saveProviderLocation(order.id, current.lat, current.lng);
+    const distanceKm = haversineKm(current, customerPos);
+    renderProviderOnMap(current, customerPos, distanceKm);
+}
+
+function renderProviderOnMap(providerPos, customerPos, distanceKm) {
+    if (!trackingMap) return;
+
+    const etaMinutes = Math.max(1, Math.round(distanceKm * 2));
+    const tooltipText = distanceKm < 0.05
+        ? 'المزود وصل لموقعك'
+        : `المزود على بعد ${etaMinutes} دقيقة (${distanceKm.toFixed(1)} كم)`;
+
+    if (!providerMapMarker) {
+        providerMapMarker = L.marker([providerPos.lat, providerPos.lng], { icon: providerPinIcon() })
+            .addTo(trackingMap)
+            .bindTooltip(tooltipText, { permanent: true, direction: 'top', offset: [0, -12], className: 'map-distance-tooltip' });
+    } else {
+        providerMapMarker.setLatLng([providerPos.lat, providerPos.lng]);
+        providerMapMarker.setTooltipContent(tooltipText);
+    }
+
+    const linePoints = [[providerPos.lat, providerPos.lng], [customerPos.lat, customerPos.lng]];
+    if (!providerRouteLine) {
+        providerRouteLine = L.polyline(linePoints, { color: '#F5C518', weight: 3, dashArray: '8,6' }).addTo(trackingMap);
+    } else {
+        providerRouteLine.setLatLngs(linePoints);
+    }
+
+    trackingMap.fitBounds(providerRouteLine.getBounds(), { padding: [50, 50], maxZoom: 15 });
+}
+
+function clearProviderTracking() {
+    if (providerMapMarker) {
+        trackingMap && trackingMap.removeLayer(providerMapMarker);
+        providerMapMarker = null;
+    }
+    if (providerRouteLine) {
+        trackingMap && trackingMap.removeLayer(providerRouteLine);
+        providerRouteLine = null;
     }
 }
 
@@ -223,6 +369,8 @@ function onOrderCompleted() {
         clearInterval(chatPollInterval);
         chatPollInterval = null;
     }
+
+    clearProviderTracking();
 
     document.getElementById('invoiceSection').style.display = 'block';
 

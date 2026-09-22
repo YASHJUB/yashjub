@@ -244,6 +244,8 @@ const migrations = [
     'ALTER TABLE providers ADD COLUMN transport_permit_path TEXT',
     'ALTER TABLE orders ADD COLUMN arrived_at TEXT',
     'ALTER TABLE orders ADD COLUMN completed_at TEXT',
+    'ALTER TABLE orders ADD COLUMN provider_lat REAL',
+    'ALTER TABLE orders ADD COLUMN provider_lng REAL',
 ];
 
 for (const sql of migrations) {

@@ -5547,3 +5547,43 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     text-align: right;
     font-size: 13px;
 }
+
+/* تتبع المزوّد على الخريطة (نمط Uber) — tracking.html */
+.map-pin {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+.map-pin .icon { width: 17px; height: 17px; }
+
+.map-pin-provider { background: #F5C518; color: #111111; }
+.map-pin-customer { background: #3B82F6; color: #ffffff; }
+
+.leaflet-tooltip.map-distance-tooltip {
+    background: #ffffff;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #111111;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    white-space: nowrap;
+}
+
+.leaflet-tooltip.map-distance-tooltip::before {
+    display: none;
+}
+
+body.dark-mode .leaflet-tooltip.map-distance-tooltip {
+    background: #1a1a1a;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}

@@ -392,6 +392,35 @@ app.put('/api/orders/:id/complete', (req, res) => {
     res.json({ success: true, order: updated });
 });
 
+// حفظ موقع المزوّد الحالي (محاكاة تتبع حي أثناء تنفيذ الطلب — راجع "تتبع المزوّد على الخريطة" بالتوثيق)
+app.put('/api/orders/:id/location', (req, res) => {
+    const { lat, lng } = req.body;
+
+    if (lat == null || lng == null) {
+        return res.json({ success: false, message: 'الموقع مطلوب' });
+    }
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+    if (!order) {
+        return res.json({ success: false, message: 'الطلب غير موجود' });
+    }
+
+    db.prepare('UPDATE orders SET provider_lat = ?, provider_lng = ? WHERE id = ?').run(lat, lng, order.id);
+
+    res.json({ success: true });
+});
+
+// جلب موقع المزوّد الحالي لهذا الطلب
+app.get('/api/orders/:id/location', (req, res) => {
+    const order = db.prepare('SELECT provider_lat, provider_lng FROM orders WHERE id = ?').get(req.params.id);
+
+    if (!order) {
+        return res.json({ success: false, message: 'الطلب غير موجود' });
+    }
+
+    res.json({ success: true, lat: order.provider_lat, lng: order.provider_lng });
+});
+
 // تعيين/تغيير مزود الطلب يدوياً (مركز العمليات المباشر)
 app.put('/api/orders/:id/assign-provider', (req, res) => {
     const { providerId } = req.body;
