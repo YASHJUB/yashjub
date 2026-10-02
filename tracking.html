@@ -153,8 +153,54 @@
                 <button class="btn" style="width:100%" onclick="goToInvoice()">تحميل الفاتورة 🧾</button>
             </div>
 
+            <!-- إشعار نزاع (يظهر لو العميل رفض اكتمال الخدمة وبانتظار مراجعة الإدارة) -->
+            <div id="disputedNotice" style="display:none">
+                <div class="order-divider"></div>
+                <div class="dispute-notice-box">
+                    <svg class="icon"><use href="icons.svg#icon-siren"></use></svg>
+                    <div>
+                        <div class="dispute-notice-title">تم إرسال بلاغك</div>
+                        <div class="dispute-notice-sub">ستتواصل معك الإدارة خلال 24 ساعة — المبلغ محجوز لحين حل المشكلة</div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
+    </div>
+
+    <!-- نافذة تأكيد اكتمال الخدمة (تظهر عند إبلاغ المزوّد باكتمال الخدمة) -->
+    <div class="confirm-overlay" id="completionConfirmOverlay" style="display:none">
+        <div class="confirm-modal">
+            <div class="confirm-title">هل اكتملت خدمتك؟</div>
+            <div class="confirm-details">
+                <div class="confirm-detail-row">
+                    <span class="confirm-detail-label">الخدمة</span>
+                    <span class="confirm-detail-value" id="completionConfirmService">—</span>
+                </div>
+                <div class="confirm-detail-row">
+                    <span class="confirm-detail-label">رقم الطلب</span>
+                    <span class="confirm-detail-value" id="completionConfirmOrderNumber">—</span>
+                </div>
+            </div>
+            <p class="completion-confirm-text">المزود أبلغ عن اكتمال الخدمة، يرجى التأكيد</p>
+            <button class="btn-accept" style="width:100%;margin-bottom:10px" onclick="confirmServiceCompletion()">✅ نعم اكتملت</button>
+            <button class="btn-reject" style="width:100%" onclick="openDisputeForm()">❌ لا، توجد مشكلة</button>
+            <div class="completion-confirm-timer" id="completionConfirmTimer">سيتم تحرير المبلغ تلقائياً خلال 23:59:59</div>
+        </div>
+    </div>
+
+    <!-- نافذة وصف المشكلة (تفتح بالضغط على "لا، توجد مشكلة") -->
+    <div class="confirm-overlay" id="disputeFormOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-siren"></use></svg> صف المشكلة التي واجهتها</h3>
+            <label>تفاصيل المشكلة</label>
+            <textarea id="disputeReasonText" placeholder="اشرح لنا ما الذي لم يكتمل أو كانت فيه مشكلة..."></textarea>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitDispute()">إرسال البلاغ</button>
+                <button class="btn-small" onclick="closeDisputeForm()">إلغاء</button>
+            </div>
+        </div>
     </div>
 
     <!-- نافذة تقييم الخدمة -->

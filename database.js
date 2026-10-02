@@ -246,6 +246,11 @@ const migrations = [
     'ALTER TABLE orders ADD COLUMN completed_at TEXT',
     'ALTER TABLE orders ADD COLUMN provider_lat REAL',
     'ALTER TABLE orders ADD COLUMN provider_lng REAL',
+    'ALTER TABLE orders ADD COLUMN completion_requested_at TEXT',
+    'ALTER TABLE orders ADD COLUMN client_confirmed INTEGER',
+    'ALTER TABLE orders ADD COLUMN client_confirmed_at TEXT',
+    'ALTER TABLE orders ADD COLUMN dispute_reason TEXT',
+    'ALTER TABLE orders ADD COLUMN auto_released INTEGER DEFAULT 0',
 ];
 
 for (const sql of migrations) {

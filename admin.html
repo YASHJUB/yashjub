@@ -1306,13 +1306,17 @@
                             <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
                             <input type="text" placeholder="بحث برقم الطلب، العميل، المورد..."/>
                         </div>
-                        <select class="table-filter" id="statusFilter">
+                        <select class="table-filter" id="statusFilter" onchange="loadOrdersPage()">
                             <option value="">كل الحالات</option>
                             <option value="pending">انتظار</option>
                             <option value="accepted">مقبول</option>
+                            <option value="arrived">وصل الموقع</option>
+                            <option value="awaiting_confirmation">بانتظار التأكيد</option>
+                            <option value="disputed">نزاع</option>
                             <option value="completed">مكتمل</option>
                             <option value="cancelled">ملغي</option>
                         </select>
+                        <span class="sidebar-badge gold" id="awaitingConfirmBadge" style="display:none;margin-right:6px">0 بانتظار التأكيد</span>
                         <select class="table-filter">
                             <option>كل الخدمات</option>
                             <option>وايت ماء</option>

@@ -294,6 +294,8 @@ app.put('/api/orders/:id/status', (req, res) => {
         db.prepare("UPDATE orders SET status = ?, accepted_at = datetime('now') WHERE id = ?").run(status, req.params.id);
     } else if (status === 'arrived' && current && !current.arrived_at) {
         db.prepare("UPDATE orders SET status = ?, arrived_at = datetime('now') WHERE id = ?").run(status, req.params.id);
+    } else if (status === 'awaiting_confirmation' && current && !current.completion_requested_at) {
+        db.prepare("UPDATE orders SET status = ?, completion_requested_at = datetime('now') WHERE id = ?").run(status, req.params.id);
     } else if (status === 'completed' && current && !current.completed_at) {
         db.prepare("UPDATE orders SET status = ?, completed_at = datetime('now') WHERE id = ?").run(status, req.params.id);
     } else {
@@ -315,6 +317,12 @@ app.put('/api/orders/:id/status', (req, res) => {
                 'وصل المزوّد',
                 `${order.provider_name || 'المزوّد'} وصل لموقعك — طلب ${order.service}`,
                 'update', 'specific', order.phone, order.phone,
+            );
+        } else if (status === 'awaiting_confirmation') {
+            createNotification(
+                'يرجى تأكيد اكتمال الخدمة',
+                `المزوّد أنهى خدمة ${order.service} الخاصة بك (طلب #${order.id})، يرجى التأكيد خلال 24 ساعة`,
+                'alert', 'specific', order.phone, order.phone,
             );
         } else if (status === 'completed') {
             createNotification(
@@ -372,24 +380,95 @@ app.put('/api/orders/:id/arrived', (req, res) => {
     res.json({ success: true, order: db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id) });
 });
 
-// المزوّد أكمل الخدمة (arrived → completed) — ينشئ فاتورة تلقائياً
+// المزوّد يبلغ عن اكتمال الخدمة (arrived → awaiting_confirmation) — بانتظار تأكيد العميل قبل تحرير المبلغ فعلياً
 app.put('/api/orders/:id/complete', (req, res) => {
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
     if (!order) return res.json({ success: false, message: 'الطلب غير موجود' });
     if (order.status !== 'arrived') return res.json({ success: false, message: 'المزوّد لازم يسجّل وصوله قبل إكمال الخدمة' });
 
-    db.prepare("UPDATE orders SET status = 'completed', completed_at = datetime('now') WHERE id = ?").run(order.id);
+    db.prepare("UPDATE orders SET status = 'awaiting_confirmation', completion_requested_at = datetime('now') WHERE id = ?").run(order.id);
 
     const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id);
 
     createNotification(
-        'اكتمل طلبك',
-        `تم اكتمال طلب ${order.service} بنجاح — نتمنى لك تجربة ممتازة`,
-        'update', 'specific', order.phone, order.phone,
+        'يرجى تأكيد اكتمال الخدمة',
+        `المزوّد أنهى خدمة ${order.service} الخاصة بك (طلب #${order.id})، يرجى التأكيد خلال 24 ساعة`,
+        'alert', 'specific', order.phone, order.phone,
     );
+
+    res.json({ success: true, order: updated });
+});
+
+// العميل يؤكد اكتمال الخدمة فعلياً (awaiting_confirmation → completed) — يحرر المبلغ وينشئ فاتورة تلقائياً
+app.put('/api/orders/:id/confirm', (req, res) => {
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+    if (!order) return res.json({ success: false, message: 'الطلب غير موجود' });
+    if (order.status !== 'awaiting_confirmation') return res.json({ success: false, message: 'ماكو طلب تأكيد بانتظار الرد على هذا الطلب' });
+
+    db.prepare(`
+        UPDATE orders
+        SET status = 'completed', client_confirmed = 1, client_confirmed_at = datetime('now'), completed_at = datetime('now')
+        WHERE id = ?
+    `).run(order.id);
+
+    const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id);
+
+    if (order.provider_phone) {
+        createNotification(
+            'أكد العميل اكتمال الخدمة',
+            `✅ أكد العميل اكتمال طلب ${order.service} (#${order.id}) — تم تحرير مبلغك`,
+            'update', 'specific', order.provider_phone, order.provider_phone,
+        );
+    }
+
     createInvoiceForOrder(updated);
 
     res.json({ success: true, order: updated });
+});
+
+// العميل يرفض اكتمال الخدمة (awaiting_confirmation → disputed) — يرفع نزاع تلقائي للإدارة، المبلغ يبقى محجوزاً
+app.put('/api/orders/:id/dispute', (req, res) => {
+    const { reason } = req.body;
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+    if (!order) return res.json({ success: false, message: 'الطلب غير موجود' });
+    if (order.status !== 'awaiting_confirmation') return res.json({ success: false, message: 'ماكو طلب تأكيد بانتظار الرد على هذا الطلب' });
+    if (!reason || !reason.trim()) return res.json({ success: false, message: 'يرجى وصف المشكلة التي واجهتك' });
+
+    db.prepare(`
+        UPDATE orders
+        SET status = 'disputed', client_confirmed = 0, client_confirmed_at = datetime('now'), dispute_reason = ?
+        WHERE id = ?
+    `).run(reason.trim(), order.id);
+
+    const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id);
+
+    const complaintResult = db.prepare(`
+        INSERT INTO complaints (order_id, reporter_phone, reporter_type, reported_phone, reported_type, type, description)
+        VALUES (?, ?, 'client', ?, 'provider', 'أخرى', ?)
+    `).run(order.id, order.phone, order.provider_phone || null, `نزاع اكتمال خدمة: ${reason.trim()}`);
+
+    createNotification(
+        'نزاع جديد',
+        `🚨 نزاع جديد — طلب #${order.id} (${order.service}) — العميل أبلغ عن مشكلة بعد إبلاغ المزوّد باكتمال الخدمة`,
+        'urgent', 'specific', 'admin', 'admin',
+    );
+
+    if (order.provider_phone) {
+        createNotification(
+            'العميل أبلغ عن مشكلة',
+            `❌ العميل أبلغ عن مشكلة بطلب ${order.service} (#${order.id}) — المبلغ محجوز لحين مراجعة الإدارة`,
+            'alert', 'specific', order.provider_phone, order.provider_phone,
+        );
+    }
+
+    res.json({ success: true, order: updated, complaintId: complaintResult.lastInsertRowid });
+});
+
+// تحرير تلقائي لمبالغ الطلبات بانتظار تأكيد العميل منذ أكثر من 24 ساعة (يُستدعى تلقائياً كل ساعة عبر setInterval، ومتاح هنا للاستدعاء اليدوي/الاختبار)
+app.post('/api/orders/auto-release', (req, res) => {
+    const released = autoReleaseOrders();
+    res.json({ success: true, released });
 });
 
 // حفظ موقع المزوّد الحالي (محاكاة تتبع حي أثناء تنفيذ الطلب — راجع "تتبع المزوّد على الخريطة" بالتوثيق)
@@ -1850,6 +1929,42 @@ function reactivateSuspendedAccounts() {
 }
 
 setInterval(reactivateSuspendedAccounts, 5 * 60 * 1000);
+
+// ========== فحص دوري: تحرير تلقائي لمبالغ الطلبات بانتظار تأكيد العميل منذ أكثر من 24 ساعة ==========
+function autoReleaseOrders() {
+    const stale = db.prepare(`
+        SELECT * FROM orders
+        WHERE status = 'awaiting_confirmation'
+        AND completion_requested_at <= datetime('now', '-24 hours')
+    `).all();
+
+    stale.forEach(order => {
+        db.prepare(`
+            UPDATE orders SET status = 'completed', auto_released = 1, completed_at = datetime('now') WHERE id = ?
+        `).run(order.id);
+
+        const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id);
+        createInvoiceForOrder(updated);
+
+        createNotification(
+            'تم تأكيد اكتمال طلبك تلقائياً',
+            `مضى 24 ساعة بدون رد، فتم تأكيد اكتمال طلب ${order.service} (#${order.id}) تلقائياً`,
+            'update', 'specific', order.phone, order.phone,
+        );
+
+        if (order.provider_phone) {
+            createNotification(
+                'تم تحرير مبلغك تلقائياً',
+                `💰 تم تحرير مبلغ طلب ${order.service} (#${order.id}) تلقائياً بعد مرور 24 ساعة بدون رد من العميل`,
+                'update', 'specific', order.provider_phone, order.provider_phone,
+            );
+        }
+    });
+
+    return stale.length;
+}
+
+setInterval(autoReleaseOrders, 60 * 60 * 1000);
 
 // ========== تشغيل السيرفر ==========
 app.listen(PORT, () => {

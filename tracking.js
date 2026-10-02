@@ -130,7 +130,7 @@ async function sendChatMessage() {
 
 // ══ تتبع حقيقي لحالة الطلب (استطلاع كل 10 ثواني) ══
 
-const STEP_DONE_COUNT = { pending: 1, accepted: 2, arrived: 3, completed: 4 };
+const STEP_DONE_COUNT = { pending: 1, accepted: 2, arrived: 3, awaiting_confirmation: 3, disputed: 3, completed: 4 };
 
 const STEP_WAITING_ICONS = {
     2: '<svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg>',
@@ -180,8 +180,124 @@ function applyOrderStatus(order) {
         clearProviderTracking();
     }
 
+    if (order.status === 'awaiting_confirmation') {
+        showCompletionConfirm(order);
+    } else {
+        hideCompletionConfirm();
+    }
+
+    document.getElementById('disputedNotice').style.display = order.status === 'disputed' ? 'block' : 'none';
+
     if (order.status === 'completed') {
         onOrderCompleted();
+    }
+}
+
+// ══ تأكيد اكتمال الخدمة من العميل (awaiting_confirmation → completed/disputed) ══
+
+let completionConfirmOrderId  = null;
+let completionCountdownInterval = null;
+
+function showCompletionConfirm(order) {
+    document.getElementById('completionConfirmService').textContent     = order.service;
+    document.getElementById('completionConfirmOrderNumber').textContent = `#${order.id}`;
+    document.getElementById('completionConfirmOverlay').style.display   = 'flex';
+
+    // ما نعيد تشغيل العداد التنازلي لو نفس الطلب أصلاً ظاهر (يحافظ على دقة الوقت بدون قفزات)
+    if (completionConfirmOrderId === order.id && completionCountdownInterval) return;
+
+    completionConfirmOrderId = order.id;
+    startCompletionCountdown(order.completion_requested_at);
+}
+
+function hideCompletionConfirm() {
+    document.getElementById('completionConfirmOverlay').style.display = 'none';
+    document.getElementById('disputeFormOverlay').style.display       = 'none';
+    completionConfirmOrderId = null;
+    if (completionCountdownInterval) {
+        clearInterval(completionCountdownInterval);
+        completionCountdownInterval = null;
+    }
+}
+
+function startCompletionCountdown(completionRequestedAt) {
+    if (completionCountdownInterval) clearInterval(completionCountdownInterval);
+
+    const deadline = new Date(completionRequestedAt.replace(' ', 'T') + 'Z').getTime() + 24 * 60 * 60 * 1000;
+
+    const tick = () => {
+        const remaining = deadline - Date.now();
+        const timerEl = document.getElementById('completionConfirmTimer');
+
+        if (remaining <= 0) {
+            timerEl.textContent = 'جاري تحرير المبلغ تلقائياً...';
+            clearInterval(completionCountdownInterval);
+            completionCountdownInterval = null;
+            return;
+        }
+
+        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+        timerEl.textContent = `سيتم تحرير المبلغ تلقائياً خلال ${h}:${m}:${s}`;
+    };
+
+    tick();
+    completionCountdownInterval = setInterval(tick, 1000);
+}
+
+async function confirmServiceCompletion() {
+    if (!currentOrder) return;
+
+    try {
+        const res  = await fetch(`${API}/orders/${currentOrder.id}/confirm`, { method: 'PUT' });
+        const data = await res.json();
+
+        if (data.success) {
+            hideCompletionConfirm();
+            showAppAlert('🎉 شكراً! اكتملت خدمتك', () => pollOrderStatus());
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+function openDisputeForm() {
+    document.getElementById('disputeReasonText').value = '';
+    document.getElementById('disputeFormOverlay').style.display = 'flex';
+}
+
+function closeDisputeForm() {
+    document.getElementById('disputeFormOverlay').style.display = 'none';
+}
+
+async function submitDispute() {
+    if (!currentOrder) return;
+
+    const reason = document.getElementById('disputeReasonText').value.trim();
+    if (!reason) {
+        alert('❌ يرجى وصف المشكلة التي واجهتك');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/orders/${currentOrder.id}/dispute`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            hideCompletionConfirm();
+            showAppAlert('🚨 تم إرسال بلاغك\n\nستتواصل معك الإدارة خلال 24 ساعة\nالمبلغ محجوز لحين حل المشكلة', () => pollOrderStatus());
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
     }
 }
 
@@ -343,7 +459,12 @@ function updateSteps(status) {
 
     document.getElementById('step2Sub').textContent = doneCount >= 2 ? 'تم قبول طلبك من المزود' : 'بانتظار قبول المزود لطلبك';
     document.getElementById('step3Sub').textContent = doneCount >= 3 ? 'وصل المزود لموقعك' : (doneCount >= 2 ? 'المزود بالطريق إليك' : 'بانتظار قبول المزود');
-    document.getElementById('step4Sub').textContent = doneCount >= 4 ? 'اكتملت الخدمة بنجاح' : 'بانتظار إنهاء الخدمة';
+
+    let step4Sub = 'بانتظار إنهاء الخدمة';
+    if (status === 'awaiting_confirmation') step4Sub = 'بانتظار تأكيدك لاكتمال الخدمة';
+    else if (status === 'disputed')          step4Sub = 'تم إبلاغ الإدارة بمشكلتك — قيد المراجعة';
+    else if (doneCount >= 4)                 step4Sub = 'اكتملت الخدمة بنجاح';
+    document.getElementById('step4Sub').textContent = step4Sub;
 }
 
 // إشعار داخلي للعميل عند كل تغيّر حقيقي بحالة الطلب

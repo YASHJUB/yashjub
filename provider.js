@@ -6,6 +6,7 @@ let countdownInterval;
 let countdownSeconds = 60;
 let activeOrderPollInterval = null;
 let currentActiveOrder      = null;
+let awaitingReleaseInterval = null;
 let allOrders = [];
 let currentProviderId = null;
 let editingProductId   = null;
@@ -195,11 +196,13 @@ function renderOrders(orders) {
     }
 
     const statusLabels = {
-        pending:   { label: 'انتظار',    color: '#F59E0B', bg: 'rgba(245,158,11,0.1)'  },
-        accepted:  { label: 'مقبول',     color: '#3B82F6', bg: 'rgba(59,130,246,0.1)'  },
-        arrived:   { label: 'وصلت',      color: '#92700A', bg: 'rgba(245,197,24,0.15)' },
-        completed: { label: 'مكتمل',     color: '#10B981', bg: 'rgba(16,185,129,0.1)'  },
-        cancelled: { label: 'ملغي',      color: '#EF4444', bg: 'rgba(239,68,68,0.1)'   },
+        pending:               { label: 'انتظار',           color: '#F59E0B', bg: 'rgba(245,158,11,0.1)'  },
+        accepted:              { label: 'مقبول',            color: '#3B82F6', bg: 'rgba(59,130,246,0.1)'  },
+        arrived:               { label: 'وصلت',             color: '#92700A', bg: 'rgba(245,197,24,0.15)' },
+        awaiting_confirmation: { label: 'بانتظار التأكيد',  color: '#92700A', bg: 'rgba(245,197,24,0.15)' },
+        disputed:              { label: 'نزاع',             color: '#EF4444', bg: 'rgba(239,68,68,0.1)'   },
+        completed:             { label: 'مكتمل',             color: '#10B981', bg: 'rgba(16,185,129,0.1)'  },
+        cancelled:             { label: 'ملغي',              color: '#EF4444', bg: 'rgba(239,68,68,0.1)'   },
     };
 
     const serviceIcons = {
@@ -379,7 +382,7 @@ async function checkActiveOrder() {
         const data = await res.json();
         if (!data.success) return;
 
-        const active = data.orders.find(o => ['pending', 'accepted', 'arrived'].includes(o.status));
+        const active = data.orders.find(o => ['pending', 'accepted', 'arrived', 'awaiting_confirmation'].includes(o.status));
         renderActiveOrderCard(active || null);
     } catch (e) {}
 }
@@ -390,6 +393,7 @@ function renderActiveOrderCard(order) {
     if (!order) {
         section.style.display = 'none';
         clearInterval(countdownInterval);
+        clearInterval(awaitingReleaseInterval);
         currentActiveOrder = null;
         return;
     }
@@ -437,7 +441,46 @@ function renderActiveOrderActions(order) {
         `;
         clearInterval(countdownInterval);
         countdownEl.style.display = 'none';
+        document.getElementById('awaitingReleaseWrap').style.display = 'none';
+    } else if (order.status === 'awaiting_confirmation') {
+        titleEl.innerHTML = '<svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> بانتظار تأكيد العميل';
+        actionsEl.innerHTML = `
+            <div style="grid-column:1 / -1;text-align:center;font-size:13px;color:rgba(255,255,255,0.7);font-family:'Cairo',sans-serif;line-height:1.7">
+                ✅ تم إرسال طلب التأكيد للعميل<br>
+                سيتم تحرير مبلغك بعد تأكيد العميل أو تلقائياً خلال 24 ساعة
+            </div>
+        `;
+        clearInterval(countdownInterval);
+        countdownEl.style.display = 'none';
+        document.getElementById('awaitingReleaseWrap').style.display = 'block';
+        startAwaitingReleaseTimer(order.completion_requested_at);
     }
+}
+
+// عداد تنازلي 24 ساعة (لحين تحرير المبلغ تلقائياً لو ما رد العميل)
+function startAwaitingReleaseTimer(completionRequestedAt) {
+    clearInterval(awaitingReleaseInterval);
+
+    const deadline = new Date(completionRequestedAt.replace(' ', 'T') + 'Z').getTime() + 24 * 60 * 60 * 1000;
+    const timerEl  = document.getElementById('awaitingReleaseTimer');
+
+    const tick = () => {
+        const remaining = deadline - Date.now();
+
+        if (remaining <= 0) {
+            timerEl.textContent = 'جاري التحرير التلقائي...';
+            clearInterval(awaitingReleaseInterval);
+            return;
+        }
+
+        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+        timerEl.textContent = `${h}:${m}:${s}`;
+    };
+
+    tick();
+    awaitingReleaseInterval = setInterval(tick, 1000);
 }
 
 // العداد التنازلي (يظهر بس أثناء انتظار قرار القبول)
@@ -512,7 +555,7 @@ async function markOrderArrived(id) {
     }
 }
 
-// تأكيد اكتمال الخدمة (arrived → completed)
+// إبلاغ عن اكتمال الخدمة (arrived → awaiting_confirmation) — بانتظار تأكيد العميل قبل تحرير المبلغ
 async function markOrderCompleted(id) {
     if (!confirm('هل أنت متأكد من اكتمال الخدمة؟')) return;
 
@@ -521,8 +564,7 @@ async function markOrderCompleted(id) {
         const data = await res.json();
 
         if (data.success) {
-            alert('✅ تم تأكيد اكتمال الخدمة!');
-            loadProvider();
+            showAppAlert('✅ تم إرسال طلب التأكيد للعميل\n\nسيتم تحرير مبلغك بعد تأكيد العميل\nأو تلقائياً خلال 24 ساعة', () => loadProvider());
         } else {
             alert(`❌ ${data.message}`);
         }

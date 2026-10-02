@@ -291,11 +291,13 @@ async function loadDashboard() {
 
         // آخر الطلبات
         const statusBadge = {
-            pending:   '<span class="badge badge-pending">انتظار</span>',
-            accepted:  '<span class="badge badge-active">مقبول</span>',
-            arrived:   '<span class="badge badge-gold">وصل الموقع</span>',
-            completed: '<span class="badge badge-done">مكتمل</span>',
-            cancelled: '<span class="badge badge-cancel">ملغي</span>',
+            pending:               '<span class="badge badge-pending">انتظار</span>',
+            accepted:              '<span class="badge badge-active">مقبول</span>',
+            arrived:               '<span class="badge badge-gold">وصل الموقع</span>',
+            awaiting_confirmation: '<span class="badge badge-gold">بانتظار التأكيد</span>',
+            disputed:              '<span class="badge badge-cancel">نزاع</span>',
+            completed:             '<span class="badge badge-done">مكتمل</span>',
+            cancelled:             '<span class="badge badge-cancel">ملغي</span>',
         };
 
         document.getElementById('recentOrders').innerHTML = orders.slice(0,5).map(o => `
@@ -394,14 +396,26 @@ async function loadOrdersPage() {
         if (!data.success) return;
 
         const statusBadge = {
-            pending:   '<span class="badge badge-pending">انتظار</span>',
-            accepted:  '<span class="badge badge-active">مقبول</span>',
-            arrived:   '<span class="badge badge-gold">وصل الموقع</span>',
-            completed: '<span class="badge badge-done">مكتمل</span>',
-            cancelled: '<span class="badge badge-cancel">ملغي</span>',
+            pending:               '<span class="badge badge-pending">انتظار</span>',
+            accepted:              '<span class="badge badge-active">مقبول</span>',
+            arrived:               '<span class="badge badge-gold">وصل الموقع</span>',
+            awaiting_confirmation: '<span class="badge badge-gold">بانتظار التأكيد</span>',
+            disputed:              '<span class="badge badge-cancel">نزاع</span>',
+            completed:             '<span class="badge badge-done">مكتمل</span>',
+            cancelled:             '<span class="badge badge-cancel">ملغي</span>',
         };
 
-        document.getElementById('allOrdersTable').innerHTML = data.orders.map(o => `
+        const awaitingCount = data.orders.filter(o => o.status === 'awaiting_confirmation').length;
+        const awaitingBadge = document.getElementById('awaitingConfirmBadge');
+        if (awaitingBadge) {
+            awaitingBadge.textContent   = `${awaitingCount} بانتظار التأكيد`;
+            awaitingBadge.style.display = awaitingCount > 0 ? 'inline-block' : 'none';
+        }
+
+        const statusFilterVal = document.getElementById('statusFilter')?.value || '';
+        const filteredOrders  = statusFilterVal ? data.orders.filter(o => o.status === statusFilterVal) : data.orders;
+
+        document.getElementById('allOrdersTable').innerHTML = filteredOrders.map(o => `
             <tr>
                 <td><strong>#${o.id}</strong></td>
                 <td>${o.service}</td>
@@ -416,9 +430,11 @@ async function loadOrdersPage() {
                         style="font-family:Cairo,sans-serif;font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #ddd;cursor:pointer">
                         <option value="pending"   ${o.status==='pending'   ?'selected':''}>انتظار</option>
                         <option value="accepted"  ${o.status==='accepted'  ?'selected':''}>قبول</option>
-                        <option value="arrived"   ${o.status==='arrived'   ?'selected':''}>وصل الموقع</option>
-                        <option value="completed" ${o.status==='completed' ?'selected':''}>مكتمل</option>
-                        <option value="cancelled" ${o.status==='cancelled' ?'selected':''}>إلغاء</option>
+                        <option value="arrived"               ${o.status==='arrived'               ?'selected':''}>وصل الموقع</option>
+                        <option value="awaiting_confirmation" ${o.status==='awaiting_confirmation' ?'selected':''}>بانتظار التأكيد</option>
+                        <option value="disputed"               ${o.status==='disputed'               ?'selected':''}>نزاع</option>
+                        <option value="completed"             ${o.status==='completed'             ?'selected':''}>مكتمل</option>
+                        <option value="cancelled"             ${o.status==='cancelled'             ?'selected':''}>إلغاء</option>
                     </select>
                 </td>
             </tr>
@@ -777,11 +793,13 @@ async function loadPaymentsPage() {
         if (!data.success) return;
 
         const statusBadge = {
-            pending:   '<span class="badge badge-pending">انتظار</span>',
-            accepted:  '<span class="badge badge-active">مقبول</span>',
-            arrived:   '<span class="badge badge-gold">وصل الموقع</span>',
-            completed: '<span class="badge badge-done">مكتمل</span>',
-            cancelled: '<span class="badge badge-cancel">ملغي</span>',
+            pending:               '<span class="badge badge-pending">انتظار</span>',
+            accepted:              '<span class="badge badge-active">مقبول</span>',
+            arrived:               '<span class="badge badge-gold">وصل الموقع</span>',
+            awaiting_confirmation: '<span class="badge badge-gold">بانتظار التأكيد</span>',
+            disputed:              '<span class="badge badge-cancel">نزاع</span>',
+            completed:             '<span class="badge badge-done">مكتمل</span>',
+            cancelled:             '<span class="badge badge-cancel">ملغي</span>',
         };
 
         document.getElementById('paymentsTable').innerHTML = data.payments.map(p => `
