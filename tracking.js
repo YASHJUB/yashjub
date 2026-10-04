@@ -573,5 +573,9 @@ function goToInvoice() {
     if (currentOrder) window.location.href = `invoice.html?id=${currentOrder.id}`;
 }
 
-// تشغيل عند فتح الصفحة
-loadOrder();
+// تشغيل عند فتح الصفحة — المزوّد مقفل على لوحة المزود فقط، ما يقدر يدخل صفحات العميل إطلاقاً
+if (localStorage.getItem('yashjub_type') === 'provider') {
+    window.location.href = 'provider.html';
+} else {
+    loadOrder();
+}

@@ -126,4 +126,9 @@ function selectProduct(product) {
     window.location.href = `order.html?service=${encodeURIComponent('حاوية')}`;
 }
 
-loadProducts();
+// المزوّد مقفل على لوحة المزود فقط — ما يقدر يدخل صفحات العميل إطلاقاً
+if (localStorage.getItem('yashjub_type') === 'provider') {
+    window.location.href = 'provider.html';
+} else {
+    loadProducts();
+}

@@ -171,6 +171,12 @@ function checkLogin() {
     const phone = localStorage.getItem('yashjub_phone');
     const type  = localStorage.getItem('yashjub_type') || 'client';
 
+    // المزوّد مقفل على لوحة المزود فقط — ما يقدر يدخل صفحات العميل إطلاقاً
+    if (type === 'provider') {
+        window.location.href = 'provider.html';
+        return;
+    }
+
     if (phone) {
         // إخفاء زر دخول
         const notLogged = document.getElementById('userNotLogged');
@@ -182,12 +188,6 @@ function checkLogin() {
         document.getElementById('sidebarUserName') && (document.getElementById('sidebarUserName').textContent = savedName || (type === 'provider' ? 'مزود خدمة' : 'عميل'));
         document.getElementById('sidebarLoginBtn').style.display  = 'none';
         document.getElementById('sidebarLogoutBtn').style.display = 'block';
-
-        // إظهار لوحة المزود إذا كان مزوداً
-        if (type === 'provider') {
-            const providerLink = document.getElementById('providerLink');
-            if (providerLink) providerLink.style.display = 'flex';
-        }
 
         // إظهار جرس الإشعارات وتحميلها
         const bellWrap = document.getElementById('notifBellWrap');

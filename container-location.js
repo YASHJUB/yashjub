@@ -6,6 +6,12 @@ const API = window.location.origin + '/api';
     const phone = localStorage.getItem('yashjub_phone');
     if (!phone) {
         showAppAlert("⚠️ يجب تسجيل الدخول أولاً!", () => window.location.href = 'login.html');
+        return;
+    }
+
+    // المزوّد مقفل على لوحة المزود فقط — ما يقدر يدخل صفحات العميل إطلاقاً
+    if (localStorage.getItem('yashjub_type') === 'provider') {
+        window.location.href = 'provider.html';
     }
 })();
 
