@@ -55,6 +55,10 @@ function loadProvider() {
     if (!activeOrderPollInterval) {
         activeOrderPollInterval = setInterval(checkActiveOrder, 15000);
     }
+
+    // جرس الإشعارات
+    loadNotifBell();
+    setInterval(loadNotifBell, 60000);
 }
 
 // تحميل بيانات المزود الحالي
@@ -1052,5 +1056,102 @@ async function submitComplaint() {
     }
 }
 
+// ══ جرس الإشعارات ══
+
+const NOTIF_TYPE_ICONS = {
+    urgent: { icon: 'siren',    bg: 'rgba(239,68,68,0.1)',   color: '#EF4444' },
+    alert:  { icon: 'warning',  bg: 'rgba(245,158,11,0.1)',  color: '#F59E0B' },
+    update: { icon: 'bell',     bg: 'rgba(16,185,129,0.1)',  color: '#10B981' },
+    offer:  { icon: 'confetti', bg: 'rgba(245,197,24,0.15)', color: '#92700A' },
+};
+
+async function loadNotifBell() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) return;
+
+    try {
+        const res  = await fetch(`${API}/notifications/${phone}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const unreadCount = data.notifications.filter(n => !n.is_read).length;
+        const badge = document.getElementById('notifBellBadge');
+        badge.textContent   = unreadCount;
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+
+        renderNotifDropdown(data.notifications.slice(0, 5));
+    } catch (e) {}
+}
+
+function renderNotifDropdown(notifications) {
+    const list = document.getElementById('notifDropdownList');
+
+    if (!notifications.length) {
+        list.innerHTML = '<div class="notif-dropdown-empty">لا توجد إشعارات</div>';
+        return;
+    }
+
+    list.innerHTML = notifications.map(n => {
+        const meta = NOTIF_TYPE_ICONS[n.type] || NOTIF_TYPE_ICONS.update;
+        return `
+            <div class="notif-dropdown-item ${n.is_read ? '' : 'unread'}" onclick="clickNotifItem(${n.id})">
+                <div class="notif-dropdown-icon" style="background:${meta.bg};color:${meta.color}">
+                    <svg class="icon"><use href="icons.svg#icon-${meta.icon}"></use></svg>
+                </div>
+                <div>
+                    <div class="notif-dropdown-title">${n.title}</div>
+                    <div class="notif-dropdown-message">${n.message}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleNotifDropdown() {
+    const dropdown = document.getElementById('notifDropdown');
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+async function clickNotifItem(id) {
+    try {
+        await fetch(`${API}/notifications/${id}/read`, { method: 'PUT' });
+        loadNotifBell();
+    } catch (e) {}
+    window.location.href = 'profile.html#notifications';
+}
+
+// إغلاق قائمة الإشعارات عند الضغط خارجها
+document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('notifBellWrap');
+    if (wrap && !wrap.contains(e.target)) {
+        const dropdown = document.getElementById('notifDropdown');
+        if (dropdown) dropdown.style.display = 'none';
+    }
+});
+
+// ══ الوضع الليلي ══
+
+function toggleTheme() {
+    const body = document.body;
+    const btn  = document.getElementById('themeBtn');
+    const isDark = body.classList.toggle('dark-mode');
+
+    btn.innerHTML = isDark
+        ? '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>'
+        : '<svg class="icon"><use href="icons.svg#icon-moon"></use></svg>';
+    localStorage.setItem('yashjub_theme', isDark ? 'dark' : 'light');
+}
+
+// تطبيق الثيم المحفوظ
+function loadTheme() {
+    const theme = localStorage.getItem('yashjub_theme');
+    if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.innerHTML = '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>';
+    }
+}
+
 // تشغيل
 loadProvider();
+loadTheme();

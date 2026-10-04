@@ -3539,7 +3539,80 @@ body.dark-mode .sidebar-divider {
 
 body.dark-mode .sidebar-footer {
     border-top-color: #333333;
-}/* ══ نظام الحاوية ══ */
+}
+
+/* ══ الوضع الليلي — لوحة المزود (نفس ألوان الصفحة الرئيسية: بطاقة #1a1a1a، حدود #333333) ══ */
+
+body.dark-mode .provider-stat-card {
+    background-color: #1a1a1a;
+    border-color: #333333;
+}
+body.dark-mode .provider-stat-num { color: #ffffff; }
+body.dark-mode .provider-stat-label { color: #888888; }
+
+body.dark-mode .wallet-card {
+    background-color: #1a1a1a;
+    border-color: #333333;
+}
+body.dark-mode .wallet-title { color: #ffffff; }
+body.dark-mode .wallet-stat-num { color: #ffffff; }
+body.dark-mode .wallet-stat-label { color: #888888; }
+body.dark-mode .wallet-stat-divider { background-color: #333333; }
+body.dark-mode #workAreaEmptyState,
+body.dark-mode #myReviewsCount { color: #888888 !important; }
+body.dark-mode #workAreaSummaryText { color: #ffffff; }
+
+body.dark-mode .my-review-item { border-bottom-color: #333333; }
+body.dark-mode .my-review-comment { color: #aaaaaa; }
+body.dark-mode .my-review-date { color: #888888; }
+
+body.dark-mode .provider-orders-card {
+    background-color: #1a1a1a;
+    border-color: #333333;
+}
+body.dark-mode .provider-orders-title { color: #ffffff; }
+body.dark-mode .provider-orders-count { color: #888888; }
+
+body.dark-mode .filter-btn {
+    background-color: #111111;
+    border-color: #333333;
+    color: #aaaaaa;
+}
+body.dark-mode .filter-btn.active { background-color: #F5C518; border-color: #F5C518; color: #111111; }
+
+body.dark-mode .provider-order-item { border-color: #333333; }
+body.dark-mode .provider-order-icon { background-color: rgba(245,197,24,0.12); }
+body.dark-mode .provider-order-name { color: #ffffff; }
+body.dark-mode .provider-order-date { color: #888888; }
+body.dark-mode .provider-order-divider { background-color: #333333; }
+body.dark-mode .provider-order-detail { color: #aaaaaa; }
+
+body.dark-mode .my-products-section {
+    background-color: #1a1a1a;
+    border-color: #333333;
+}
+body.dark-mode .my-products-title { color: #ffffff; }
+body.dark-mode .product-form {
+    background-color: #111111;
+    border-color: #333333;
+}
+body.dark-mode .product-item { border-color: #333333; }
+body.dark-mode .product-item-name { color: #ffffff; }
+body.dark-mode .product-item-desc { color: #888888; }
+body.dark-mode .product-item-details { color: #aaaaaa; }
+
+body.dark-mode .order-field label { color: #ffffff; }
+body.dark-mode .order-field input,
+body.dark-mode .order-field textarea {
+    background-color: #111111;
+    border-color: #333333;
+    color: #ffffff;
+}
+
+body.dark-mode .empty-title { color: #ffffff; }
+body.dark-mode .empty-sub { color: #888888; }
+
+/* ══ نظام الحاوية ══ */
 
 .container-sizes {
     display: grid;
