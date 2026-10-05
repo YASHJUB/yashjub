@@ -4301,6 +4301,66 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     100% { border-color: #F5C518; }
 }
 
+/* بانتظار الطلبات — تظهر بمكان بطاقة الطلب الوارد لما ما يكون فيه طلب نشط */
+.waiting-orders-card {
+    background: rgba(245,197,24,0.05);
+    border: 2px dashed #F5C518;
+    border-radius: 16px;
+    padding: 44px 20px;
+    text-align: center;
+    animation: waitingBorderPulse 2.5s infinite;
+}
+
+@keyframes waitingBorderPulse {
+    0%, 100% { border-color: rgba(245,197,24,0.4); }
+    50%      { border-color: #F5C518; box-shadow: 0 0 16px rgba(245,197,24,0.15); }
+}
+
+.waiting-orders-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #F5C518;
+    animation: waitingIconPulse 2.5s infinite;
+}
+
+.waiting-orders-icon .icon { width: 40px; height: 40px; }
+
+@keyframes waitingIconPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%      { opacity: 0.8; transform: scale(1.08); }
+}
+
+.waiting-orders-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: #F5C518;
+    opacity: 0.85;
+    font-family: 'Cairo', sans-serif;
+}
+
+.waiting-dots span {
+    display: inline-block;
+    animation: waitingDotBlink 1.4s infinite;
+    opacity: 0.2;
+}
+
+.waiting-dots span:nth-child(1) { animation-delay: 0s; }
+.waiting-dots span:nth-child(2) { animation-delay: 0.2s; }
+.waiting-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes waitingDotBlink {
+    0%, 80%, 100% { opacity: 0.2; }
+    40%           { opacity: 1; }
+}
+
+@media (max-width: 480px) {
+    .waiting-orders-card { padding: 32px 16px; }
+}
+
 .new-order-header {
     background: rgba(245,197,24,0.1);
     padding: 12px 20px;

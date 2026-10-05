@@ -7,7 +7,6 @@ let countdownSeconds = 60;
 let activeOrderPollInterval = null;
 let currentActiveOrder      = null;
 let awaitingReleaseInterval = null;
-let allOrders = [];
 let currentProviderId = null;
 let editingProductId   = null;
 let productMap    = null;
@@ -143,17 +142,14 @@ async function loadMyReviews(phone) {
     } catch (e) {}
 }
 
-// تحميل الطلبات
+// تحميل الطلبات (إحصائيات الصفحة الرئيسية فقط — سجل الطلبات الكامل صار بصفحة provider-orders.html)
 async function loadOrders(phone) {
     try {
         const res  = await fetch(`${API}/orders/provider/${phone}`);
         const data = await res.json();
 
         if (data.success) {
-            allOrders = data.orders;
-            renderOrders(allOrders);
-            updateStats(allOrders);
-            updateWallet(allOrders);
+            updateStats(data.orders);
         }
     } catch(e) {
         console.log('خطأ في تحميل الطلبات');
@@ -174,206 +170,6 @@ function updateStats(orders) {
 
     document.getElementById('statToday').textContent = todayOrders.length;
     document.getElementById('statWeek').textContent  = weekRevenue.toLocaleString();
-    document.getElementById('ordersCount').textContent = `${orders.length} طلب`;
-}
-
-// تحديث المحفظة
-function updateWallet(orders) {
-    const completed = orders.filter(o => o.status === 'completed');
-    const pending   = orders.filter(o => o.status === 'pending');
-
-    const totalEarned   = completed.reduce((sum, o) => sum + (o.price - o.commission), 0);
-    const pendingAmount = pending.reduce((sum, o) => sum + o.price, 0);
-
-    document.getElementById('walletBalance').textContent  = `${totalEarned.toLocaleString()} ريال`;
-    document.getElementById('walletTotal').textContent    = totalEarned.toLocaleString();
-    document.getElementById('walletPending').textContent  = pendingAmount.toLocaleString();
-    document.getElementById('walletWithdrawn').textContent = '0';
-}
-
-// عرض الطلبات
-function renderOrders(orders) {
-    const container = document.getElementById('providerOrdersList');
-
-    if (orders.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon"><svg class="icon"><use href="icons.svg#icon-inbox-empty"></use></svg></div>
-                <div class="empty-title">لا يوجد طلبات</div>
-                <div class="empty-sub">ابدأ باستقبال الطلبات الآن!</div>
-            </div>`;
-        return;
-    }
-
-    const statusLabels = {
-        pending:               { label: 'انتظار',           color: '#F59E0B', bg: 'rgba(245,158,11,0.1)'  },
-        accepted:              { label: 'مقبول',            color: '#3B82F6', bg: 'rgba(59,130,246,0.1)'  },
-        arrived:               { label: 'وصلت',             color: '#92700A', bg: 'rgba(245,197,24,0.15)' },
-        awaiting_confirmation: { label: 'بانتظار التأكيد',  color: '#92700A', bg: 'rgba(245,197,24,0.15)' },
-        disputed:              { label: 'نزاع',             color: '#EF4444', bg: 'rgba(239,68,68,0.1)'   },
-        completed:             { label: 'مكتمل',             color: '#10B981', bg: 'rgba(16,185,129,0.1)'  },
-        cancelled:             { label: 'ملغي',              color: '#EF4444', bg: 'rgba(239,68,68,0.1)'   },
-    };
-
-    const serviceIcons = {
-        'وايت ماء': 'truck', 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane'
-    };
-
-    container.innerHTML = orders.map(o => {
-        const status = statusLabels[o.status] || { label: o.status, color: '#888', bg: '#f0f0f0' };
-        const icon   = serviceIcons[o.service] || 'wrench';
-        const date   = new Date(o.created_at).toLocaleDateString('ar-SA');
-        const net    = o.price - o.commission;
-
-        return `
-            <div class="provider-order-item">
-                <div class="provider-order-top">
-                    <div class="provider-order-service">
-                        <div class="provider-order-icon"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg></div>
-                        <div>
-                            <div class="provider-order-name">${o.service}</div>
-                            <div class="provider-order-date">${date}</div>
-                        </div>
-                    </div>
-                    <span class="provider-order-status"
-                        style="color:${status.color};background:${status.bg}">
-                        ${status.label}
-                    </span>
-                </div>
-                <div class="provider-order-divider"></div>
-                <div class="provider-order-details">
-                    <div class="provider-order-detail">
-                        <span><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${o.address.substring(0, 30)}${o.address.length > 30 ? '...' : ''}</span>
-                    </div>
-                    <div class="provider-order-detail">
-                        <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> صافي الأرباح: <strong>${net} ريال</strong></span>
-                    </div>
-                </div>
-                ${o.status === 'pending' ? `
-                <button class="btn-accept-real-order" onclick="acceptRealOrder(${o.id})">
-                    <svg class="icon"><use href="icons.svg#icon-check"></use></svg> قبول الطلب
-                </button>` : ''}
-                ${(o.status === 'accepted' || o.status === 'arrived') ? `
-                <div class="provider-order-chat-actions">
-                    <button class="btn-chat" onclick="toggleProviderChat(${o.id})">
-                        <svg class="icon"><use href="icons.svg#icon-chat"></use></svg> محادثة العميل
-                    </button>
-                    ${o.status === 'accepted' ? `
-                    <button class="btn-arrived-order" onclick="markOrderArrived(${o.id})">
-                        <svg class="icon"><use href="icons.svg#icon-pin"></use></svg> وصلت للموقع
-                    </button>` : `
-                    <button class="btn-complete-order" onclick="markOrderCompleted(${o.id})">
-                        <svg class="icon"><use href="icons.svg#icon-check"></use></svg> اكتملت الخدمة
-                    </button>`}
-                </div>
-                <div class="chat-panel" id="chatPanel-${o.id}" style="display:none">
-                    <div class="chat-messages" id="chatMessages-${o.id}"></div>
-                    <div class="chat-input-row">
-                        <input type="text" id="chatInput-${o.id}" placeholder="اكتب ردك..." onkeydown="if(event.key==='Enter') sendProviderChatMessage(${o.id})"/>
-                        <button class="btn-small" onclick="sendProviderChatMessage(${o.id})">إرسال</button>
-                    </div>
-                </div>` : ''}
-                ${(o.status === 'completed' || o.status === 'cancelled') ? `
-                <button class="btn-small" style="width:100%;margin-top:12px" onclick="openComplaintForm(${o.id}, '${o.phone}')">
-                    <svg class="icon"><use href="icons.svg#icon-siren"></use></svg> تقديم بلاغ
-                </button>` : ''}
-            </div>
-        `;
-    }).join('');
-}
-
-// ══ محادثة العميل (للطلبات المقبولة) ══
-
-let openChatOrderId          = null;
-let providerChatPollInterval = null;
-
-function toggleProviderChat(orderId) {
-    // إغلاق أي محادثة ثانية مفتوحة قبل فتح هذي
-    if (openChatOrderId && openChatOrderId !== orderId) {
-        const prevPanel = document.getElementById(`chatPanel-${openChatOrderId}`);
-        if (prevPanel) prevPanel.style.display = 'none';
-    }
-
-    const panel   = document.getElementById(`chatPanel-${orderId}`);
-    const isOpen  = panel.style.display === 'block';
-
-    if (providerChatPollInterval) {
-        clearInterval(providerChatPollInterval);
-        providerChatPollInterval = null;
-    }
-
-    if (isOpen) {
-        panel.style.display = 'none';
-        openChatOrderId = null;
-        return;
-    }
-
-    panel.style.display = 'block';
-    openChatOrderId = orderId;
-    loadProviderChatMessages(orderId);
-    providerChatPollInterval = setInterval(() => loadProviderChatMessages(orderId), 10000);
-}
-
-async function loadProviderChatMessages(orderId) {
-    const container = document.getElementById(`chatMessages-${orderId}`);
-    if (!container) return;
-
-    try {
-        const res  = await fetch(`${API}/chats/${orderId}`);
-        const data = await res.json();
-        if (!data.success) return;
-
-        if (!data.messages.length) {
-            container.innerHTML = '<div class="chat-empty">ابدأ المحادثة مع العميل...</div>';
-            return;
-        }
-
-        const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 30;
-
-        container.innerHTML = data.messages.map(m => `
-            <div class="chat-bubble sender-${m.sender}">
-                <div class="chat-bubble-text">${m.message}</div>
-                <div class="chat-bubble-time">${new Date(m.created_at.replace(' ', 'T') + 'Z').toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</div>
-            </div>
-        `).join('');
-
-        if (wasAtBottom) container.scrollTop = container.scrollHeight;
-    } catch (e) {}
-}
-
-async function sendProviderChatMessage(orderId) {
-    const input = document.getElementById(`chatInput-${orderId}`);
-    const text  = input.value.trim();
-
-    if (!text) return;
-
-    input.value = '';
-
-    try {
-        await fetch(`${API}/chats`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                orderId,
-                sender: 'provider',
-                senderPhone: localStorage.getItem('yashjub_phone'),
-                message: text,
-            }),
-        });
-        loadProviderChatMessages(orderId);
-    } catch (e) {}
-}
-
-// فلتر الطلبات
-function filterOrders(status, btn) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    if (status === 'all') {
-        renderOrders(allOrders);
-    } else {
-        renderOrders(allOrders.filter(o => o.status === status));
-    }
 }
 
 // ══ بطاقة الطلب النشط (تتحول: قبول الطلب → وصلت للموقع → اكتملت الخدمة، ثم تختفي) ══
@@ -398,10 +194,12 @@ async function checkActiveOrder() {
 }
 
 function renderActiveOrderCard(order) {
-    const section = document.getElementById('newOrderSection');
+    const section      = document.getElementById('newOrderSection');
+    const waitingCard  = document.getElementById('waitingOrdersCard');
 
     if (!order) {
-        section.style.display = 'none';
+        section.style.display     = 'none';
+        waitingCard.style.display = 'block';
         clearInterval(countdownInterval);
         clearInterval(awaitingReleaseInterval);
         currentActiveOrder = null;
@@ -418,7 +216,8 @@ function renderActiveOrderCard(order) {
     document.getElementById('newOrderAddress').textContent = order.address;
     document.getElementById('newOrderAmount').textContent  = `${order.price} ريال`;
     document.getElementById('newOrderClient').textContent  = `+966${order.phone}`;
-    section.style.display = 'block';
+    waitingCard.style.display = 'none';
+    section.style.display     = 'block';
 
     renderActiveOrderActions(order);
 }
@@ -595,14 +394,9 @@ function toggleAvailability() {
         label.textContent    = 'مشغول';
         label.style.color    = '#EF4444';
         clearInterval(countdownInterval);
-        document.getElementById('newOrderSection').style.display = 'none';
+        document.getElementById('newOrderSection').style.display    = 'none';
+        document.getElementById('waitingOrdersCard').style.display  = 'none';
     }
-}
-
-// طلب سحب
-function requestWithdraw() {
-    const balance = document.getElementById('walletBalance').textContent;
-    alert(`💳 طلب سحب\n\nالرصيد المتاح: ${balance}\n\nسيتم تحويل المبلغ لحسابك البنكي خلال 24-72 ساعة`);
 }
 
 // تسجيل الخروج
@@ -999,61 +793,6 @@ async function saveWorkArea() {
         if (data.success) {
             closeWorkAreaModal();
             renderWorkAreaSection(data.provider);
-        } else {
-            alert(`❌ ${data.message}`);
-        }
-    } catch (e) {
-        alert('❌ خطأ في الاتصال بالسيرفر');
-    }
-}
-
-// ══ تقديم بلاغ عن عميل ══
-
-let complaintOrderId       = null;
-let complaintReportedPhone = null;
-
-function openComplaintForm(orderId, clientPhone) {
-    complaintOrderId       = orderId;
-    complaintReportedPhone = clientPhone || null;
-    document.getElementById('complaintType').value        = 'تأخر';
-    document.getElementById('complaintDescription').value = '';
-    document.getElementById('complaintFormOverlay').style.display = 'flex';
-}
-
-function closeComplaintForm() {
-    document.getElementById('complaintFormOverlay').style.display = 'none';
-    complaintOrderId       = null;
-    complaintReportedPhone = null;
-}
-
-async function submitComplaint() {
-    const phone       = localStorage.getItem('yashjub_phone');
-    const type        = document.getElementById('complaintType').value;
-    const description = document.getElementById('complaintDescription').value.trim();
-
-    if (!description) {
-        alert('❌ يرجى كتابة تفاصيل البلاغ');
-        return;
-    }
-
-    try {
-        const res  = await fetch(`${API}/complaints`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                orderId: complaintOrderId,
-                reporterPhone: phone,
-                reporterType: 'provider',
-                reportedPhone: complaintReportedPhone,
-                reportedType: complaintReportedPhone ? 'client' : null,
-                type, description,
-            }),
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            closeComplaintForm();
-            alert(`✅ تم إرسال بلاغك بنجاح — رقم البلاغ للمتابعة: #${data.complaint.id}`);
         } else {
             alert(`❌ ${data.message}`);
         }

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غَوْث - سجل الطلبات</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.png" alt="غَوْث" class="logo-img">
+            <div class="tagline">سجل الطلبات</div>
+        </div>
+        <div class="header-left">
+            <div id="notifBellWrap" style="position:relative">
+                <button class="theme-btn" onclick="toggleNotifDropdown()" id="notifBellBtn" style="position:relative">
+                    <svg class="icon"><use href="icons.svg#icon-bell"></use></svg>
+                    <span class="notif-bell-badge" id="notifBellBadge" style="display:none">0</span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown" style="display:none">
+                    <div class="notif-dropdown-header">الإشعارات</div>
+                    <div class="notif-dropdown-list" id="notifDropdownList"></div>
+                    <a href="profile.html#notifications" class="notif-dropdown-viewall">عرض الكل</a>
+                </div>
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()" id="themeBtn"><svg class="icon"><use href="icons.svg#icon-moon"></use></svg></button>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+    </div>
+
+    <!-- السايد بار -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="app-sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-user-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
+            <div>
+                <div class="sidebar-user-name" id="providerNameSidebar">مزود خدمة</div>
+                <div class="sidebar-user-phone" id="providerPhoneSidebar">+966XXXXXXXXX</div>
+                <div class="provider-hero-badge" id="sidebarProviderBadge" style="margin-top:6px"><svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> مزود موثق</div>
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="sidebar-menu">
+            <a class="sidebar-link" href="provider.html"><span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> لوحة المزود</a>
+            <a class="sidebar-link active" href="provider-orders.html"><span><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> سجل الطلبات</a>
+            <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
+            <a class="sidebar-link" href="my-orders.html"><span><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> طلباتي</a>
+            <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
+            <div class="sidebar-divider"></div>
+            <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
+            <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
+            <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
+        </div>
+        <div class="sidebar-footer">
+            <button class="btn-small btn-logout" onclick="providerLogout()">تسجيل الخروج <svg class="icon"><use href="icons.svg#icon-door"></use></svg></button>
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="provider-page">
+
+        <!-- سجل الطلبات -->
+        <div class="provider-orders-card">
+            <div class="provider-orders-header">
+                <div class="provider-orders-title"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg> سجل الطلبات</div>
+                <div class="provider-orders-count" id="ordersCount">0 طلب</div>
+            </div>
+
+            <!-- فلتر -->
+            <div class="orders-filter">
+                <button class="filter-btn active" onclick="filterOrders('all', this)">الكل</button>
+                <button class="filter-btn" onclick="filterOrders('completed', this)">مكتملة</button>
+                <button class="filter-btn" onclick="filterOrders('pending', this)">انتظار</button>
+                <button class="filter-btn" onclick="filterOrders('cancelled', this)">ملغية</button>
+            </div>
+
+            <div id="providerOrdersList">
+                <div class="empty-state">
+                    <div class="empty-icon"><svg class="icon"><use href="icons.svg#icon-inbox-empty"></use></svg></div>
+                    <div class="empty-title">لا يوجد طلبات بعد</div>
+                    <div class="empty-sub">ابدأ باستقبال الطلبات الآن!</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>غَوْث</span> — عـتـاد الـبـنـاء
+        </div>
+    </div>
+
+    <!-- نافذة تقديم بلاغ -->
+    <div class="confirm-overlay" id="complaintFormOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-siren"></use></svg> تقديم بلاغ</h3>
+            <label>نوع البلاغ</label>
+            <select id="complaintType">
+                <option value="تأخر">تأخر</option>
+                <option value="سوء تعامل">سوء تعامل</option>
+                <option value="رفض دفع">رفض دفع</option>
+                <option value="لم يحضر">لم يحضر</option>
+                <option value="جودة رديئة">جودة رديئة</option>
+                <option value="عنوان خاطئ">عنوان خاطئ</option>
+                <option value="إلغاء متكرر">إلغاء متكرر</option>
+                <option value="أخرى">أخرى</option>
+            </select>
+            <label>تفاصيل البلاغ</label>
+            <textarea id="complaintDescription" placeholder="اشرح المشكلة بالتفصيل..."></textarea>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitComplaint()">إرسال البلاغ</button>
+                <button class="btn-small" onclick="closeComplaintForm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="alert.js"></script>
+    <script src="provider-orders.js"></script>
+</body>
+</html>

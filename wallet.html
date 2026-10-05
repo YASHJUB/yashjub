@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غَوْث - محفظتي</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.png" alt="غَوْث" class="logo-img">
+            <div class="tagline">محفظتي</div>
+        </div>
+        <div class="header-left">
+            <div id="notifBellWrap" style="position:relative">
+                <button class="theme-btn" onclick="toggleNotifDropdown()" id="notifBellBtn" style="position:relative">
+                    <svg class="icon"><use href="icons.svg#icon-bell"></use></svg>
+                    <span class="notif-bell-badge" id="notifBellBadge" style="display:none">0</span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown" style="display:none">
+                    <div class="notif-dropdown-header">الإشعارات</div>
+                    <div class="notif-dropdown-list" id="notifDropdownList"></div>
+                    <a href="profile.html#notifications" class="notif-dropdown-viewall">عرض الكل</a>
+                </div>
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()" id="themeBtn"><svg class="icon"><use href="icons.svg#icon-moon"></use></svg></button>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+    </div>
+
+    <!-- السايد بار -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="app-sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-user-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
+            <div>
+                <div class="sidebar-user-name" id="providerNameSidebar">مزود خدمة</div>
+                <div class="sidebar-user-phone" id="providerPhoneSidebar">+966XXXXXXXXX</div>
+                <div class="provider-hero-badge" id="sidebarProviderBadge" style="margin-top:6px"><svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> مزود موثق</div>
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="sidebar-menu">
+            <a class="sidebar-link" href="provider.html"><span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> لوحة المزود</a>
+            <a class="sidebar-link" href="provider-orders.html"><span><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> سجل الطلبات</a>
+            <a class="sidebar-link active" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
+            <a class="sidebar-link" href="my-orders.html"><span><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> طلباتي</a>
+            <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
+            <div class="sidebar-divider"></div>
+            <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
+            <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
+            <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
+        </div>
+        <div class="sidebar-footer">
+            <button class="btn-small btn-logout" onclick="providerLogout()">تسجيل الخروج <svg class="icon"><use href="icons.svg#icon-door"></use></svg></button>
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="provider-page">
+
+        <!-- المحفظة -->
+        <div class="wallet-card" id="walletSection">
+            <div class="wallet-header">
+                <div class="wallet-title"><svg class="icon"><use href="icons.svg#icon-card"></use></svg> محفظتي</div>
+                <button class="wallet-withdraw-btn" onclick="requestWithdraw()">طلب سحب</button>
+            </div>
+            <div class="wallet-balance-wrap">
+                <div class="wallet-balance-label">الرصيد المتاح</div>
+                <div class="wallet-balance" id="walletBalance">0 ريال</div>
+            </div>
+            <div class="wallet-stats">
+                <div class="wallet-stat">
+                    <div class="wallet-stat-num" id="walletTotal">0</div>
+                    <div class="wallet-stat-label">إجمالي الأرباح</div>
+                </div>
+                <div class="wallet-stat-divider"></div>
+                <div class="wallet-stat">
+                    <div class="wallet-stat-num" id="walletPending">0</div>
+                    <div class="wallet-stat-label">معلق</div>
+                </div>
+                <div class="wallet-stat-divider"></div>
+                <div class="wallet-stat">
+                    <div class="wallet-stat-num" id="walletWithdrawn">0</div>
+                    <div class="wallet-stat-label">تم السحب</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>غَوْث</span> — عـتـاد الـبـنـاء
+        </div>
+    </div>
+
+    <script src="alert.js"></script>
+    <script src="wallet.js"></script>
+</body>
+</html>

@@ -50,8 +50,9 @@
         </div>
         <div class="sidebar-menu">
             <a class="sidebar-link active" href="provider.html"><span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> لوحة المزود</a>
+            <a class="sidebar-link" href="provider-orders.html"><span><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> سجل الطلبات</a>
+            <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
             <a class="sidebar-link" href="my-orders.html"><span><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> طلباتي</a>
-            <a class="sidebar-link" href="#walletSection" onclick="toggleSidebar()"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
             <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
             <div class="sidebar-divider"></div>
             <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
@@ -180,6 +181,12 @@
             <div id="productsList"></div>
         </div>
 
+        <!-- بانتظار الطلبات (تظهر لما ما يكون فيه طلب نشط، وتختفي تلقائياً لما يجي طلب) -->
+        <div class="waiting-orders-card" id="waitingOrdersCard">
+            <div class="waiting-orders-icon"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div>
+            <div class="waiting-orders-text">بانتظار الطلبات<span class="waiting-dots"><span>.</span><span>.</span><span>.</span></span></div>
+        </div>
+
         <!-- الطلب الوارد -->
         <div class="new-order-section" id="newOrderSection" style="display:none">
             <div class="new-order-header">
@@ -228,34 +235,6 @@
             </div>
         </div>
 
-        <!-- المحفظة -->
-        <div class="wallet-card" id="walletSection">
-            <div class="wallet-header">
-                <div class="wallet-title"><svg class="icon"><use href="icons.svg#icon-card"></use></svg> محفظتي</div>
-                <button class="wallet-withdraw-btn" onclick="requestWithdraw()">طلب سحب</button>
-            </div>
-            <div class="wallet-balance-wrap">
-                <div class="wallet-balance-label">الرصيد المتاح</div>
-                <div class="wallet-balance" id="walletBalance">0 ريال</div>
-            </div>
-            <div class="wallet-stats">
-                <div class="wallet-stat">
-                    <div class="wallet-stat-num" id="walletTotal">0</div>
-                    <div class="wallet-stat-label">إجمالي الأرباح</div>
-                </div>
-                <div class="wallet-stat-divider"></div>
-                <div class="wallet-stat">
-                    <div class="wallet-stat-num" id="walletPending">0</div>
-                    <div class="wallet-stat-label">معلق</div>
-                </div>
-                <div class="wallet-stat-divider"></div>
-                <div class="wallet-stat">
-                    <div class="wallet-stat-num" id="walletWithdrawn">0</div>
-                    <div class="wallet-stat-label">تم السحب</div>
-                </div>
-            </div>
-        </div>
-
         <!-- نطاق العمل -->
         <div class="wallet-card" style="margin-bottom:20px" id="workAreaSection">
             <div class="wallet-header">
@@ -288,30 +267,6 @@
             <div id="myReviewsList" class="my-reviews-list"></div>
         </div>
 
-        <!-- الطلبات السابقة -->
-        <div class="provider-orders-card">
-            <div class="provider-orders-header">
-                <div class="provider-orders-title"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg> سجل الطلبات</div>
-                <div class="provider-orders-count" id="ordersCount">0 طلب</div>
-            </div>
-
-            <!-- فلتر -->
-            <div class="orders-filter">
-                <button class="filter-btn active" onclick="filterOrders('all', this)">الكل</button>
-                <button class="filter-btn" onclick="filterOrders('completed', this)">مكتملة</button>
-                <button class="filter-btn" onclick="filterOrders('pending', this)">انتظار</button>
-                <button class="filter-btn" onclick="filterOrders('cancelled', this)">ملغية</button>
-            </div>
-
-            <div id="providerOrdersList">
-                <div class="empty-state">
-                    <div class="empty-icon"><svg class="icon"><use href="icons.svg#icon-inbox-empty"></use></svg></div>
-                    <div class="empty-title">لا يوجد طلبات بعد</div>
-                    <div class="empty-sub">ابدأ باستقبال الطلبات الآن!</div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <!-- فوتر -->
@@ -324,30 +279,6 @@
         </div>
         <div class="footer-copy">
             جميع الحقوق محفوظة © 2026 <span>غَوْث</span> — عـتـاد الـبـنـاء
-        </div>
-    </div>
-
-    <!-- نافذة تقديم بلاغ -->
-    <div class="confirm-overlay" id="complaintFormOverlay" style="display:none">
-        <div class="complaint-form-modal">
-            <h3><svg class="icon"><use href="icons.svg#icon-siren"></use></svg> تقديم بلاغ</h3>
-            <label>نوع البلاغ</label>
-            <select id="complaintType">
-                <option value="تأخر">تأخر</option>
-                <option value="سوء تعامل">سوء تعامل</option>
-                <option value="رفض دفع">رفض دفع</option>
-                <option value="لم يحضر">لم يحضر</option>
-                <option value="جودة رديئة">جودة رديئة</option>
-                <option value="عنوان خاطئ">عنوان خاطئ</option>
-                <option value="إلغاء متكرر">إلغاء متكرر</option>
-                <option value="أخرى">أخرى</option>
-            </select>
-            <label>تفاصيل البلاغ</label>
-            <textarea id="complaintDescription" placeholder="اشرح المشكلة بالتفصيل..."></textarea>
-            <div class="complaint-form-actions">
-                <button class="btn" style="flex:1" onclick="submitComplaint()">إرسال البلاغ</button>
-                <button class="btn-small" onclick="closeComplaintForm()">إلغاء</button>
-            </div>
         </div>
     </div>
 
