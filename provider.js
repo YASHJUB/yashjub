@@ -40,7 +40,6 @@ function loadProvider() {
 
     // تحديث البيانات
     document.getElementById('providerName').textContent        = 'مزود خدمة';
-    document.getElementById('providerPhone').textContent       = `+966${phone}`;
     document.getElementById('providerNameSidebar').textContent = 'مزود خدمة';
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
 
@@ -71,6 +70,13 @@ async function loadProviderProfile(phone) {
 
         const me = data.providers.find(p => p.phone === phone);
         if (!me) return;
+
+        // اسم المزود الحقيقي ونوع خدمته (بطاقة الهيدر + السايد بار)
+        document.getElementById('providerName').textContent        = me.name;
+        document.getElementById('providerNameSidebar').textContent = me.name;
+        const serviceTypeEl = document.getElementById('providerServiceType');
+        serviceTypeEl.textContent   = `مزود خدمة (${me.service_type})`;
+        serviceTypeEl.style.display = 'block';
 
         if (me.service_type === 'حاوية') {
             currentProviderId = me.id;

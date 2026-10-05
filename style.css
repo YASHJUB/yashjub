@@ -4169,6 +4169,13 @@ body.dark-mode .empty-sub { color: #888888; }
     margin-bottom: 3px;
 }
 
+.provider-hero-service {
+    font-size: 12px;
+    color: #F5C518;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 4px;
+}
+
 .provider-hero-phone {
     font-size: 13px;
     color: rgba(255,255,255,0.5);
