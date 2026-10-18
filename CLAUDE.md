@@ -180,6 +180,19 @@
 
 **تنبيه أمني معروف ومقبول:** الصلاحيات هذي كلها من جهة العميل (client-side) فقط — نفس أسلوب حماية لوحة الإدارة الحالي أصلاً (كلمة سر المدير العام نفسها مكتوبة صراحة بـ `admin.js` القابل للقراءة من أي متصفح، وكل endpoints الـ API بدون أي تحقق من هوية المتصل). إخفاء أقسام السايد بار يمنع الاستخدام العرضي فقط، وما يمنع موظف تقني من استدعاء أي API مباشرة. لو احتجنا حماية حقيقية لاحقاً، لازم نضيف نظام جلسات/tokens فعلي بجانب middleware تحقق صلاحيات بكل endpoint حساس.
 
+### النظام والسياسات (جدول `system_settings` — تفعيل/تعطيل أنظمة المنصة)
+قسم جديد بلوحة الإدارة (سايد بار، أيقونة `icon-shield-lock`، **يظهر فقط للمدير العام** لأنه مو مذكور بأي قائمة `ROLE_PAGES` — نفس منطق إخفاء "إدارة الموظفين" أعلاه) يعرض بطاقة لكل "نظام" بالمنصة مع زر toggle كبير (أخضر لما يكون مفعّل) لتفعيله أو تعطيله، بعد تأكيد (`confirm()`) قبل أي تبديل.
+
+جدول `system_settings` بسيط (`key`/`value` نصي `'true'`/`'false'`/`updated_at`) يُزرع أول تشغيل بقيمتين فقط:
+| `key` | الافتراضي | يمثّل |
+|---|---|---|
+| `paid_system` | `true` (مفعّل) | نظام الطلبات المدفوعة الحالي بالكامل — العميل يطلب ويدفع والمزوّد يخدمه والمنصة تاخذ 5% عمولة (هذا هو كل المشروع الموثّق بباقي هذا الملف) |
+| `ads_system` | `false` (معطّل) | نظام إعلانات مجاني مستقبلي — المزوّد ينشر إعلانه والعميل يتواصل معه مباشرة (واتساب/مكالمة) بدون طلب أو عمولة |
+
+**`GET /api/settings`** يرجّع كل الإعدادات ككائن `{ key: boolean }`، و**`PUT /api/settings/:key`** (body: `{ value }`) يحدّث إعداد موجود (يرفض صراحة لو المفتاح غير معرّف بالجدول). بطاقات الواجهة (`SYSTEM_SETTINGS_META` بـ`admin.js`) تحدّد اسم/وصف/أيقونة كل مفتاح بشكل ثابت بالكود — إضافة "نظام" جديد لاحقاً يحتاج صف جديد بالجدول (أو migration) + إدخال جديد بـ`SYSTEM_SETTINGS_META`.
+
+**قيد مهم ومتعمّد:** هذي أزرار تحكم وتخزين فقط — **ما فيه أي enforcement فعلي حالياً** يربط قيمة `paid_system`/`ads_system` بسلوك حقيقي بباقي المشروع (مثلاً تعطيل `paid_system` ما يمنع العملاء من تقديم طلبات جديدة فعلياً، و`ads_system` أصلاً ماكو أي واجهة إعلانات مبنية بعد بالمشروع لتفعيلها). الهدف الحالي تجهيز لوحة التحكم والتخزين فقط، استعداداً لربط فعلي لاحقاً لو احتجناه.
+
 ### الخرائط (Leaflet + OpenStreetMap — مجاني بالكامل، بدون مفتاح API)
 تحديد المواقع بالمشروع يعتمد على خرائط Leaflet مع بلاطات OpenStreetMap، تُحمَّل عبر CDN (`unpkg.com/leaflet@1.9.4`) بكل صفحة معنية — بدون حزمة npm. مركز الخريطة الافتراضي: الرياض `[24.7136, 46.6753]`.
 
@@ -276,6 +289,7 @@ complaints  -- order_id، reporter_phone، reporter_type (client/provider)، rep
 reviews     -- order_id، reviewer_phone، reviewer_type (client/provider)، reviewed_phone، reviewed_type (client/provider)، rating (1-5)، comment، admin_reply، is_visible، is_flagged
 testimonials -- client_phone، client_name، rating (1-5)، comment، service، status (pending/approved/rejected/hidden) — بدون order_id (راجع قسم "نظام شهادات العملاء")
 invoices    -- invoice_number (فريد، INV-<سنة>-<تسلسلي>)، order_id (فريد)، client_phone، client_name، service، address، price، commission، total، payment_method، payment_status، created_at — تُنشأ تلقائياً عند اكتمال الطلب (راجع قسم "نظام الفواتير")
+system_settings -- key (فريد)، value ('true'/'false' نصي)، updated_at — زُرعت بقيمتين (paid_system=true، ads_system=false) أول تشغيل (راجع قسم "النظام والسياسات")
 ```
 `price` بجدول `products` هو سعر حزمة كاملة (مو سعر يومي) — دايماً يُقرأ مع `min_days` المرافق له. `provider_id`/`provider_name`/`product_id` بالطلبات اختيارية (تُملأ فقط لطلبات الحاوية). `orders.price` يخزَّن كـ**الإجمالي الفعلي اللي يدفعه العميل**: (السعر الأساسي − الخصم لو فيه كوبون) + عمولة الخدمة 5% (تُضاف فوق، ما تُخصم من المزوّد — راجع "نظام المالية" أعلاه). `orders.commission` نفس قيمة العمولة المضافة، فـ`price - commission` يعطي دايماً السعر الأساسي بعد الخصم (صافي مستحقات المزوّد بالضبط). `orders.discount`/`orders.coupon_code` يحفظان قيمة ومصدر الخصم للمرجعية. أعمدة `providers.city/price_*`، `orders.provider_id/provider_name/product_id/coupon_code/discount`، و`products.min_days` أُضيفت عبر `ALTER TABLE` مغلّفة بـ try/catch في `database.js` (migration بسيط بدون ORM).
 
@@ -483,6 +497,8 @@ GET  /api/invoices/all                        كل الفواتير — لوحة
 GET  /api/invoices/user/:phone                كل فواتير عميل معيّن
 GET  /api/invoices/:id                        :id هنا رقم الطلب (order_id) مو رقم الفاتورة الداخلي — يستخدمها invoice.html
 GET  /api/invoices/:id/pdf                    302 redirect إلى invoice.html?id=X&autoprint=1 (لا يوجد مولّد PDF حقيقي — راجع قسم "نظام الفواتير")
+GET  /api/settings                            يرجّع كل إعدادات النظام ككائن { key: boolean } — تستخدمها صفحة "النظام والسياسات" بلوحة الإدارة
+PUT  /api/settings/:key                       body: { value } — يحدّث إعداد موجود، يرفض لو المفتاح غير معرّف بالجدول
 ```
 
 **Backend:** Node.js + Express.js, better-sqlite3, CORS + dotenv, multer (رفع الملفات), bcryptjs (تشفير كلمات مرور الموظفين)

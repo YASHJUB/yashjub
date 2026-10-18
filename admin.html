@@ -280,6 +280,40 @@
         .badge-cancel   { background: rgba(239,68,68,0.1);  color: var(--red); }
         .badge-gold     { background: rgba(245,197,24,0.12); color: #92700A; }
         .badge-purple   { background: rgba(139,92,246,0.1); color: #7C3AED; }
+        .badge-gray     { background: rgba(0,0,0,0.05); color: var(--text3); }
+
+        /* ══ النظام والسياسات ══ */
+        .system-card {
+            display: flex; align-items: center; gap: 18px;
+            background: var(--white); border: 2px solid var(--gray2); border-radius: 16px;
+            padding: 22px; margin-bottom: 16px; transition: border-color 0.2s;
+        }
+        .system-card.enabled  { border-color: var(--green); }
+        .system-card.disabled { border-color: var(--gray2); }
+        .system-card-icon {
+            width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0;
+            background: rgba(245,197,24,0.12);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .system-card-icon .icon { width: 28px; height: 28px; color: #92700A; }
+        .system-card-body { flex: 1; min-width: 0; }
+        .system-card-name { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+        .system-card-desc { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 10px; }
+
+        .system-toggle { position: relative; display: inline-block; width: 60px; height: 32px; flex-shrink: 0; }
+        .system-toggle input { opacity: 0; width: 0; height: 0; }
+        .system-toggle-slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: var(--gray2); border-radius: 32px; transition: 0.3s;
+        }
+        .system-toggle-slider:before {
+            content: ""; position: absolute;
+            height: 26px; width: 26px; left: 3px; bottom: 3px;
+            background: var(--white); border-radius: 50%; transition: 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .system-toggle input:checked + .system-toggle-slider { background: var(--green); }
+        .system-toggle input:checked + .system-toggle-slider:before { transform: translateX(28px); }
 
         /* ══ ACTIVITY ══ */
         .activity-item {
@@ -811,6 +845,9 @@
         </a>
         <a class="sidebar-item" data-page="settings" onclick="showPage('settings')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-settings"></use></svg></span> الإعدادات
+        </a>
+        <a class="sidebar-item" data-page="system" onclick="showPage('system')">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></span> النظام والسياسات
         </a>
 
         <div class="sidebar-section-label" id="employeesSectionLabel" style="display:none">إدارة النظام</div>
@@ -1558,6 +1595,15 @@
                         <button style="background:var(--black);color:var(--white);border:none;padding:11px 24px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer">حفظ المفاتيح</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- ══ SYSTEM & POLICIES PAGE ══ -->
+            <div id="page-system" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">النظام والسياسات <svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></div>
+                    <div class="page-sub">تفعيل أو تعطيل أنظمة المنصة الرئيسية</div>
+                </div>
+                <div id="systemSettingsList"></div>
             </div>
 
             <!-- ══ OTHER PAGES ══ -->

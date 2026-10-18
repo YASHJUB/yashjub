@@ -215,6 +215,7 @@ function showPage(page) {
     if (page === 'testimonials')  loadTestimonialsPage();
     if (page === 'invoices')      loadInvoicesPage();
     if (page === 'operations')    startOperationsPage();
+    if (page === 'system')        loadSystemPage();
 }
 
 // تحميل لوحة التحكم
@@ -2579,6 +2580,79 @@ async function submitAssignProvider() {
             alert(`❌ ${data.message}`);
         }
     } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ النظام والسياسات (تفعيل/تعطيل أنظمة المنصة) ══
+
+const SYSTEM_SETTINGS_META = {
+    paid_system: {
+        name: 'منصة غوث (مدفوع)',
+        desc: 'نظام الطلبات المدفوعة — العميل يطلب ويدفع والمزود يخدمه، والمنصة تأخذ 5% عمولة',
+        icon: 'cash',
+    },
+    ads_system: {
+        name: 'منصة غوث معاهدة - إعلانات',
+        desc: 'نظام الإعلانات المجاني — المزود ينشر إعلانه والعميل يتواصل معه مباشرة عبر واتساب أو مكالمة',
+        icon: 'broadcast',
+    },
+};
+
+async function loadSystemPage() {
+    try {
+        const res  = await fetch(`${API}/settings`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        document.getElementById('systemSettingsList').innerHTML = Object.keys(SYSTEM_SETTINGS_META).map(key =>
+            systemCardHTML(key, data.settings[key] === true)
+        ).join('');
+    } catch (e) {}
+}
+
+function systemCardHTML(key, enabled) {
+    const meta = SYSTEM_SETTINGS_META[key];
+    return `
+        <div class="system-card ${enabled ? 'enabled' : 'disabled'}" id="systemCard-${key}">
+            <div class="system-card-icon"><svg class="icon"><use href="icons.svg#icon-${meta.icon}"></use></svg></div>
+            <div class="system-card-body">
+                <div class="system-card-name">${meta.name}</div>
+                <div class="system-card-desc">${meta.desc}</div>
+                <span class="badge ${enabled ? 'badge-done' : 'badge-gray'}">${enabled ? 'مفعّل ✅' : 'معطّل ⏸️'}</span>
+            </div>
+            <label class="system-toggle">
+                <input type="checkbox" ${enabled ? 'checked' : ''} onchange="confirmToggleSetting('${key}', this)">
+                <span class="system-toggle-slider"></span>
+            </label>
+        </div>
+    `;
+}
+
+async function confirmToggleSetting(key, checkboxEl) {
+    const newValue = checkboxEl.checked;
+
+    if (!confirm('هل أنت متأكد من تغيير حالة النظام؟')) {
+        checkboxEl.checked = !newValue;
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/settings/${key}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ value: newValue }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById(`systemCard-${key}`).outerHTML = systemCardHTML(key, newValue);
+        } else {
+            checkboxEl.checked = !newValue;
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        checkboxEl.checked = !newValue;
         alert('❌ خطأ في الاتصال بالسيرفر');
     }
 }

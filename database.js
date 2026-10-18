@@ -189,6 +189,14 @@ db.exec(`
         created_at     TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول إعدادات النظام العامة (تفعيل/تعطيل أنظمة المنصة — قسم "النظام والسياسات" بلوحة الإدارة)
+    CREATE TABLE IF NOT EXISTS system_settings (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        key        TEXT UNIQUE NOT NULL,
+        value      TEXT NOT NULL,
+        updated_at TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
@@ -209,6 +217,14 @@ if (serviceCount === 0) {
     insertService.run('سطحة', 'tow-truck', 'نقل وسحب المركبات', 'instant', 'order', 100, '12 دقيقة', 2);
     insertService.run('حاوية', 'box', 'حاويات البناء والنفايات', 'scheduled', 'container', null, 'غداً 11 صباحاً', 3);
     insertService.run('معدات ثقيلة', 'crane', 'بوكلينات، شيولات، قلابات، رافعات', 'coming', 'panel', null, null, 4);
+}
+
+// زرع إعدادات النظام الافتراضية أول مرة بس (لو الجدول فاضي)
+const settingsCount = db.prepare('SELECT COUNT(*) AS n FROM system_settings').get().n;
+if (settingsCount === 0) {
+    const insertSetting = db.prepare('INSERT INTO system_settings (key, value) VALUES (?, ?)');
+    insertSetting.run('paid_system', 'true');
+    insertSetting.run('ads_system', 'false');
 }
 
 // ترقية الجداول القديمة (migrations بسيطة — تتجاهل الخطأ لو العمود موجود مسبقاً)

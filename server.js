@@ -999,6 +999,29 @@ app.delete('/api/services/:id', (req, res) => {
     res.json({ success: true });
 });
 
+// ========== API إعدادات النظام (قسم "النظام والسياسات" بلوحة الإدارة) ==========
+
+app.get('/api/settings', (req, res) => {
+    const rows = db.prepare('SELECT key, value FROM system_settings').all();
+    const settings = {};
+    rows.forEach(r => { settings[r.key] = r.value === 'true'; });
+    res.json({ success: true, settings });
+});
+
+app.put('/api/settings/:key', (req, res) => {
+    const { value } = req.body;
+
+    const existing = db.prepare('SELECT * FROM system_settings WHERE key = ?').get(req.params.key);
+    if (!existing) {
+        return res.json({ success: false, message: 'الإعداد غير موجود' });
+    }
+
+    db.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = ?")
+        .run(value ? 'true' : 'false', req.params.key);
+
+    res.json({ success: true, key: req.params.key, value: !!value });
+});
+
 // ========== API كوبونات الخصم ==========
 
 app.get('/api/coupons', (req, res) => {
