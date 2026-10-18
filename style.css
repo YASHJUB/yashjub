@@ -1834,6 +1834,20 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     border-color: #F5C518;
 }
 
+/* تمييز الحقل الناقص عند فشل التحقق (submitRegistration بـ register-provider.js) */
+.form-group input.field-error,
+.form-group select.field-error,
+.form-group textarea.field-error {
+    border-color: #EF4444 !important;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+}
+
+.terms-check.field-error {
+    outline: 2px solid #EF4444;
+    outline-offset: 4px;
+    border-radius: 8px;
+}
+
 .form-divider {
     font-size: 14px;
     font-weight: 700;

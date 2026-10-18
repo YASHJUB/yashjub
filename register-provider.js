@@ -37,33 +37,52 @@ function toggleContainerNote() {
     document.getElementById('towingFields').style.display  = serviceType === 'سطحة'  ? 'block' : 'none';
 }
 
+// تمييز الحقل الناقص بحد أحمر والتمرير إليه
+function highlightFieldError(id) {
+    document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+
+    const field = document.getElementById(id);
+    if (!field) return;
+
+    const target = field.closest('.terms-check') || field;
+    target.classList.add('field-error');
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (field.focus) field.focus({ preventScroll: true });
+}
+
+// إزالة تمييز الخطأ بمجرد ما المستخدم يبدأ يعدّل بالحقل
+document.addEventListener('input', (e) => {
+    if (e.target.classList.contains('field-error')) e.target.classList.remove('field-error');
+    const wrap = e.target.closest('.terms-check');
+    if (wrap) wrap.classList.remove('field-error');
+});
+document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('field-error')) e.target.classList.remove('field-error');
+    const wrap = e.target.closest('.terms-check');
+    if (wrap) wrap.classList.remove('field-error');
+});
+
 // إرسال التسجيل
 async function submitRegistration() {
-    const fullName    = document.getElementById('fullName').value;
-    const phone       = document.getElementById('phone').value;
-    const idNumber    = document.getElementById('idNumber').value;
+    const fullName    = document.getElementById('fullName').value.trim();
+    const phone       = document.getElementById('phone').value.trim();
+    const idNumber    = document.getElementById('idNumber').value.trim();
     const idDocument  = document.getElementById('idDocument').files[0];
-    const iban        = document.getElementById('iban').value;
+    const iban        = document.getElementById('iban').value.trim();
     const serviceType = document.getElementById('serviceType').value;
     const terms       = document.getElementById('terms').checked;
 
-    // التحقق من الحقول
-    if (!fullName || !phone || !idNumber || !iban || !serviceType) {
-        alert('❌ يرجى تعبئة جميع الحقول المطلوبة');
-        return;
-    }
-
-    if (phone.length !== 9) {
-        alert('❌ رقم الجوال يجب أن يكون 9 أرقام');
-        return;
-    }
-
-    if (!idDocument) {
-        alert('❌ يرجى إرفاق صورة الهوية أو الإقامة');
-        return;
-    }
+    // التحقق من الحقول — كل حقل برسالته وتمييزه الخاص (بدل رسالة عامة ما توضح أي حقل ناقص)
+    if (!fullName)    { highlightFieldError('fullName');    alert('❌ يرجى إدخال الاسم الكامل'); return; }
+    if (!phone)       { highlightFieldError('phone');       alert('❌ يرجى إدخال رقم الجوال'); return; }
+    if (phone.length !== 9) { highlightFieldError('phone'); alert('❌ رقم الجوال يجب أن يكون 9 أرقام'); return; }
+    if (!idNumber)    { highlightFieldError('idNumber');    alert('❌ يرجى إدخال رقم الهوية أو الإقامة'); return; }
+    if (!idDocument)  { highlightFieldError('idDocument');  alert('❌ يرجى إرفاق صورة الهوية أو الإقامة'); return; }
+    if (!iban)        { highlightFieldError('iban');        alert('❌ يرجى إدخال رقم IBAN البنكي'); return; }
+    if (!serviceType) { highlightFieldError('serviceType'); alert('❌ يرجى اختيار نوع الخدمة'); return; }
 
     if (!terms) {
+        highlightFieldError('terms');
         alert('❌ يرجى الموافقة على الشروط والأحكام');
         return;
     }
@@ -84,10 +103,9 @@ async function submitRegistration() {
         const vehicleRegistration = document.getElementById('vehicleRegistration').files[0];
         const transportPermit     = document.getElementById('transportPermit').files[0];
 
-        if (!drivingLicense || !vehicleRegistration || !transportPermit) {
-            alert('❌ يرجى إرفاق رخصة القيادة واستمارة المركبة وتصريح النقل');
-            return;
-        }
+        if (!drivingLicense)      { highlightFieldError('drivingLicense');      alert('❌ يرجى إرفاق رخصة القيادة'); return; }
+        if (!vehicleRegistration) { highlightFieldError('vehicleRegistration'); alert('❌ يرجى إرفاق استمارة المركبة'); return; }
+        if (!transportPermit)     { highlightFieldError('transportPermit');     alert('❌ يرجى إرفاق تصريح النقل'); return; }
 
         data.append('drivingLicense', drivingLicense);
         data.append('vehicleRegistration', vehicleRegistration);
@@ -96,10 +114,11 @@ async function submitRegistration() {
 
     // إضافة بيانات مزود فرد
     if (selectedLevel >= 2) {
-        const freelanceNum = document.getElementById('freelanceNum').value;
+        const freelanceNum = document.getElementById('freelanceNum').value.trim();
         const freelanceDoc = document.getElementById('freelanceDoc').files[0];
 
         if (!freelanceNum) {
+            highlightFieldError('freelanceNum');
             alert('❌ يرجى إدخال رقم شهادة العمل الحر');
             return;
         }
@@ -108,6 +127,7 @@ async function submitRegistration() {
 
         if (selectedLevel === 2) {
             if (!freelanceDoc) {
+                highlightFieldError('freelanceDoc');
                 alert('❌ يرجى إرفاق ملف شهادة العمل الحر');
                 return;
             }
@@ -117,16 +137,15 @@ async function submitRegistration() {
 
     // إضافة بيانات منشأة - شركة
     if (selectedLevel === 3) {
-        const crNumber    = document.getElementById('crNumber').value;
+        const crNumber    = document.getElementById('crNumber').value.trim();
         const crDoc       = document.getElementById('crDoc').files[0];
-        const companyName = document.getElementById('companyName').value;
+        const companyName = document.getElementById('companyName').value.trim();
 
-        if (!crNumber || !companyName) {
-            alert('❌ يرجى إدخال بيانات الشركة');
-            return;
-        }
+        if (!companyName) { highlightFieldError('companyName'); alert('❌ يرجى إدخال اسم الشركة / المنشأة'); return; }
+        if (!crNumber)     { highlightFieldError('crNumber');    alert('❌ يرجى إدخال رقم السجل التجاري'); return; }
 
         if (!crDoc) {
+            highlightFieldError('crDoc');
             alert('❌ يرجى إرفاق ملف السجل التجاري');
             return;
         }
