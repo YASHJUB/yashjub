@@ -299,6 +299,8 @@ const migrations = [
     'ALTER TABLE orders ADD COLUMN client_confirmed_at TEXT',
     'ALTER TABLE orders ADD COLUMN dispute_reason TEXT',
     'ALTER TABLE orders ADD COLUMN auto_released INTEGER DEFAULT 0',
+    'ALTER TABLE ads ADD COLUMN accepted_covenant INTEGER DEFAULT 0',
+    'ALTER TABLE ads ADD COLUMN covenant_accepted_at TEXT',
 ];
 
 for (const sql of migrations) {

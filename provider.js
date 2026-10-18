@@ -752,6 +752,7 @@ function resetAdForm() {
     document.getElementById('adImagesInput').value         = '';
     document.getElementById('adExistingImagesPreview').innerHTML = '';
     document.getElementById('saveAdBtn').textContent       = 'نشر الإعلان';
+    document.querySelectorAll('#adForm .field-error').forEach(el => el.classList.remove('field-error'));
 }
 
 // لو عنده إعلان بنفس القسم أصلاً، يعرض عليه يعدّله بدل إنشاء وحدة جديدة
@@ -794,8 +795,80 @@ function editAd(id) {
         .map(src => `<img src="${src}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">`).join('');
 }
 
+// تمييز الحقل الناقص بحد أحمر والتمرير إليه (نفس آلية register-provider.js)
+function highlightAdFieldError(id) {
+    document.querySelectorAll('#adForm .field-error').forEach(el => el.classList.remove('field-error'));
+
+    const field = document.getElementById(id);
+    if (!field) return;
+
+    field.classList.add('field-error');
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (field.focus) field.focus({ preventScroll: true });
+}
+
+document.addEventListener('input', (e) => {
+    if (e.target.closest && e.target.closest('#adForm') && e.target.classList.contains('field-error')) {
+        e.target.classList.remove('field-error');
+    }
+});
+document.addEventListener('change', (e) => {
+    if (e.target.closest && e.target.closest('#adForm') && e.target.classList.contains('field-error')) {
+        e.target.classList.remove('field-error');
+    }
+});
+
+// يتحقق من الحقول الأساسية (كل حقل برسالته وتمييزه الخاص)، وإذا كان إعلاناً جديداً (مو تعديل) يفتح معاهدة غوث أولاً بدل النشر المباشر
+function handlePublishClick() {
+    const category  = document.getElementById('adCategorySelect').value;
+    const title     = document.getElementById('adTitleInput').value.trim();
+    const priceFrom = document.getElementById('adPriceFromInput').value;
+    const city      = document.getElementById('adCityInput').value;
+
+    if (!category)  { highlightAdFieldError('adCategorySelect');  alert('❌ يرجى اختيار القسم'); return; }
+    if (!title)      { highlightAdFieldError('adTitleInput');      alert('❌ يرجى إدخال عنوان الإعلان'); return; }
+    if (!priceFrom)  { highlightAdFieldError('adPriceFromInput');  alert('❌ يرجى إدخال السعر'); return; }
+    if (!city)        { highlightAdFieldError('adCityInput');       alert('❌ يرجى اختيار المدينة'); return; }
+
+    if (!localStorage.getItem('yashjub_phone')) {
+        showAppAlert('⚠️ انتهت جلستك، يرجى تسجيل الدخول من جديد', () => window.location.href = 'login.html');
+        return;
+    }
+
+    if (editingAdId) {
+        saveAd(false); // تعديل إعلان موجود أصلاً — ماكو داعي لمعاهدة جديدة
+    } else {
+        openCovenantModal();
+    }
+}
+
+// ══ معاهدة غوث (popup إلزامي قبل نشر أي إعلان جديد) ══
+
+function openCovenantModal() {
+    document.getElementById('covenantCheckbox').checked = false;
+    onCovenantCheckboxChange();
+    document.getElementById('covenantOverlay').style.display = 'flex';
+}
+
+function closeCovenantModal() {
+    document.getElementById('covenantOverlay').style.display = 'none';
+}
+
+function onCovenantCheckboxChange() {
+    const checked = document.getElementById('covenantCheckbox').checked;
+    const btn     = document.getElementById('covenantPublishBtn');
+    btn.disabled  = !checked;
+    btn.classList.toggle('enabled', checked);
+}
+
+function confirmCovenantAndPublish() {
+    if (!document.getElementById('covenantCheckbox').checked) return; // دفاعي، الزر أصلاً معطّل بهذي الحالة
+    closeCovenantModal();
+    saveAd(true);
+}
+
 // حفظ إعلان (نشر جديد أو تحديث) + رفع أي صور جديدة مختارة
-async function saveAd() {
+async function saveAd(acceptedCovenant) {
     const category    = document.getElementById('adCategorySelect').value;
     const title        = document.getElementById('adTitleInput').value.trim();
     const description  = document.getElementById('adDescriptionInput').value.trim();
@@ -805,11 +878,6 @@ async function saveAd() {
     const district       = document.getElementById('adDistrictInput').value.trim();
     const whatsapp       = document.getElementById('adWhatsappInput').value.trim();
     const phone         = localStorage.getItem('yashjub_phone');
-
-    if (!category || !title || !priceFrom || !city) {
-        alert('❌ يرجى تعبئة القسم والعنوان والسعر والمدينة على الأقل');
-        return;
-    }
 
     try {
         let targetAdId;
@@ -830,6 +898,7 @@ async function saveAd() {
                 body: JSON.stringify({
                     providerPhone: phone, providerName: currentProviderName, category, title, description,
                     priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone,
+                    acceptedCovenant: !!acceptedCovenant,
                 }),
             });
             const data = await res.json();

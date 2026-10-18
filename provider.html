@@ -165,7 +165,7 @@
                     <input type="file" id="adImagesInput" accept=".jpg,.jpeg" multiple/>
                     <div id="adExistingImagesPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
                 </div>
-                <button class="btn btn-full" onclick="saveAd()" id="saveAdBtn">نشر الإعلان</button>
+                <button class="btn btn-full" onclick="handlePublishClick()" id="saveAdBtn">نشر الإعلان</button>
             </div>
 
             <div id="adsList"></div>
@@ -361,6 +361,44 @@
                 <button class="btn" style="flex:1" onclick="saveWorkArea()">حفظ النطاق ✅</button>
                 <button class="btn-small" onclick="closeWorkAreaModal()">إلغاء</button>
             </div>
+        </div>
+    </div>
+
+    <!-- معاهدة غوث (تظهر قبل نشر أي إعلان جديد) -->
+    <div class="confirm-overlay" id="covenantOverlay" style="display:none">
+        <div class="covenant-modal">
+            <img src="images/logo.png" alt="غَوْث" class="covenant-logo">
+
+            <div class="covenant-bismillah">بسم الله الرحمن الرحيم</div>
+            <div class="covenant-title">معاهدة غوث</div>
+
+            <div class="covenant-verse">
+                <div class="covenant-verse-intro">قال الله تعالى:</div>
+                <div class="covenant-verse-text">
+                    ﴿وَأَوْفُواْ بِعَهْدِ اللَّهِ إِذَا عَاهَدتُّمْ وَلاَ تَنقُضُوا الأَيْمَانَ بَعْدَ تَوْكِيدِهَا
+                    وَقَدْ جَعَلْتُمُ اللَّهَ عَلَيْكُمْ كَفِيلاً﴾
+                </div>
+                <div class="covenant-verse-sign">صدق الله العظيم</div>
+            </div>
+
+            <div class="covenant-terms">
+                <div class="covenant-term">أتعهد وأقسم بالله أنا المعلن أن أدفع رسوم الموقع وهي 1% من قيمة الخدمة. وفي حالة تقديم الخدمة لأكثر من شخص فإنني أتعهد بتحويل الرسوم عن كل خدمة يتم تقديمها.</div>
+                <div class="covenant-term">كما أتعهد بدفع الرسوم خلال 10 أيام من استلام مبلغ الخدمة.</div>
+            </div>
+
+            <div class="covenant-verse">
+                <div class="covenant-verse-text">﴿وَإِنَّهُ لَقَسَمٌ لَوْ تَعْلَمُونَ عَظِيمٌ﴾</div>
+            </div>
+
+            <hr class="covenant-divider">
+
+            <div class="covenant-check-row">
+                <input type="checkbox" id="covenantCheckbox" onchange="onCovenantCheckboxChange()">
+                <label for="covenantCheckbox">أتعهد بذلك</label>
+            </div>
+
+            <button class="covenant-publish-btn" id="covenantPublishBtn" disabled onclick="confirmCovenantAndPublish()">نشر الإعلان</button>
+            <button class="covenant-cancel-btn" onclick="closeCovenantModal()">إلغاء</button>
         </div>
     </div>
 

@@ -1039,7 +1039,7 @@ const AD_JOIN_SQL = `
 `;
 
 app.post('/api/ads', (req, res) => {
-    const { providerPhone, providerName, category, title, description, priceFrom, priceTo, city, district, whatsapp } = req.body;
+    const { providerPhone, providerName, category, title, description, priceFrom, priceTo, city, district, whatsapp, acceptedCovenant } = req.body;
 
     if (!providerPhone || !category || !title || !priceFrom || !city) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
@@ -1055,9 +1055,14 @@ app.post('/api/ads', (req, res) => {
         });
     }
 
+    // لازم يوافق على معاهدة غوث قبل نشر أي إعلان جديد (راجع "معاهدة غوث" بالتوثيق)
+    if (!acceptedCovenant) {
+        return res.json({ success: false, message: 'يجب الموافقة على معاهدة غوث قبل نشر الإعلان' });
+    }
+
     const result = db.prepare(`
-        INSERT INTO ads (provider_phone, provider_name, category, title, description, price_from, price_to, city, district, whatsapp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO ads (provider_phone, provider_name, category, title, description, price_from, price_to, city, district, whatsapp, accepted_covenant, covenant_accepted_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now'))
     `).run(
         providerPhone, providerName || null, category, title, description || '',
         priceFrom, priceTo || null, city, district || null, whatsapp || providerPhone,
