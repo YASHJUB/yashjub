@@ -146,6 +146,15 @@ async function checkActiveSystem() {
         if (data.success) currentActiveSystem = data.activeSystem;
     } catch (e) {}
 
+    // المزوّد مقفل على لوحة المزود فقط بوضع النظام المدفوع — بوضع الإعلانات يتصفح الرئيسية كأي مستخدم (راح يدير إعلاناته من "إعلاناتي" بدل لوحة منفصلة)
+    const type = localStorage.getItem('yashjub_type') || 'client';
+    if (type === 'provider' && currentActiveSystem !== 'ads') {
+        window.location.href = 'provider.html';
+        return;
+    }
+
+    applyLoginUI();
+
     if (currentActiveSystem === 'ads') {
         switchToAdsMode();
     } else {
@@ -292,16 +301,10 @@ async function loadTestimonials() {
     }
 }
 
-// تحقق من تسجيل الدخول
-function checkLogin() {
+// تحديث واجهة السايد بار/الجرس لمستخدم مسجّل دخوله (عميل أو مزوّد بوضع الإعلانات) — يُستدعى من checkActiveSystem() بعد تحديد النظام النشط
+function applyLoginUI() {
     const phone = localStorage.getItem('yashjub_phone');
     const type  = localStorage.getItem('yashjub_type') || 'client';
-
-    // المزوّد مقفل على لوحة المزود فقط — ما يقدر يدخل صفحات العميل إطلاقاً
-    if (type === 'provider') {
-        window.location.href = 'provider.html';
-        return;
-    }
 
     if (phone) {
         // إخفاء زر دخول
@@ -452,7 +455,6 @@ function showHeavyEquipment() {
 }
 
 // تشغيل التحقق عند فتح الصفحة
-checkLogin();
 checkActiveSystem();
 loadTestimonials();
 startActiveOrderBar();

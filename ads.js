@@ -2,9 +2,15 @@
 
 const API = window.location.origin + '/api';
 
-// المزوّد مقفل على لوحة المزود فقط — ما يقدر يدخل صفحات العميل إطلاقاً (تصفح الإعلانات هنا صفحة عميل)
-(function checkProviderLock() {
-    if (localStorage.getItem('yashjub_type') === 'provider') {
+// المزوّد مقفل على لوحة المزود فقط بوضع النظام المدفوع — بوضع الإعلانات يتصفح الإعلانات كأي مستخدم
+(async function checkProviderLock() {
+    if (localStorage.getItem('yashjub_type') !== 'provider') return;
+
+    try {
+        const res  = await fetch(`${API}/settings/active-system`);
+        const data = await res.json();
+        if (data.activeSystem !== 'ads') window.location.href = 'provider.html';
+    } catch (e) {
         window.location.href = 'provider.html';
     }
 })();
