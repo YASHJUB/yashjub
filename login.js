@@ -4,13 +4,40 @@ const API = window.location.origin + '/api';
 
 let correctOTP = "";
 let userType   = "client"; // client أو provider
+let isAdsMode  = false;
 
-// اختيار نوع المستخدم
+// اختيار نوع المستخدم (وضع النظام المدفوع فقط — بوضع الإعلانات التبويبان مخفيان وما تُستدعى هذي الدالة)
 function selectType(type) {
     userType = type;
 
     document.getElementById('clientTab').classList.toggle('active', type === 'client');
     document.getElementById('providerTab').classList.toggle('active', type === 'provider');
+}
+
+// فحص النظام النشط عند فتح الصفحة — بوضع الإعلانات: دخول واحد موحّد بدون تبويبي عميل/مزود
+(async function checkLoginMode() {
+    try {
+        const res  = await fetch(`${API}/settings/active-system`);
+        const data = await res.json();
+        if (data.activeSystem === 'ads') {
+            isAdsMode = true;
+            switchLoginToAdsMode();
+        }
+    } catch (e) {}
+})();
+
+function switchLoginToAdsMode() {
+    const tabs     = document.querySelector('.user-type-tabs');
+    const leftTitle = document.querySelector('.login-left h2');
+    const leftDesc  = document.querySelector('.login-left-content > p');
+    const features  = document.querySelector('.login-features');
+    const stats     = document.querySelector('.login-stats');
+
+    if (tabs) tabs.style.display = 'none';
+    if (leftTitle) leftTitle.textContent = 'منصة غوث';
+    if (leftDesc) leftDesc.textContent = 'تصفح الإعلانات أو انشر إعلانك وتواصل مباشرة مع العملاء';
+    if (features) features.style.display = 'none';
+    if (stats) stats.style.display = 'none';
 }
 
 // إرسال OTP
@@ -58,6 +85,9 @@ async function verifyOTP() {
         const data = await response.json();
 
         if (data.success) {
+            // بوضع الإعلانات ماكو اختيار يدوي للنوع — يُحدَّد تلقائياً من السيرفر (مزوّد معتمد فعلياً أم لا)
+            if (isAdsMode) userType = data.isProvider ? 'provider' : 'client';
+
             // حفظ بيانات المستخدم
             localStorage.setItem('yashjub_phone', phone);
             localStorage.setItem('yashjub_type', userType);
@@ -112,8 +142,12 @@ async function saveUserName() {
     }
 }
 
-// توجيه حسب نوع المستخدم بعد اكتمال تسجيل الدخول
+// توجيه حسب نوع المستخدم بعد اكتمال تسجيل الدخول — بوضع الإعلانات يروح الكل للرئيسية مباشرة بدون تمييز
 function redirectAfterLogin() {
+    if (isAdsMode) {
+        window.location.href = 'index.html';
+        return;
+    }
     if (userType === 'provider') {
         window.location.href = 'provider.html';
     } else {

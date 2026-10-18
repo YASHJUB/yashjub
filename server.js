@@ -159,14 +159,16 @@ app.post('/api/auth/verify-otp', (req, res) => {
         return res.json({ success: false, message: `حسابك موقوف مؤقتاً حتى ${user.suspended_until}` });
     }
 
-    const provider = db.prepare('SELECT suspended_until FROM providers WHERE phone = ?').get(phone);
+    const provider = db.prepare('SELECT suspended_until, status FROM providers WHERE phone = ?').get(phone);
     if (provider && provider.suspended_until && new Date(provider.suspended_until.replace(' ', 'T') + 'Z') > new Date()) {
         return res.json({ success: false, message: `حساب المزوّد موقوف مؤقتاً حتى ${provider.suspended_until}` });
     }
 
     db.prepare('UPDATE users SET verified = 1 WHERE phone = ?').run(phone);
 
-    res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone, name: user.name });
+    // isProvider: يستخدمها login.html بوضع الإعلانات (دخول موحّد بدون تبويبي عميل/مزود) لتحديد النوع تلقائياً بدل اختيار المستخدم اليدوي
+    const isProvider = !!(provider && provider.status === 'approved');
+    res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone, name: user.name, isProvider });
 });
 
 app.put('/api/users/:phone/name', (req, res) => {
