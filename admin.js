@@ -216,6 +216,7 @@ function showPage(page) {
     if (page === 'invoices')      loadInvoicesPage();
     if (page === 'operations')    startOperationsPage();
     if (page === 'system')        loadSystemPage();
+    if (page === 'ads')           loadAdsAdminPage();
 }
 
 // تحميل لوحة التحكم
@@ -2653,6 +2654,103 @@ async function confirmToggleSetting(key, checkboxEl) {
         }
     } catch (e) {
         checkboxEl.checked = !newValue;
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ إدارة الإعلانات (منصة غوث معاهدة) ══
+
+let allAds = [];
+
+async function loadAdsAdminPage() {
+    try {
+        const res  = await fetch(`${API}/ads?includeInactive=1`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        allAds = data.ads;
+
+        // إحصائيات
+        const activeCount = allAds.filter(a => a.is_active).length;
+        document.getElementById('adsActiveCount').textContent = activeCount;
+
+        const categoryCounts = {};
+        const cityCounts     = {};
+        allAds.forEach(a => {
+            categoryCounts[a.category] = (categoryCounts[a.category] || 0) + 1;
+            cityCounts[a.city]         = (cityCounts[a.city]         || 0) + 1;
+        });
+
+        const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0];
+        const topCity      = Object.entries(cityCounts).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById('adsTopCategory').textContent = topCategory ? topCategory[0] : '—';
+        document.getElementById('adsTopCity').textContent      = topCity ? topCity[0] : '—';
+
+        // تعبئة فلتر المدن ديناميكياً من المدن الموجودة فعلياً بالإعلانات
+        const citySelect = document.getElementById('adsCityFilter');
+        const cities     = [...new Set(allAds.map(a => a.city))].sort();
+        citySelect.innerHTML = '<option value="">كل المدن</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
+
+        renderAdsAdminTable();
+    } catch (e) {}
+}
+
+function renderAdsAdminTable() {
+    const search   = (document.getElementById('adsSearchInput').value || '').trim().toLowerCase();
+    const category = document.getElementById('adsCategoryFilter').value;
+    const city     = document.getElementById('adsCityFilter').value;
+    const status   = document.getElementById('adsStatusFilter').value;
+
+    let list = allAds;
+    if (search)   list = list.filter(a => a.title.toLowerCase().includes(search) || (a.provider_name || '').toLowerCase().includes(search));
+    if (category) list = list.filter(a => a.category === category);
+    if (city)     list = list.filter(a => a.city === city);
+    if (status !== '') list = list.filter(a => String(a.is_active) === status);
+
+    document.getElementById('allAdsTable').innerHTML = list.map(a => `
+        <tr>
+            <td>#${a.id}</td>
+            <td>${a.title}</td>
+            <td>${a.provider_name || '—'}<br><span style="font-size:11px;color:var(--text3)" dir="ltr">+966${a.provider_phone}</span></td>
+            <td>${a.category}</td>
+            <td>${a.city}${a.district ? ' — ' + a.district : ''}</td>
+            <td>${a.price_to ? `${a.price_from}-${a.price_to}` : `من ${a.price_from}`} ر</td>
+            <td>${a.views_count}</td>
+            <td>${a.avg_rating ? `⭐ ${a.avg_rating} (${a.reviews_count})` : '—'}</td>
+            <td>${a.is_active ? '<span class="badge badge-done">نشط</span>' : '<span class="badge badge-gray">موقوف</span>'}</td>
+            <td>
+                <button class="btn-detail" onclick="toggleAdStatusAdmin(${a.id}, ${a.is_active ? 0 : 1})">${a.is_active ? 'إيقاف' : 'تفعيل'}</button>
+                <button class="btn-detail" style="color:var(--red)" onclick="deleteAdAdmin(${a.id})">حذف</button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="10" style="text-align:center;color:var(--text3)">لا توجد إعلانات مطابقة</td></tr>';
+}
+
+async function toggleAdStatusAdmin(id, newState) {
+    try {
+        const res  = await fetch(`${API}/ads/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isActive: !!newState }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            loadAdsAdminPage();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function deleteAdAdmin(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الإعلان نهائياً؟')) return;
+
+    try {
+        await fetch(`${API}/ads/${id}`, { method: 'DELETE' });
+        loadAdsAdminPage();
+    } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }
 }

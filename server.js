@@ -1022,6 +1022,168 @@ app.put('/api/settings/:key', (req, res) => {
     res.json({ success: true, key: req.params.key, value: !!value });
 });
 
+// النظام النشط حالياً (paid أو ads) — يحدده مفتاح ads_system فقط (تفعيله يبدّل الواجهة لوضع الإعلانات)
+app.get('/api/settings/active-system', (req, res) => {
+    const row = db.prepare("SELECT value FROM system_settings WHERE key = 'ads_system'").get();
+    const adsActive = !!row && row.value === 'true';
+    res.json({ success: true, activeSystem: adsActive ? 'ads' : 'paid' });
+});
+
+// ========== API إعلانات "منصة غوث معاهدة" ==========
+
+const AD_JOIN_SQL = `
+    SELECT ads.*,
+        (SELECT ROUND(AVG(rating), 1) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS avg_rating,
+        (SELECT COUNT(*) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS reviews_count
+    FROM ads
+`;
+
+app.post('/api/ads', (req, res) => {
+    const { providerPhone, providerName, category, title, description, priceFrom, priceTo, city, district, whatsapp } = req.body;
+
+    if (!providerPhone || !category || !title || !priceFrom || !city) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    // كل مزوّد إعلان واحد فقط لكل قسم
+    const existing = db.prepare('SELECT * FROM ads WHERE provider_phone = ? AND category = ?').get(providerPhone, category);
+    if (existing) {
+        return res.json({
+            success: false,
+            message: 'عندك إعلان في هذا القسم مسبقاً — عدّله بدل إنشاء إعلان جديد',
+            existingAdId: existing.id,
+        });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO ads (provider_phone, provider_name, category, title, description, price_from, price_to, city, district, whatsapp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+        providerPhone, providerName || null, category, title, description || '',
+        priceFrom, priceTo || null, city, district || null, whatsapp || providerPhone,
+    );
+
+    const ad = db.prepare(`${AD_JOIN_SQL} WHERE ads.id = ?`).get(result.lastInsertRowid);
+    res.json({ success: true, ad });
+});
+
+app.get('/api/ads', (req, res) => {
+    const { category, city, district, price_from, price_to, includeInactive, providerPhone } = req.query;
+
+    let sql = `${AD_JOIN_SQL} WHERE 1=1`;
+    const params = [];
+
+    if (!includeInactive) { sql += ' AND ads.is_active = 1'; }
+    if (category)          { sql += ' AND ads.category = ?'; params.push(category); }
+    if (city)              { sql += ' AND ads.city = ?'; params.push(city); }
+    if (district)          { sql += ' AND ads.district LIKE ?'; params.push(`%${district}%`); }
+    if (price_from)        { sql += ' AND ads.price_from >= ?'; params.push(Number(price_from)); }
+    if (price_to)          { sql += ' AND ads.price_from <= ?'; params.push(Number(price_to)); }
+    if (providerPhone)     { sql += ' AND ads.provider_phone = ?'; params.push(providerPhone); }
+
+    // الأعلى تقييماً أولاً، ثم الأحدث (الإعلانات بدون تقييم تُعامل كأقل أولوية من المقيَّمة، لكن تبقى مرتبة بالأحدث بينها)
+    sql += ' ORDER BY (avg_rating IS NULL) ASC, avg_rating DESC, ads.created_at DESC';
+
+    const ads = db.prepare(sql).all(...params);
+    res.json({ success: true, ads });
+});
+
+app.get('/api/ads/:id', (req, res) => {
+    const ad = db.prepare(`${AD_JOIN_SQL} WHERE ads.id = ?`).get(req.params.id);
+    if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
+
+    db.prepare('UPDATE ads SET views_count = views_count + 1 WHERE id = ?').run(ad.id);
+    ad.views_count += 1;
+
+    res.json({ success: true, ad });
+});
+
+app.put('/api/ads/:id', (req, res) => {
+    const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(req.params.id);
+    if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
+
+    const { title, description, priceFrom, priceTo, city, district, whatsapp, category, isActive, images } = req.body;
+
+    db.prepare(`
+        UPDATE ads SET
+            title = ?, description = ?, price_from = ?, price_to = ?,
+            city = ?, district = ?, whatsapp = ?, category = ?, is_active = ?, images = ?,
+            updated_at = datetime('now')
+        WHERE id = ?
+    `).run(
+        title ?? ad.title,
+        description ?? ad.description,
+        priceFrom ?? ad.price_from,
+        priceTo !== undefined ? priceTo : ad.price_to,
+        city ?? ad.city,
+        district ?? ad.district,
+        whatsapp ?? ad.whatsapp,
+        category ?? ad.category,
+        isActive !== undefined ? (isActive ? 1 : 0) : ad.is_active,
+        images !== undefined ? JSON.stringify(images) : ad.images,
+        ad.id,
+    );
+
+    const updated = db.prepare(`${AD_JOIN_SQL} WHERE ads.id = ?`).get(ad.id);
+    res.json({ success: true, ad: updated });
+});
+
+app.delete('/api/ads/:id', (req, res) => {
+    db.prepare('DELETE FROM ads WHERE id = ?').run(req.params.id);
+    db.prepare('DELETE FROM ad_reviews WHERE ad_id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+app.post('/api/ads/:id/reviews', (req, res) => {
+    const { reviewerPhone, reviewerName, rating, comment } = req.body;
+
+    if (!reviewerPhone || !rating) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const ratingNum = parseInt(rating, 10);
+    if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+        return res.json({ success: false, message: 'التقييم لازم يكون رقم من 1 إلى 5' });
+    }
+
+    const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(req.params.id);
+    if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
+
+    db.prepare(`
+        INSERT INTO ad_reviews (ad_id, reviewer_phone, reviewer_name, rating, comment)
+        VALUES (?, ?, ?, ?, ?)
+    `).run(ad.id, reviewerPhone, reviewerName || null, ratingNum, comment || '');
+
+    res.json({ success: true });
+});
+
+app.get('/api/ads/:id/reviews', (req, res) => {
+    const reviews = db.prepare('SELECT * FROM ad_reviews WHERE ad_id = ? ORDER BY created_at DESC').all(req.params.id);
+    res.json({ success: true, reviews });
+});
+
+app.post('/api/ads/:id/images', upload.array('images', 5), (req, res) => {
+    const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(req.params.id);
+    if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
+
+    const files = req.files || [];
+    if (!files.length) return res.json({ success: false, message: 'يرجى اختيار صورة واحدة على الأقل' });
+
+    let currentImages = [];
+    try { currentImages = JSON.parse(ad.images || '[]'); } catch (e) { currentImages = []; }
+
+    if (currentImages.length + files.length > 5) {
+        return res.json({ success: false, message: `يمكن رفع 5 صور كحد أقصى — عندك ${currentImages.length} صورة بالفعل` });
+    }
+
+    const newPaths  = files.map(f => `/uploads/${f.filename}`);
+    const allImages = [...currentImages, ...newPaths];
+
+    db.prepare("UPDATE ads SET images = ?, updated_at = datetime('now') WHERE id = ?").run(JSON.stringify(allImages), ad.id);
+
+    res.json({ success: true, images: allImages });
+});
+
 // ========== API كوبونات الخصم ==========
 
 app.get('/api/coupons', (req, res) => {

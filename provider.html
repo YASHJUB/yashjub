@@ -112,6 +112,65 @@
             </div>
         </div>
 
+        <!-- إعلاناتي (منصة غوث معاهدة — تظهر فقط بوضع نظام الإعلانات) -->
+        <div class="my-products-section" id="adsSection" style="display:none">
+            <div class="my-products-header">
+                <div class="my-products-title"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg> إعلاناتي</div>
+                <button class="btn-small" onclick="toggleAdForm()">+ نشر إعلان جديد</button>
+            </div>
+
+            <!-- فورم نشر/تعديل إعلان -->
+            <div class="product-form" id="adForm" style="display:none">
+                <div class="order-field">
+                    <label>القسم</label>
+                    <select id="adCategorySelect" onchange="checkExistingAdInCategory()">
+                        <option value="">اختر القسم</option>
+                        <option value="سطحة">سطحة</option>
+                        <option value="حاوية">حاوية</option>
+                        <option value="معدات ثقيلة">معدات ثقيلة</option>
+                    </select>
+                </div>
+                <div class="order-field">
+                    <label>عنوان الإعلان</label>
+                    <input type="text" id="adTitleInput" placeholder="مثال: سطحة سريعة بالرياض"/>
+                </div>
+                <div class="order-field">
+                    <label>وصف الخدمة</label>
+                    <textarea id="adDescriptionInput" rows="3" placeholder="اشرح خدمتك بالتفصيل..."></textarea>
+                </div>
+                <div class="order-field">
+                    <label>السعر من (ريال)</label>
+                    <input type="number" id="adPriceFromInput" placeholder="مثال: 100"/>
+                </div>
+                <div class="order-field">
+                    <label>السعر إلى (اختياري)</label>
+                    <input type="number" id="adPriceToInput" placeholder="مثال: 500"/>
+                </div>
+                <div class="order-field">
+                    <label>المدينة</label>
+                    <select id="adCityInput">
+                        <option value="">اختر المدينة</option>
+                    </select>
+                </div>
+                <div class="order-field">
+                    <label>الحي</label>
+                    <input type="text" id="adDistrictInput" placeholder="مثال: حي النرجس"/>
+                </div>
+                <div class="order-field">
+                    <label>رقم الواتساب</label>
+                    <input type="tel" id="adWhatsappInput" placeholder="5XXXXXXXX"/>
+                </div>
+                <div class="order-field">
+                    <label>الصور (حد أقصى 5 صور)</label>
+                    <input type="file" id="adImagesInput" accept=".jpg,.jpeg" multiple/>
+                    <div id="adExistingImagesPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+                </div>
+                <button class="btn btn-full" onclick="saveAd()" id="saveAdBtn">نشر الإعلان</button>
+            </div>
+
+            <div id="adsList"></div>
+        </div>
+
         <!-- منتجاتي (لمزودي الحاوية فقط) -->
         <div class="my-products-section" id="myProductsSection" style="display:none">
             <div class="my-products-header">

@@ -197,6 +197,38 @@ db.exec(`
         updated_at TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول إعلانات "منصة غوث معاهدة" (نظام بديل مجاني — إعلان واحد فقط لكل مزود بكل قسم)
+    CREATE TABLE IF NOT EXISTS ads (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        provider_phone TEXT NOT NULL,
+        provider_name  TEXT,
+        category       TEXT NOT NULL,
+        title          TEXT NOT NULL,
+        description    TEXT,
+        price_from     INTEGER NOT NULL,
+        price_to       INTEGER,
+        city           TEXT NOT NULL,
+        district       TEXT,
+        whatsapp       TEXT NOT NULL,
+        images         TEXT DEFAULT '[]',
+        is_active      INTEGER DEFAULT 1,
+        views_count    INTEGER DEFAULT 0,
+        created_at     TEXT DEFAULT (datetime('now')),
+        updated_at     TEXT DEFAULT (datetime('now')),
+        UNIQUE(provider_phone, category)
+    );
+
+    -- جدول تقييمات الإعلانات
+    CREATE TABLE IF NOT EXISTS ad_reviews (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        ad_id          INTEGER NOT NULL,
+        reviewer_phone TEXT NOT NULL,
+        reviewer_name  TEXT,
+        rating         INTEGER NOT NULL,
+        comment        TEXT,
+        created_at     TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)

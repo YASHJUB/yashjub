@@ -127,6 +127,124 @@ async function loadServices() {
     }
 }
 
+// ══ التبديل بين نظام الطلبات المدفوعة ونظام الإعلانات (منصة غوث معاهدة) ══
+
+let currentActiveSystem = 'paid';
+
+const AD_CATEGORIES      = [
+    { name: 'سطحة',       icon: 'tow-truck' },
+    { name: 'حاوية',      icon: 'box'       },
+    { name: 'معدات ثقيلة', icon: 'crane'     },
+];
+const AD_CATEGORY_ICONS = { 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane' };
+
+// يحدد أي نظام نشط حالياً ويبني الصفحة الرئيسية على أساسه — يُستدعى بدل loadServices() مباشرة
+async function checkActiveSystem() {
+    try {
+        const res  = await fetch(`${API}/settings/active-system`);
+        const data = await res.json();
+        if (data.success) currentActiveSystem = data.activeSystem;
+    } catch (e) {}
+
+    if (currentActiveSystem === 'ads') {
+        switchToAdsMode();
+    } else {
+        loadServices();
+    }
+}
+
+// تحويل الصفحة الرئيسية لواجهة الإعلانات (أقسام الإعلانات بدل الخدمات، إخفاء كيف يعمل/لماذا غوث، أحدث الإعلانات)
+async function switchToAdsMode() {
+    const howSection = document.querySelector('.how-section');
+    const whySection = document.querySelector('.why-section');
+    if (howSection) howSection.style.display = 'none';
+    if (whySection) whySection.style.display = 'none';
+
+    const desc  = document.getElementById('providerSectionDesc');
+    const bens  = document.getElementById('providerSectionBenefits');
+    const btn   = document.getElementById('providerSectionBtn');
+    if (desc) desc.textContent = 'انشر إعلان خدمتك مجاناً ووصّل مباشرة مع العملاء المهتمين';
+    if (bens) bens.innerHTML = `
+        <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> نشر مجاني بدون عمولة</div>
+        <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> تواصل مباشر عبر واتساب أو مكالمة</div>
+        <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> ظهور دائم بنتائج البحث</div>
+    `;
+    if (btn) btn.innerHTML = 'انشر إعلانك الآن <svg class="icon"><use href="icons.svg#icon-worker"></use></svg>';
+
+    try {
+        const res  = await fetch(`${API}/ads`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const counts = {};
+        data.ads.forEach(ad => { counts[ad.category] = (counts[ad.category] || 0) + 1; });
+        renderAdCategoryRows(counts);
+
+        const latest = [...data.ads].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
+        if (latest.length) {
+            document.getElementById('latestAdsGrid').innerHTML = latest.map(renderAdCard).join('');
+            document.getElementById('latestAdsSection').style.display = 'block';
+        }
+    } catch (e) {}
+}
+
+// صفوف أقسام الإعلانات (تحل محل قائمة الخدمات بالصفحة الرئيسية بوضع الإعلانات)
+function renderAdCategoryRows(counts) {
+    const container = document.getElementById('servicesList');
+    if (!container) return;
+
+    container.innerHTML = AD_CATEGORIES.map(c => `
+        <div class="service-row" onclick="window.location.href='ads.html?category=${encodeURIComponent(c.name)}'">
+            <div class="service-row-right">
+                <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-${c.icon}"></use></svg></div>
+                <div class="service-row-info">
+                    <div class="service-row-name">${c.name}</div>
+                </div>
+            </div>
+            <div class="service-row-left">
+                <span class="service-row-count">${counts[c.name] || 0} إعلان</span>
+                <span class="service-row-arrow">←</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// بطاقة إعلان مشتركة (تُستخدم بالرئيسية وبصفحة ads.html)
+function renderAdCard(ad) {
+    const icon = AD_CATEGORY_ICONS[ad.category] || 'wrench';
+    const desc = ad.description ? (ad.description.length > 80 ? ad.description.slice(0, 80) + '...' : ad.description) : '';
+
+    return `
+        <div class="ad-card" onclick="window.location.href='ad-details.html?id=${ad.id}'">
+            <div class="ad-card-category"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${ad.category} — ${ad.provider_name || 'مزوّد'}</div>
+            <div class="ad-card-meta">
+                <span><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating || '—'} (${ad.reviews_count || 0} تقييم)</span>
+                <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>
+            </div>
+            <div class="ad-card-location"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${ad.city}${ad.district ? ' — ' + ad.district : ''}</div>
+            <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</div>
+            <div class="ad-card-divider"></div>
+            <div class="ad-card-desc">${desc}</div>
+            <div class="ad-card-divider"></div>
+            <div class="ad-card-actions" onclick="event.stopPropagation()">
+                <a class="btn-call" href="tel:+966${ad.provider_phone}"><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg> اتصال</a>
+                <a class="btn-chat" href="https://wa.me/966${ad.whatsapp}" target="_blank" rel="noopener"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg> واتساب</a>
+            </div>
+        </div>
+    `;
+}
+
+// زر "انضم كمزود" / "انشر إعلانك" بأسفل الرئيسية — يوديك لنشر إعلان مباشرة لو مسجّل كمزود، أو للتسجيل أولاً
+function goToProviderSection() {
+    if (currentActiveSystem === 'ads') {
+        const phone = localStorage.getItem('yashjub_phone');
+        const type  = localStorage.getItem('yashjub_type');
+        window.location.href = (phone && type === 'provider') ? 'provider.html#adsSection' : 'register-provider.html';
+    } else {
+        window.location.href = 'register-provider.html';
+    }
+}
+
 // تحميل شهادات العملاء الموافق عليها وعرضها بالصفحة الرئيسية (يختفي القسم كلياً لو ماكو شهادات)
 async function loadTestimonials() {
     const section = document.getElementById('testimonialsSection');
@@ -327,7 +445,7 @@ function showHeavyEquipment() {
 
 // تشغيل التحقق عند فتح الصفحة
 checkLogin();
-loadServices();
+checkActiveSystem();
 loadTestimonials();
 startActiveOrderBar();
 // الوضع الليلي

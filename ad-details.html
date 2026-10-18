@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غَوْث - تفاصيل الإعلان</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.png" alt="غَوْث" class="logo-img">
+            <div class="tagline">تفاصيل الإعلان</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="history.back()">→ رجوع</button>
+        </div>
+    </div>
+
+    <div class="order-container" style="max-width:700px">
+        <div class="order-card">
+
+            <!-- معرض الصور -->
+            <div class="ad-gallery" id="adGallery" style="display:none">
+                <img id="adGalleryImg" src="" alt="صورة الإعلان" class="ad-gallery-img">
+                <button class="ad-gallery-nav ad-gallery-prev" onclick="changeGalleryImage(-1)">‹</button>
+                <button class="ad-gallery-nav ad-gallery-next" onclick="changeGalleryImage(1)">›</button>
+                <div class="ad-gallery-dots" id="adGalleryDots"></div>
+            </div>
+
+            <div class="order-service-header">
+                <div class="order-icon"><svg class="icon"><use href="icons.svg#icon-tow-truck" id="adCategoryIcon"></use></svg></div>
+                <div>
+                    <h2 id="adTitle">—</h2>
+                    <span class="service-type" id="adCategory">—</span>
+                </div>
+            </div>
+
+            <div class="order-divider"></div>
+
+            <div class="tracking-details">
+                <div class="detail-row">
+                    <span class="detail-label"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg> المزوّد</span>
+                    <span class="detail-value" id="adProviderName">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> التقييم</span>
+                    <span class="detail-value" id="adRating">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> الموقع</span>
+                    <span class="detail-value" id="adLocation">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> السعر</span>
+                    <span class="detail-value" id="adPrice">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> المشاهدات</span>
+                    <span class="detail-value" id="adViews">—</span>
+                </div>
+            </div>
+
+            <div class="order-divider"></div>
+
+            <div id="adDescription" style="font-size:14px;color:#444444;line-height:1.8;margin-bottom:4px"></div>
+
+            <div class="order-divider"></div>
+
+            <!-- أزرار التواصل -->
+            <div class="contact-provider-actions">
+                <a class="btn-call" id="adCallBtn" href="tel:" style="font-size:15px;padding:14px">
+                    <svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg> اتصال مباشر
+                </a>
+                <a class="btn-chat" id="adWhatsappBtn" href="#" target="_blank" rel="noopener" style="font-size:15px;padding:14px">
+                    <svg class="icon"><use href="icons.svg#icon-chat"></use></svg> واتساب
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- التقييمات -->
+    <div class="services-new">
+        <h2>التقييمات</h2>
+        <p class="services-subtitle" id="adReviewsSummary">لا توجد تقييمات بعد</p>
+        <div style="max-width:260px;margin:0 auto 20px">
+            <button class="btn" style="width:100%" onclick="openAdRatingForm()">أضف تقييم <svg class="icon"><use href="icons.svg#icon-star"></use></svg></button>
+        </div>
+        <div id="adReviewsList" style="max-width:700px;margin:0 auto"></div>
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>غَوْث</span> — عـتـاد الـبـنـاء
+        </div>
+    </div>
+
+    <!-- نافذة إضافة تقييم -->
+    <div class="confirm-overlay" id="adRatingOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-star"></use></svg> قيّم هذا الإعلان</h3>
+            <div id="adRatingStars" style="display:flex;justify-content:center;gap:8px;margin-bottom:18px">
+                <svg class="icon rating-star" data-star="1" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setAdStarRating(1)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="2" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setAdStarRating(2)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="3" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setAdStarRating(3)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="4" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setAdStarRating(4)"><use href="icons.svg#icon-star"></use></svg>
+                <svg class="icon rating-star" data-star="5" style="width:32px;height:32px;color:#F5C518;opacity:0.3;cursor:pointer" onclick="setAdStarRating(5)"><use href="icons.svg#icon-star"></use></svg>
+            </div>
+            <label>تعليقك (اختياري)</label>
+            <textarea id="adRatingComment" placeholder="شاركنا رأيك بالإعلان..."></textarea>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitAdRating()">إرسال التقييم</button>
+                <button class="btn-small" onclick="closeAdRatingForm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="alert.js"></script>
+    <script src="ad-details.js"></script>
+</body>
+</html>

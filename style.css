@@ -5177,6 +5177,171 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 .btn-chat:hover { background: #FFD740; }
 
+a.btn-call, a.btn-chat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+/* ══ بطاقة إعلان (منصة غوث معاهدة) ══ */
+.ad-card {
+    background: #FAFAFA;
+    border: 1px solid #EEEEEE;
+    border-radius: 16px;
+    padding: 18px;
+    text-align: right;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ad-card:hover {
+    border-color: #F5C518;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.ad-card-category {
+    font-size: 15px;
+    font-weight: 800;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ad-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    color: #666666;
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 8px;
+}
+
+.ad-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ad-card-meta .icon { color: #F5C518; width: 13px; height: 13px; }
+
+.ad-card-location,
+.ad-card-price {
+    font-size: 13px;
+    color: #444444;
+    font-family: 'Cairo', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.ad-card-price {
+    font-weight: 700;
+    color: #92700A;
+}
+
+.ad-card-divider {
+    height: 1px;
+    background: #EEEEEE;
+    margin: 10px 0;
+}
+
+.ad-card-desc {
+    font-size: 13px;
+    color: #666666;
+    font-family: 'Cairo', sans-serif;
+    line-height: 1.6;
+    margin-bottom: 4px;
+}
+
+.ad-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.ad-card-actions a { padding: 9px; font-size: 13px; border-radius: 10px; }
+
+/* شارة عدد الإعلانات على صفوف أقسام الإعلانات بالرئيسية */
+.service-row-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #92700A;
+    background: rgba(245,197,24,0.12);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+body.dark-mode .ad-card { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .ad-card-category { color: #ffffff; }
+body.dark-mode .ad-card-location,
+body.dark-mode .ad-card-desc { color: #aaaaaa; }
+body.dark-mode .ad-card-divider { background: #333333; }
+
+/* ══ معرض صور الإعلان (ad-details.html) ══ */
+.ad-gallery {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: #f0f0f0;
+}
+
+.ad-gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ad-gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-gallery-prev { right: 12px; }
+.ad-gallery-next { left: 12px; }
+
+.ad-gallery-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+}
+
+.ad-gallery-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+}
+
+.ad-gallery-dot.active { background: #F5C518; }
+
 .provider-order-chat-actions {
     display: flex;
     gap: 8px;

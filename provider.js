@@ -7,7 +7,8 @@ let countdownSeconds = 60;
 let activeOrderPollInterval = null;
 let currentActiveOrder      = null;
 let awaitingReleaseInterval = null;
-let currentProviderId = null;
+let currentProviderId   = null;
+let currentProviderName = null;
 let editingProductId   = null;
 let productMap    = null;
 let productMarker = null;
@@ -57,6 +58,9 @@ function loadProvider() {
     // جرس الإشعارات
     loadNotifBell();
     setInterval(loadNotifBell, 60000);
+
+    // قسم "إعلاناتي" (يظهر فقط لو نظام الإعلانات هو النشط حالياً)
+    checkActiveSystemForAds(phone);
 }
 
 // تحميل بيانات المزود الحالي
@@ -71,6 +75,7 @@ async function loadProviderProfile(phone) {
         if (!me) return;
 
         // اسم المزود الحقيقي ونوع خدمته (بطاقة الهيدر + السايد بار)
+        currentProviderName = me.name;
         document.getElementById('providerName').textContent        = me.name;
         document.getElementById('providerNameSidebar').textContent = me.name;
         const serviceTypeEl = document.getElementById('providerServiceType');
@@ -630,6 +635,262 @@ async function deleteProduct(id) {
     try {
         await fetch(`${API}/products/${id}`, { method: 'DELETE' });
         loadProducts();
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ إعلاناتي (منصة غوث معاهدة) ══
+
+let myAds       = [];
+let editingAdId = null;
+
+// يظهر قسم "إعلاناتي" فقط لو نظام الإعلانات هو النشط حالياً
+async function checkActiveSystemForAds(phone) {
+    try {
+        const res  = await fetch(`${API}/settings/active-system`);
+        const data = await res.json();
+        if (!data.success || data.activeSystem !== 'ads') return;
+
+        document.getElementById('adsSection').style.display = 'block';
+        document.getElementById('adWhatsappInput').value = phone;
+
+        loadCitiesForAds();
+        loadMyAds();
+    } catch (e) {}
+}
+
+async function loadCitiesForAds() {
+    const select = document.getElementById('adCityInput');
+    try {
+        const res  = await fetch(`${API}/cities/active`);
+        const data = await res.json();
+        if (data.success && data.cities.length) {
+            select.innerHTML = '<option value="">اختر المدينة</option>' +
+                data.cities.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
+    } catch (e) {}
+}
+
+async function loadMyAds() {
+    const phone = localStorage.getItem('yashjub_phone');
+    try {
+        const res  = await fetch(`${API}/ads?providerPhone=${phone}&includeInactive=1`);
+        const data = await res.json();
+        if (data.success) {
+            myAds = data.ads;
+            renderMyAds();
+        }
+    } catch (e) {}
+}
+
+function renderMyAds() {
+    const container = document.getElementById('adsList');
+
+    if (!myAds.length) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
+                <div class="empty-title">لا يوجد إعلانات بعد</div>
+                <div class="empty-sub">انشر أول إعلان لك الآن!</div>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = myAds.map(ad => `
+        <div class="product-item">
+            <div class="product-item-top">
+                <div>
+                    <div class="product-item-name">${ad.title}</div>
+                    <div class="product-item-desc">${ad.category} — ${ad.city}${ad.district ? ' / ' + ad.district : ''}</div>
+                </div>
+                <span class="product-item-status" style="${ad.is_active
+                    ? 'color:#10B981;background:rgba(16,185,129,0.1)'
+                    : 'color:#EF4444;background:rgba(239,68,68,0.1)'}">
+                    ${ad.is_active ? 'نشط' : 'موقوف'}
+                </span>
+            </div>
+            <div class="product-item-details">
+                <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>
+                <span><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating || '—'} (${ad.reviews_count || 0} تقييم)</span>
+                <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</span>
+            </div>
+            <div class="product-item-actions">
+                <button class="btn-small" onclick="editAd(${ad.id})"><svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تعديل</button>
+                <button class="btn-small" onclick="toggleAdActive(${ad.id}, ${ad.is_active ? 0 : 1})">
+                    <svg class="icon"><use href="icons.svg#icon-${ad.is_active ? 'x-circle' : 'check'}"></use></svg> ${ad.is_active ? 'تعطيل' : 'تفعيل'}
+                </button>
+                <button class="btn-small btn-delete-product" onclick="deleteAd(${ad.id})"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg> حذف</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// إظهار/إخفاء فورم الإعلان
+function toggleAdForm(forceClose) {
+    const form = document.getElementById('adForm');
+    const isHidden = form.style.display === 'none';
+
+    if (forceClose || !isHidden) {
+        form.style.display = 'none';
+        resetAdForm();
+    } else {
+        form.style.display = 'block';
+    }
+}
+
+function resetAdForm() {
+    editingAdId = null;
+    document.getElementById('adCategorySelect').value    = '';
+    document.getElementById('adTitleInput').value         = '';
+    document.getElementById('adDescriptionInput').value   = '';
+    document.getElementById('adPriceFromInput').value     = '';
+    document.getElementById('adPriceToInput').value       = '';
+    document.getElementById('adCityInput').value           = '';
+    document.getElementById('adDistrictInput').value       = '';
+    document.getElementById('adWhatsappInput').value       = localStorage.getItem('yashjub_phone') || '';
+    document.getElementById('adImagesInput').value         = '';
+    document.getElementById('adExistingImagesPreview').innerHTML = '';
+    document.getElementById('saveAdBtn').textContent       = 'نشر الإعلان';
+}
+
+// لو عنده إعلان بنفس القسم أصلاً، يعرض عليه يعدّله بدل إنشاء وحدة جديدة
+function checkExistingAdInCategory() {
+    if (editingAdId) return;
+
+    const category = document.getElementById('adCategorySelect').value;
+    const existing = myAds.find(a => a.category === category);
+
+    if (existing) {
+        if (confirm('عندك إعلان في هذا القسم، هل تريد تعديله؟')) {
+            editAd(existing.id);
+        } else {
+            document.getElementById('adCategorySelect').value = '';
+        }
+    }
+}
+
+function editAd(id) {
+    const ad = myAds.find(a => a.id === id);
+    if (!ad) return;
+
+    editingAdId = id;
+    document.getElementById('adCategorySelect').value   = ad.category;
+    document.getElementById('adTitleInput').value         = ad.title;
+    document.getElementById('adDescriptionInput').value   = ad.description || '';
+    document.getElementById('adPriceFromInput').value     = ad.price_from;
+    document.getElementById('adPriceToInput').value       = ad.price_to || '';
+    document.getElementById('adCityInput').value           = ad.city;
+    document.getElementById('adDistrictInput').value       = ad.district || '';
+    document.getElementById('adWhatsappInput').value       = ad.whatsapp;
+    document.getElementById('saveAdBtn').textContent       = 'تحديث الإعلان';
+
+    document.getElementById('adForm').style.display = 'block';
+    document.getElementById('adForm').scrollIntoView({ behavior: 'smooth' });
+
+    let images = [];
+    try { images = JSON.parse(ad.images || '[]'); } catch (e) {}
+    document.getElementById('adExistingImagesPreview').innerHTML = images
+        .map(src => `<img src="${src}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">`).join('');
+}
+
+// حفظ إعلان (نشر جديد أو تحديث) + رفع أي صور جديدة مختارة
+async function saveAd() {
+    const category    = document.getElementById('adCategorySelect').value;
+    const title        = document.getElementById('adTitleInput').value.trim();
+    const description  = document.getElementById('adDescriptionInput').value.trim();
+    const priceFrom     = document.getElementById('adPriceFromInput').value;
+    const priceTo        = document.getElementById('adPriceToInput').value;
+    const city          = document.getElementById('adCityInput').value;
+    const district       = document.getElementById('adDistrictInput').value.trim();
+    const whatsapp       = document.getElementById('adWhatsappInput').value.trim();
+    const phone         = localStorage.getItem('yashjub_phone');
+
+    if (!category || !title || !priceFrom || !city) {
+        alert('❌ يرجى تعبئة القسم والعنوان والسعر والمدينة على الأقل');
+        return;
+    }
+
+    try {
+        let targetAdId;
+
+        if (editingAdId) {
+            const res  = await fetch(`${API}/ads/${editingAdId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category, title, description, priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone }),
+            });
+            const data = await res.json();
+            if (!data.success) { alert(`❌ ${data.message}`); return; }
+            targetAdId = editingAdId;
+        } else {
+            const res  = await fetch(`${API}/ads`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    providerPhone: phone, providerName: currentProviderName, category, title, description,
+                    priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone,
+                }),
+            });
+            const data = await res.json();
+            if (!data.success) {
+                if (data.existingAdId && confirm('عندك إعلان في هذا القسم، هل تريد تعديله؟')) {
+                    editAd(data.existingAdId);
+                } else if (!data.existingAdId) {
+                    alert(`❌ ${data.message}`);
+                }
+                return;
+            }
+            targetAdId = data.ad.id;
+        }
+
+        // رفع الصور الجديدة المختارة (لو فيه)
+        const files = document.getElementById('adImagesInput').files;
+        if (files.length) {
+            const formData = new FormData();
+            for (const f of files) formData.append('images', f);
+
+            const imgRes  = await fetch(`${API}/ads/${targetAdId}/images`, { method: 'POST', body: formData });
+            const imgData = await imgRes.json();
+            if (!imgData.success) {
+                alert(`⚠️ تم حفظ الإعلان، لكن تعذّر رفع الصور: ${imgData.message}`);
+            }
+        }
+
+        const wasEditing = !!editingAdId;
+        showAppAlert(wasEditing ? '✅ تم تحديث الإعلان' : '✅ تم نشر إعلانك بنجاح', () => {
+            toggleAdForm(true);
+            loadMyAds();
+        });
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function toggleAdActive(id, newState) {
+    try {
+        const res  = await fetch(`${API}/ads/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isActive: !!newState }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            loadMyAds();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function deleteAd(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الإعلان؟')) return;
+
+    try {
+        await fetch(`${API}/ads/${id}`, { method: 'DELETE' });
+        loadMyAds();
     } catch (e) {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }

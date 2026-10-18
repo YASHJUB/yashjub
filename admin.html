@@ -837,6 +837,9 @@
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-gem"></use></svg></span> الشهادات
             <span class="sidebar-badge" id="testimonialsBadge" style="display:none;background:var(--orange)">0</span>
         </a>
+        <a class="sidebar-item" data-page="ads" onclick="showPage('ads')">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إدارة الإعلانات
+        </a>
         <a class="sidebar-item" data-page="cities" onclick="showPage('cities')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></span> المدن
         </a>
@@ -1778,6 +1781,74 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ══ ADS MANAGEMENT PAGE (منصة غوث معاهدة) ══ -->
+            <div id="page-ads" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">إدارة الإعلانات <svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
+                    <div class="page-sub">كل الإعلانات المنشورة على منصة غوث معاهدة</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">الإعلانات النشطة</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="adsActiveCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">أكثر قسم نشاطاً</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="adsTopCategory" style="font-size:18px">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">أكثر مدينة نشاطاً</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="adsTopCity" style="font-size:18px">—</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
+                            <input type="text" id="adsSearchInput" placeholder="بحث بعنوان الإعلان أو اسم المزوّد..." oninput="renderAdsAdminTable()"/>
+                        </div>
+                        <select class="table-filter" id="adsCategoryFilter" onchange="renderAdsAdminTable()">
+                            <option value="">كل الأقسام</option>
+                            <option value="سطحة">سطحة</option>
+                            <option value="حاوية">حاوية</option>
+                            <option value="معدات ثقيلة">معدات ثقيلة</option>
+                        </select>
+                        <select class="table-filter" id="adsCityFilter" onchange="renderAdsAdminTable()">
+                            <option value="">كل المدن</option>
+                        </select>
+                        <select class="table-filter" id="adsStatusFilter" onchange="renderAdsAdminTable()">
+                            <option value="">كل الحالات</option>
+                            <option value="1">نشط</option>
+                            <option value="0">موقوف</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>العنوان</th><th>المزوّد</th><th>القسم</th>
+                                    <th>المدينة</th><th>السعر</th><th>المشاهدات</th><th>التقييم</th>
+                                    <th>الحالة</th><th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allAdsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- ══ PAYMENTS PAGE ══ -->
             <div id="page-payments" style="display:none">
                 <div class="page-header">

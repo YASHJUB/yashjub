@@ -265,6 +265,13 @@
 
     </div>
 
+    <!-- أحدث الإعلانات (تظهر فقط بوضع نظام الإعلانات) -->
+    <div class="services-new" id="latestAdsSection" style="display:none">
+        <h2>أحدث الإعلانات</h2>
+        <p class="services-subtitle">آخر الإعلانات المنشورة على المنصة</p>
+        <div class="testimonials-grid" id="latestAdsGrid"></div>
+    </div>
+
     <!-- قسم كيف يعمل -->
     <div class="how-section">
         <h2>كيف يعمل غُوث؟</h2>
@@ -343,15 +350,15 @@
     <div class="provider-section">
         <div class="provider-content">
             <div class="provider-text">
-                <h2>هل أنت مزود خدمة؟</h2>
-                <p>انضم لآلاف المزودين وابدأ في استقبال الطلبات اليوم</p>
-                <div class="provider-benefits">
+                <h2 id="providerSectionTitle">هل أنت مزود خدمة؟</h2>
+                <p id="providerSectionDesc">انضم لآلاف المزودين وابدأ في استقبال الطلبات اليوم</p>
+                <div class="provider-benefits" id="providerSectionBenefits">
                     <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> بدون رسوم اشتراك</div>
-                  
+
                     <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> دفع فوري لحسابك</div>
                     <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> تحكم كامل بجدولك</div>
                 </div>
-                <button class="btn provider-btn" onclick="window.location.href='register-provider.html'">
+                <button class="btn provider-btn" id="providerSectionBtn" onclick="goToProviderSection()">
                     انضم الآن كمزود <svg class="icon"><use href="icons.svg#icon-worker"></use></svg>
                 </button>
             </div>
