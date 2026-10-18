@@ -40,12 +40,13 @@ async function loadCities() {
     }
 }
 
-// البحث عن الإعلانات حسب الفلاتر الحالية
+// البحث عن الإعلانات حسب الفلاتر الحالية + كلمة البحث (تُطبَّق محلياً على العنوان/الوصف، السيرفر ما يدعم بحث نصي عام)
 async function searchAds() {
     const city       = document.getElementById('searchCity').value;
     const district   = document.getElementById('searchDistrict').value.trim();
     const priceFrom  = document.getElementById('searchPriceFrom').value;
     const priceTo    = document.getElementById('searchPriceTo').value;
+    const keyword    = document.getElementById('searchKeyword').value.trim().toLowerCase();
 
     const query = new URLSearchParams();
     if (currentCategory) query.set('category', currentCategory);
@@ -59,11 +60,59 @@ async function searchAds() {
         const data = await res.json();
         if (!data.success) return;
 
-        document.getElementById('categoryCount').textContent = `${data.ads.length} إعلان`;
-        renderAdsResults(data.ads);
+        let ads = data.ads;
+        if (keyword) {
+            ads = ads.filter(ad =>
+                (ad.title || '').toLowerCase().includes(keyword) ||
+                (ad.description || '').toLowerCase().includes(keyword)
+            );
+        }
+
+        document.getElementById('categoryCount').textContent = `${ads.length} إعلان`;
+        renderAdsResults(ads);
     } catch (e) {
         renderAdsResults([]);
     }
+}
+
+// فتح/إغلاق بطاقة الفلاتر المنسدلة
+function toggleFilterPanel(e) {
+    e.stopPropagation();
+    document.getElementById('filterPanel').classList.toggle('open');
+}
+
+// إغلاق البطاقة عند الضغط خارجها
+document.addEventListener('click', (e) => {
+    const panel = document.getElementById('filterPanel');
+    const btn   = document.getElementById('filterBtn');
+    if (panel && panel.classList.contains('open') && !panel.contains(e.target) && !btn.contains(e.target)) {
+        panel.classList.remove('open');
+    }
+});
+
+function applyFilterPanel() {
+    document.getElementById('filterPanel').classList.remove('open');
+    updateFilterBtnState();
+    searchAds();
+}
+
+function clearFilterPanel() {
+    document.getElementById('searchCity').value       = '';
+    document.getElementById('searchDistrict').value   = '';
+    document.getElementById('searchPriceFrom').value  = '';
+    document.getElementById('searchPriceTo').value    = '';
+    document.getElementById('filterPanel').classList.remove('open');
+    updateFilterBtnState();
+    searchAds();
+}
+
+// تحديد شكل زر الفلترة (أصفر + نقطة) حسب وجود فلتر مفعّل
+function updateFilterBtnState() {
+    const active = document.getElementById('searchCity').value ||
+                   document.getElementById('searchDistrict').value.trim() ||
+                   document.getElementById('searchPriceFrom').value ||
+                   document.getElementById('searchPriceTo').value;
+    document.getElementById('filterBtn').classList.toggle('active', !!active);
 }
 
 function renderAdsResults(ads) {
