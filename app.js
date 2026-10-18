@@ -164,16 +164,16 @@ async function switchToAdsMode() {
     if (heroSection) heroSection.style.display = 'none';
     if (statsSection) statsSection.style.display = 'none';
 
-    const desc  = document.getElementById('providerSectionDesc');
-    const bens  = document.getElementById('providerSectionBenefits');
-    const btn   = document.getElementById('providerSectionBtn');
-    if (desc) desc.textContent = 'انشر إعلان خدمتك مجاناً ووصّل مباشرة مع العملاء المهتمين';
-    if (bens) bens.innerHTML = `
-        <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> نشر مجاني بدون عمولة</div>
-        <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> تواصل مباشر عبر واتساب أو مكالمة</div>
-        <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> ظهور دائم بنتائج البحث</div>
-    `;
+    const desc    = document.getElementById('providerSectionDesc');
+    const bens    = document.getElementById('providerSectionBenefits');
+    const btn     = document.getElementById('providerSectionBtn');
+    const visual  = document.querySelector('.provider-visual');
+    const badge   = document.querySelector('.provider-badge');
+    if (desc) desc.textContent = 'انشر إعلانك وتواصل مباشرة مع العملاء';
+    if (bens) bens.style.display = 'none';
+    if (badge) badge.style.display = 'none';
     if (btn) btn.innerHTML = 'انشر إعلانك الآن <svg class="icon"><use href="icons.svg#icon-worker"></use></svg>';
+    if (visual && btn) visual.appendChild(btn); // نقل الزر لمكان دائرة "+500 مزود نشط" (يسار النص بوضع RTL)
 
     try {
         const res  = await fetch(`${API}/ads`);
