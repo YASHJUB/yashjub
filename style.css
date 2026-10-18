@@ -5190,28 +5190,53 @@ a.btn-call, a.btn-chat {
 
 /* ══ بطاقة إعلان (منصة غوث معاهدة) ══ */
 .ad-card {
-    background: #FAFAFA;
-    border: 1px solid #EEEEEE;
+    position: relative;
+    height: 280px;
     border-radius: 16px;
-    padding: 18px;
+    overflow: hidden;
+    background-color: #111111;
+    background-size: cover;
+    background-position: center;
     text-align: right;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: box-shadow 0.2s;
 }
 
 .ad-card:hover {
-    border-color: #F5C518;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.ad-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.75) 100%);
+    pointer-events: none;
+}
+
+.ad-card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    z-index: 2;
 }
 
 .ad-card-category {
     font-size: 15px;
     font-weight: 800;
-    color: #111111;
+    color: #ffffff;
     font-family: 'Cairo', sans-serif;
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-bottom: 4px;
+}
+
+.ad-card-provider {
+    font-size: 12px;
+    color: #dddddd;
+    font-family: 'Cairo', sans-serif;
     margin-bottom: 8px;
 }
 
@@ -5220,7 +5245,7 @@ a.btn-call, a.btn-chat {
     align-items: center;
     gap: 14px;
     font-size: 12px;
-    color: #666666;
+    color: #eeeeee;
     font-family: 'Cairo', sans-serif;
     margin-bottom: 8px;
 }
@@ -5231,12 +5256,13 @@ a.btn-call, a.btn-chat {
     gap: 4px;
 }
 
+.ad-card-rating { color: #F5C518; font-weight: 700; }
+
 .ad-card-meta .icon { color: #F5C518; width: 13px; height: 13px; }
 
-.ad-card-location,
-.ad-card-price {
+.ad-card-location {
     font-size: 13px;
-    color: #444444;
+    color: #eeeeee;
     font-family: 'Cairo', sans-serif;
     display: flex;
     align-items: center;
@@ -5245,22 +5271,14 @@ a.btn-call, a.btn-chat {
 }
 
 .ad-card-price {
-    font-weight: 700;
-    color: #92700A;
-}
-
-.ad-card-divider {
-    height: 1px;
-    background: #EEEEEE;
-    margin: 10px 0;
-}
-
-.ad-card-desc {
-    font-size: 13px;
-    color: #666666;
+    font-size: 14px;
+    font-weight: 800;
+    color: #F5C518;
     font-family: 'Cairo', sans-serif;
-    line-height: 1.6;
-    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
 }
 
 .ad-card-actions {
@@ -5271,6 +5289,10 @@ a.btn-call, a.btn-chat {
 
 .ad-card-actions a { padding: 9px; font-size: 13px; border-radius: 10px; }
 
+@media (max-width: 480px) {
+    .ad-card { height: 240px; }
+}
+
 /* شارة عدد الإعلانات على صفوف أقسام الإعلانات بالرئيسية */
 .service-row-count {
     font-size: 12px;
@@ -5280,12 +5302,6 @@ a.btn-call, a.btn-chat {
     padding: 3px 10px;
     border-radius: 20px;
 }
-
-body.dark-mode .ad-card { background: #1a1a1a; border-color: #333333; }
-body.dark-mode .ad-card-category { color: #ffffff; }
-body.dark-mode .ad-card-location,
-body.dark-mode .ad-card-desc { color: #aaaaaa; }
-body.dark-mode .ad-card-divider { background: #333333; }
 
 /* ══ معرض صور الإعلان (ad-details.html) ══ */
 .ad-gallery {

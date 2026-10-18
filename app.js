@@ -155,10 +155,14 @@ async function checkActiveSystem() {
 
 // تحويل الصفحة الرئيسية لواجهة الإعلانات (أقسام الإعلانات بدل الخدمات، إخفاء كيف يعمل/لماذا غوث، أحدث الإعلانات)
 async function switchToAdsMode() {
-    const howSection = document.querySelector('.how-section');
-    const whySection = document.querySelector('.why-section');
+    const howSection   = document.querySelector('.how-section');
+    const whySection   = document.querySelector('.why-section');
+    const heroSection  = document.getElementById('heroSection');
+    const statsSection = document.getElementById('statsSection');
     if (howSection) howSection.style.display = 'none';
     if (whySection) whySection.style.display = 'none';
+    if (heroSection) heroSection.style.display = 'none';
+    if (statsSection) statsSection.style.display = 'none';
 
     const desc  = document.getElementById('providerSectionDesc');
     const bens  = document.getElementById('providerSectionBenefits');
@@ -209,26 +213,30 @@ function renderAdCategoryRows(counts) {
     `).join('');
 }
 
-// بطاقة إعلان مشتركة (تُستخدم بالرئيسية وبصفحة ads.html)
+// بطاقة إعلان مشتركة (تُستخدم بالرئيسية وبصفحة ads.html) — صورة الإعلان الأولى خلفية البطاقة مع تظليل داكن، أو خلفية سوداء لو بدون صور
 function renderAdCard(ad) {
     const icon = AD_CATEGORY_ICONS[ad.category] || 'wrench';
-    const desc = ad.description ? (ad.description.length > 80 ? ad.description.slice(0, 80) + '...' : ad.description) : '';
+    let images = [];
+    try { images = JSON.parse(ad.images || '[]'); } catch (e) { images = []; }
+    const hasImage = images.length > 0;
+    const bgStyle = hasImage ? `background-image:url('${images[0]}')` : '';
 
     return `
-        <div class="ad-card" onclick="window.location.href='ad-details.html?id=${ad.id}'">
-            <div class="ad-card-category"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${ad.category} — ${ad.provider_name || 'مزوّد'}</div>
-            <div class="ad-card-meta">
-                <span><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating || '—'} (${ad.reviews_count || 0} تقييم)</span>
-                <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>
-            </div>
-            <div class="ad-card-location"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${ad.city}${ad.district ? ' — ' + ad.district : ''}</div>
-            <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</div>
-            <div class="ad-card-divider"></div>
-            <div class="ad-card-desc">${desc}</div>
-            <div class="ad-card-divider"></div>
-            <div class="ad-card-actions" onclick="event.stopPropagation()">
-                <a class="btn-call" href="tel:+966${ad.provider_phone}"><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg> اتصال</a>
-                <a class="btn-chat" href="https://wa.me/966${ad.whatsapp}" target="_blank" rel="noopener"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg> واتساب</a>
+        <div class="ad-card" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${ad.id}'">
+            ${hasImage ? '<div class="ad-card-overlay"></div>' : ''}
+            <div class="ad-card-content">
+                <div class="ad-card-category"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${ad.title}</div>
+                <div class="ad-card-provider">${ad.category} — ${ad.provider_name || 'مزوّد'}</div>
+                <div class="ad-card-meta">
+                    <span class="ad-card-rating"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating || '—'} (${ad.reviews_count || 0} تقييم)</span>
+                    <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>
+                </div>
+                <div class="ad-card-location"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${ad.city}${ad.district ? ' — ' + ad.district : ''}</div>
+                <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</div>
+                <div class="ad-card-actions" onclick="event.stopPropagation()">
+                    <a class="btn-call" href="tel:+966${ad.provider_phone}"><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg> اتصال</a>
+                    <a class="btn-chat" href="https://wa.me/966${ad.whatsapp}" target="_blank" rel="noopener"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg> واتساب</a>
+                </div>
             </div>
         </div>
     `;
