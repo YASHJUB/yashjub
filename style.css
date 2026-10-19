@@ -55,7 +55,7 @@ body {
 
 /* لوقو الصورة */
 .logo-img {
-    height: 110px;
+    height: 130px;
     width: auto;
     margin-bottom: 2px;
     filter: brightness(1);
@@ -3976,7 +3976,7 @@ body.dark-mode .empty-sub { color: #888888; }
         flex-wrap: wrap;
     }
 
-    .logo-img { height: 65px; }
+    .logo-img { height: 75px; }
     .tagline { font-size: 10px; }
 
     /* الهيرو */
@@ -4106,7 +4106,7 @@ body.dark-mode .empty-sub { color: #888888; }
 /* شاشات صغيرة جداً */
 @media (max-width: 380px) {
     .hero-content h1 { font-size: 22px !important; }
-    .logo-img { height: 55px !important; }
+    .logo-img { height: 62px !important; }
     .service-row-name { font-size: 13px; }
     .stat-num { font-size: 14px !important; }
     .how-grid { grid-template-columns: 1fr !important; }
