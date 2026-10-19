@@ -182,11 +182,14 @@ async function switchToAdsMode() {
         <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
         <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
         <a class="sidebar-link" href="fees.html"><span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع</a>
+        <a class="sidebar-link" href="messages.html"><span><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> الرسائل <span class="sidebar-badge" id="messagesBadge" style="display:none">0</span></a>
         <div class="sidebar-divider"></div>
         <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
         <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
         <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
     `;
+    loadMessagesBadge();
+    setInterval(loadMessagesBadge, 30000);
 
     const desc    = document.getElementById('providerSectionDesc');
     const bens    = document.getElementById('providerSectionBenefits');
@@ -344,6 +347,24 @@ function applyLoginUI() {
             setInterval(loadNotifBell, 60000);
         }
     }
+}
+
+// badge "الرسائل" بالسايد بار — مجموع غير المقروء بكل محادثات المستخدم (راجع نظام الرسائل الداخلية)
+async function loadMessagesBadge() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) return;
+
+    try {
+        const res  = await fetch(`${API}/conversations/${phone}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const totalUnread = data.conversations.reduce((sum, c) => sum + (c.my_unread_count || 0), 0);
+        const badge = document.getElementById('messagesBadge');
+        if (!badge) return;
+        badge.textContent   = totalUnread;
+        badge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
+    } catch (e) {}
 }
 
 // ══ جرس الإشعارات ══

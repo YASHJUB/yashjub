@@ -1323,6 +1323,114 @@ app.get('/api/fees/:phone', (req, res) => {
     res.json({ success: true, payments });
 });
 
+// ========== API الرسائل الداخلية (مرتبطة بالإعلانات) ==========
+
+// إنشاء محادثة جديدة — لو فيه محادثة موجودة أصلاً لنفس الإعلان بين نفس الطرفين (بأي اتجاه) يرجّعها بدل تكرارها
+app.post('/api/conversations', (req, res) => {
+    const { adId, user1Phone, user2Phone } = req.body;
+
+    if (!adId || !user1Phone || !user2Phone) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    if (user1Phone === user2Phone) {
+        return res.json({ success: false, message: 'لا يمكنك مراسلة نفسك' });
+    }
+
+    const existing = db.prepare(`
+        SELECT * FROM conversations
+        WHERE ad_id = ? AND (
+            (user1_phone = ? AND user2_phone = ?) OR
+            (user1_phone = ? AND user2_phone = ?)
+        )
+    `).get(adId, user1Phone, user2Phone, user2Phone, user1Phone);
+
+    if (existing) {
+        return res.json({ success: true, conversation: existing });
+    }
+
+    const ad = db.prepare('SELECT title FROM ads WHERE id = ?').get(adId);
+
+    const result = db.prepare(`
+        INSERT INTO conversations (ad_id, ad_title, user1_phone, user2_phone)
+        VALUES (?, ?, ?, ?)
+    `).run(adId, ad ? ad.title : null, user1Phone, user2Phone);
+
+    const conversation = db.prepare('SELECT * FROM conversations WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, conversation });
+});
+
+// كل محادثات مستخدم معيّن، الأحدث أولاً — مع اسم الطرف الآخر وعدد غير المقروء الفعلي لهذا المستخدم تحديداً
+// (unread_count بجدول conversations عمود تذكاري بس، مو مصدر موثوق — كل محادثة طرفين قد يختلف عددهم غير المقروء، فنحسبه حياً من جدول messages)
+app.get('/api/conversations/:phone', (req, res) => {
+    const phone = req.params.phone;
+
+    const conversations = db.prepare(`
+        SELECT c.*,
+            CASE WHEN c.user1_phone = ? THEN c.user2_phone ELSE c.user1_phone END AS other_phone,
+            (SELECT name FROM users WHERE phone = CASE WHEN c.user1_phone = ? THEN c.user2_phone ELSE c.user1_phone END) AS other_name,
+            (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND receiver_phone = ? AND is_read = 0) AS my_unread_count
+        FROM conversations c
+        WHERE c.user1_phone = ? OR c.user2_phone = ?
+        ORDER BY c.last_message_at DESC, c.created_at DESC
+    `).all(phone, phone, phone, phone, phone);
+
+    res.json({ success: true, conversations });
+});
+
+// رسائل محادثة معيّنة، مرتبة زمنياً
+app.get('/api/messages/:conversationId', (req, res) => {
+    const messages = db.prepare('SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC').all(req.params.conversationId);
+    res.json({ success: true, messages });
+});
+
+// إرسال رسالة جديدة — المستقبل يُحدَّد من طرفي المحادثة بالسيرفر (مو من المرسل)، يحدّث آخر رسالة بالمحادثة، ويرسل إشعار حقيقي للمستقبل
+app.post('/api/messages', (req, res) => {
+    const { conversationId, senderPhone, message } = req.body;
+
+    if (!conversationId || !senderPhone || !message || !message.trim()) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const conversation = db.prepare('SELECT * FROM conversations WHERE id = ?').get(conversationId);
+    if (!conversation) {
+        return res.json({ success: false, message: 'المحادثة غير موجودة' });
+    }
+
+    const receiverPhone = conversation.user1_phone === senderPhone ? conversation.user2_phone : conversation.user1_phone;
+
+    const result = db.prepare(`
+        INSERT INTO messages (conversation_id, ad_id, sender_phone, receiver_phone, message)
+        VALUES (?, ?, ?, ?, ?)
+    `).run(conversationId, conversation.ad_id, senderPhone, receiverPhone, message.trim());
+
+    db.prepare(`UPDATE conversations SET last_message = ?, last_message_at = datetime('now') WHERE id = ?`)
+        .run(message.trim(), conversationId);
+
+    const sender     = db.prepare('SELECT name FROM users WHERE phone = ?').get(senderPhone);
+    const senderName = (sender && sender.name) ? sender.name : `+966${senderPhone}`;
+
+    createNotification(
+        'رسالة جديدة 💬',
+        `${senderName} أرسل لك رسالة عن إعلانك: ${conversation.ad_title || ''}`,
+        'update', 'specific', receiverPhone, receiverPhone
+    );
+
+    const sentMessage = db.prepare('SELECT * FROM messages WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, sentMessage });
+});
+
+// تعليم رسائل محادثة كمقروءة — فقط الرسائل الموجّهة لهذا الهاتف تحديداً (مو كل رسائل المحادثة)
+app.put('/api/messages/:conversationId/read', (req, res) => {
+    const { phone } = req.body;
+    if (!phone) return res.json({ success: false, message: 'بيانات ناقصة' });
+
+    db.prepare('UPDATE messages SET is_read = 1 WHERE conversation_id = ? AND receiver_phone = ?')
+        .run(req.params.conversationId, phone);
+
+    res.json({ success: true });
+});
+
 // ========== API كوبونات الخصم ==========
 
 app.get('/api/coupons', (req, res) => {

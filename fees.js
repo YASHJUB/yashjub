@@ -29,7 +29,27 @@ function loadFeesPage() {
 
     loadNotifBell();
     setInterval(loadNotifBell, 60000);
+    loadMessagesBadge();
+    setInterval(loadMessagesBadge, 30000);
     loadFeePayments(phone);
+}
+
+// badge "الرسائل" بالسايد بار — مجموع غير المقروء بكل محادثات المستخدم (راجع نظام الرسائل الداخلية)
+async function loadMessagesBadge() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) return;
+
+    try {
+        const res  = await fetch(`${API}/conversations/${phone}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const totalUnread = data.conversations.reduce((sum, c) => sum + (c.my_unread_count || 0), 0);
+        const badge = document.getElementById('messagesBadge');
+        if (!badge) return;
+        badge.textContent   = totalUnread;
+        badge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
+    } catch (e) {}
 }
 
 // حساب الرسوم تلقائياً (1% من قيمة الخدمة المُدخلة)

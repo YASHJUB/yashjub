@@ -197,5 +197,44 @@ async function submitAdRating() {
     }
 }
 
+// زر "مراسلة" — ينشئ محادثة (أو يرجع الموجودة أصلاً) ويوديك لها بـmessages.html مع رسالة جاهزة بحقل الإرسال
+async function startConversation() {
+    const phone = localStorage.getItem('yashjub_phone');
+
+    if (!phone) {
+        showAppAlert('⚠️ يجب تسجيل الدخول أولاً', () => window.location.href = 'login.html');
+        return;
+    }
+
+    if (!currentAd) return;
+
+    if (phone === currentAd.provider_phone) {
+        alert('❌ لا يمكنك مراسلة نفسك بإعلانك');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/conversations`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                adId:       currentAd.id,
+                user1Phone: phone,
+                user2Phone: currentAd.provider_phone,
+            }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            const draft = `مرحباً، رأيت إعلانك عن ${currentAd.title} في ${currentAd.city} وأود الاستفسار`;
+            window.location.href = `messages.html?conversation=${data.conversation.id}&draft=${encodeURIComponent(draft)}`;
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
 // تشغيل عند فتح الصفحة
 loadAdDetails();

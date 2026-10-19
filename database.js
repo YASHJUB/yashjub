@@ -240,6 +240,31 @@ db.exec(`
         created_at     TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول محادثات الرسائل الداخلية المرتبطة بالإعلانات (محادثة واحدة لكل زوج عميل/معلن على نفس الإعلان)
+    CREATE TABLE IF NOT EXISTS conversations (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        ad_id           INTEGER NOT NULL,
+        ad_title        TEXT,
+        user1_phone     TEXT NOT NULL,
+        user2_phone     TEXT NOT NULL,
+        last_message    TEXT,
+        last_message_at TEXT,
+        unread_count    INTEGER DEFAULT 0,
+        created_at      TEXT DEFAULT (datetime('now'))
+    );
+
+    -- جدول رسائل المحادثات
+    CREATE TABLE IF NOT EXISTS messages (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        conversation_id INTEGER NOT NULL,
+        ad_id           INTEGER,
+        sender_phone    TEXT NOT NULL,
+        receiver_phone  TEXT NOT NULL,
+        message         TEXT NOT NULL,
+        is_read         INTEGER DEFAULT 0,
+        created_at      TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
