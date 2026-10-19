@@ -173,9 +173,19 @@ async function switchToAdsMode() {
     if (heroSection) heroSection.style.display = 'none';
     if (statsSection) statsSection.style.display = 'none';
 
-    // ماكو تسجيل مزوّد منفصل بوضع الإعلانات — أي مستخدم مسجّل دخوله ينشر إعلاناته مباشرة
-    const joinProviderLink = document.getElementById('joinProviderLink');
-    if (joinProviderLink) joinProviderLink.style.display = 'none';
+    // سايد بار موحّد بوضع الإعلانات — نفس البنية المستخدمة بـ provider.html ("إعلاناتي") بالضبط
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    if (sidebarMenu) sidebarMenu.innerHTML = `
+        <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
+        <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
+        <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
+        <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
+        <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
+        <div class="sidebar-divider"></div>
+        <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
+        <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
+        <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
+    `;
 
     const desc    = document.getElementById('providerSectionDesc');
     const bens    = document.getElementById('providerSectionBenefits');

@@ -661,6 +661,20 @@ async function checkActiveSystemForAds(phone) {
         document.getElementById('availabilityToggleWrap').style.display = 'none';
         document.getElementById('myAccountBtn').style.display           = 'inline-block';
 
+        // سايد بار موحّد بوضع الإعلانات — نفس البنية المستخدمة بالصفحة الرئيسية بالضبط
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        if (sidebarMenu) sidebarMenu.innerHTML = `
+            <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
+            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
+            <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
+            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
+            <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
+            <div class="sidebar-divider"></div>
+            <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
+            <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
+            <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
+        `;
+
         loadCitiesForAds();
         loadMyAds();
         loadAdsStats(phone);
