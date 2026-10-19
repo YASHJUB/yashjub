@@ -318,6 +318,10 @@ function applyLoginUI() {
         document.getElementById('sidebarLoginBtn').style.display  = 'none';
         document.getElementById('sidebarLogoutBtn').style.display = 'block';
 
+        // رابط "إعلاناتي" يظهر فقط لمزوّد مسجّل دخوله (يوديه للوحته — راجع قسم إعلاناتي بـprovider.html)
+        const myAdsLink = document.getElementById('myAdsLink');
+        if (myAdsLink) myAdsLink.style.display = (type === 'provider') ? 'flex' : 'none';
+
         // إظهار جرس الإشعارات وتحميلها
         const bellWrap = document.getElementById('notifBellWrap');
         if (bellWrap) {
