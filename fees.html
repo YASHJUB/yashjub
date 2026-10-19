@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غَوْث - حاسبة الرسوم والدفع</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.png" alt="غَوْث" class="logo-img">
+            <div class="tagline">حاسبة الرسوم والدفع</div>
+        </div>
+        <div class="header-left">
+            <div id="notifBellWrap" style="position:relative">
+                <button class="theme-btn" onclick="toggleNotifDropdown()" id="notifBellBtn" style="position:relative">
+                    <svg class="icon"><use href="icons.svg#icon-bell"></use></svg>
+                    <span class="notif-bell-badge" id="notifBellBadge" style="display:none">0</span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown" style="display:none">
+                    <div class="notif-dropdown-header">الإشعارات</div>
+                    <div class="notif-dropdown-list" id="notifDropdownList"></div>
+                    <a href="profile.html#notifications" class="notif-dropdown-viewall">عرض الكل</a>
+                </div>
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()" id="themeBtn"><svg class="icon"><use href="icons.svg#icon-moon"></use></svg></button>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+    </div>
+
+    <!-- السايد بار -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="app-sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-user-icon"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
+            <div>
+                <div class="sidebar-user-name" id="sidebarUserName">مرحباً بك</div>
+                <div class="sidebar-user-phone" id="sidebarPhone">سجّل دخولك</div>
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="sidebar-menu">
+            <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
+            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
+            <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
+            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
+            <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
+            <a class="sidebar-link active" href="fees.html"><span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع</a>
+            <div class="sidebar-divider"></div>
+            <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
+            <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
+            <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
+        </div>
+        <div class="sidebar-footer">
+            <button class="btn-small btn-logout" onclick="logout()">تسجيل الخروج <svg class="icon"><use href="icons.svg#icon-door"></use></svg></button>
+        </div>
+    </div>
+
+    <!-- حاسبة الرسوم -->
+    <div class="fees-container">
+        <div class="order-card">
+
+            <div class="order-service-header">
+                <div class="order-icon"><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></div>
+                <div>
+                    <h2>حاسبة الرسوم</h2>
+                    <span class="service-type">احسب الرسوم المستحقة بناءً على قيمة الخدمة المقدمة (1%)</span>
+                </div>
+            </div>
+
+            <div class="order-divider"></div>
+
+            <div class="order-field">
+                <label><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> أدخل سعر البيع أو الإيجار</label>
+                <input type="number" id="serviceAmountInput" placeholder="مثال: 1000" oninput="calculateFee()" min="0">
+            </div>
+
+            <div class="order-field fee-result-box">
+                <label><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg> الرسوم المستحقة (1%)</label>
+                <input type="text" id="feeResultInput" value="0" readonly>
+            </div>
+
+            <div class="fee-note">
+                <svg class="icon"><use href="icons.svg#icon-info"></use></svg>
+                بموجب معاهدة غوث، يُستحق دفع هذا المبلغ خلال 10 أيام من استلام قيمة الخدمة.
+            </div>
+
+            <button class="fee-pay-btn" id="payNowBtn" onclick="openPaymentModal()" disabled>
+                ادفع الآن <svg class="icon"><use href="icons.svg#icon-card"></use></svg>
+            </button>
+
+        </div>
+
+        <!-- سجل المدفوعات السابقة -->
+        <div class="order-card" style="margin-top:20px">
+            <div class="order-service-header">
+                <div class="order-icon"><svg class="icon"><use href="icons.svg#icon-clock"></use></svg></div>
+                <div>
+                    <h2>سجل المدفوعات السابقة</h2>
+                </div>
+            </div>
+            <div class="order-divider"></div>
+            <div class="fee-payments-table-wrap">
+                <table class="fee-payments-table">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>قيمة الخدمة</th>
+                            <th>الرسوم المدفوعة</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feePaymentsBody">
+                        <tr><td colspan="4" style="text-align:center;color:#999;padding:20px">لا يوجد مدفوعات بعد</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>غَوْث</span> — عـتـاد الـبـنـاء
+        </div>
+    </div>
+
+    <!-- نافذة اختيار طريقة الدفع -->
+    <div class="confirm-overlay" id="paymentModalOverlay" style="display:none">
+        <div class="complaint-form-modal" style="max-width:420px">
+            <h3><svg class="icon"><use href="icons.svg#icon-card"></use></svg> طريقة الدفع</h3>
+
+            <div class="payment-method-option" onclick="selectPaymentMethod('بنكي', this)">
+                <span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span>
+                <div style="flex:1">
+                    <div style="font-weight:700">تحويل بنكي</div>
+                    <div class="payment-method-detail">IBAN: SA44 2000 0001 2345 6789 1234</div>
+                </div>
+            </div>
+
+            <div class="payment-method-option" onclick="selectPaymentMethod('STC Pay', this)">
+                <span><svg class="icon"><use href="icons.svg#icon-phone"></use></svg></span>
+                <div style="flex:1">
+                    <div style="font-weight:700">STC Pay</div>
+                    <div class="payment-method-detail">رقم STC Pay: 0500000000</div>
+                </div>
+            </div>
+
+            <div class="payment-method-option" onclick="selectPaymentMethod('مدى', this)">
+                <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></span>
+                <div style="flex:1">
+                    <div style="font-weight:700">مدى</div>
+                    <div class="payment-method-detail">IBAN: SA44 2000 0001 2345 6789 1234</div>
+                </div>
+            </div>
+
+            <div class="complaint-form-actions" style="margin-top:16px">
+                <button class="btn" style="flex:1" id="confirmPaymentBtn" onclick="confirmPayment()" disabled>تأكيد الدفع ✅</button>
+                <button class="btn-small" onclick="closePaymentModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="alert.js"></script>
+    <script src="fees.js"></script>
+</body>
+</html>

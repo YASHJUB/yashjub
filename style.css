@@ -3618,6 +3618,11 @@ body.dark-mode .product-item-name { color: #ffffff; }
 body.dark-mode .product-item-desc { color: #888888; }
 body.dark-mode .product-item-details { color: #aaaaaa; }
 
+body.dark-mode .order-card { background-color: #1a1a1a; border-color: #333333; }
+body.dark-mode .order-service-header h2 { color: #ffffff; }
+body.dark-mode .order-divider { background-color: #333333; }
+body.dark-mode .service-type { background-color: #262626; color: #cccccc; }
+
 body.dark-mode .order-field label { color: #ffffff; }
 body.dark-mode .order-field input,
 body.dark-mode .order-field textarea {
@@ -6021,6 +6026,149 @@ body.dark-mode .btn-gray-solid:hover { background: #3d3d3d; }
 
 @media (max-width: 480px) {
     .confirm-modal { padding: 22px 18px; }
+}
+
+/* ══ حاسبة الرسوم والدفع (fees.html) ══ */
+
+.fees-container {
+    max-width: 480px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.fee-result-box input {
+    background: rgba(245,197,24,0.1) !important;
+    border-color: #F5C518 !important;
+    color: #111111;
+    font-size: 26px;
+    font-weight: 900;
+    text-align: center;
+}
+
+body.dark-mode .fee-result-box input { color: #ffffff; }
+
+.fee-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #FAFAFA;
+    border-right: 3px solid #F5C518;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #666666;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.fee-note .icon { flex-shrink: 0; margin-top: 2px; color: #92700A; }
+
+.fee-pay-btn {
+    width: 100%;
+    background: #F5C518;
+    color: #111111;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 800;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.fee-pay-btn:hover:not(:disabled) {
+    background: #FFD740;
+    transform: translateY(-1px);
+}
+
+.fee-pay-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.fee-payments-table-wrap {
+    overflow-x: auto;
+}
+
+.fee-payments-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.fee-payments-table th {
+    text-align: right;
+    padding: 10px;
+    background: #FAFAFA;
+    color: #888888;
+    font-weight: 700;
+    border-bottom: 2px solid #EEEEEE;
+    white-space: nowrap;
+}
+
+.fee-payments-table td {
+    padding: 10px;
+    border-bottom: 1px solid #F5F5F5;
+    white-space: nowrap;
+}
+
+.fee-status-paid    { color: #10B981; font-weight: 700; }
+.fee-status-pending { color: #F59E0B; font-weight: 700; }
+
+/* نافذة اختيار طريقة الدفع */
+.payment-method-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1.5px solid #EEEEEE;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Cairo', sans-serif;
+}
+
+.payment-method-option:hover,
+.payment-method-option.selected {
+    border-color: #F5C518;
+    background: rgba(245,197,24,0.06);
+}
+
+.payment-method-detail {
+    background: #FFFFFF;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #111111;
+    margin-top: 8px;
+    display: none;
+    direction: ltr;
+    text-align: center;
+    font-weight: 700;
+}
+
+.payment-method-option.selected .payment-method-detail {
+    display: block;
+}
+
+body.dark-mode .fee-note { background: #1a1a1a; color: #aaaaaa; }
+body.dark-mode .fee-payments-table th { background: #1a1a1a; color: #888888; border-color: #333333; }
+body.dark-mode .fee-payments-table td { border-color: #2a2a2a; color: #ffffff; }
+body.dark-mode .payment-method-option { border-color: #333333; }
+body.dark-mode .payment-method-option:hover,
+body.dark-mode .payment-method-option.selected { background: rgba(245,197,24,0.08); }
+body.dark-mode .payment-method-detail { background: #111111; color: #ffffff; }
+
+@media (max-width: 480px) {
+    .fees-container { padding: 0 12px; margin: 16px auto; }
 }
 
 /* ══ نافذة تنبيه موحّدة بتصميم المنصة (بديل alert() الافتراضي بالمتصفح — alert.js) ══ */

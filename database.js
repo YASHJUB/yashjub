@@ -229,6 +229,17 @@ db.exec(`
         created_at     TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول دفعات رسوم معاهدة غوث (1% من قيمة الخدمة، تُدفع يدوياً من المزوّد عبر حاسبة الرسوم)
+    CREATE TABLE IF NOT EXISTS fee_payments (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        provider_phone TEXT NOT NULL,
+        service_amount REAL NOT NULL,
+        fee_amount     REAL NOT NULL,
+        payment_method TEXT NOT NULL,
+        status         TEXT NOT NULL DEFAULT 'paid',
+        created_at     TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)

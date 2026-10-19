@@ -1300,6 +1300,29 @@ app.post('/api/ads/:id/images', upload.array('images', 5), (req, res) => {
     res.json({ success: true, images: allImages });
 });
 
+// ========== API رسوم معاهدة غوث (حاسبة الرسوم والدفع) ==========
+
+app.post('/api/fees/pay', (req, res) => {
+    const { providerPhone, serviceAmount, feeAmount, paymentMethod } = req.body;
+
+    if (!providerPhone || !serviceAmount || !feeAmount || !paymentMethod) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const result = db.prepare(`
+        INSERT INTO fee_payments (provider_phone, service_amount, fee_amount, payment_method, status)
+        VALUES (?, ?, ?, ?, 'paid')
+    `).run(providerPhone, serviceAmount, feeAmount, paymentMethod);
+
+    const payment = db.prepare('SELECT * FROM fee_payments WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, payment });
+});
+
+app.get('/api/fees/:phone', (req, res) => {
+    const payments = db.prepare('SELECT * FROM fee_payments WHERE provider_phone = ? ORDER BY created_at DESC').all(req.params.phone);
+    res.json({ success: true, payments });
+});
+
 // ========== API كوبونات الخصم ==========
 
 app.get('/api/coupons', (req, res) => {
