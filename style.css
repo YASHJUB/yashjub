@@ -2380,7 +2380,42 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 .btn-outline:hover {
     background: #111111;
     color: #FFFFFF;
-}/* ══ الملف الشخصي ══ */
+}
+
+body.dark-mode .btn-outline {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+body.dark-mode .btn-outline:hover {
+    background: #ffffff;
+    color: #111111;
+}
+
+/* زر "عرض كل الإعلانات ←" أسفل قسم "أحدث الإعلانات" بالرئيسية */
+.view-all-ads-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #F5C518;
+    color: #111111;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.view-all-ads-btn:hover {
+    background: #FFD740;
+    transform: translateY(-1px);
+}
+
+body.dark-mode .view-all-ads-btn { color: #ffffff; }
+/* ══ الملف الشخصي ══ */
 
 .profile-hero {
     background: #111111;
