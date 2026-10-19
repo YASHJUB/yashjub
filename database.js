@@ -301,6 +301,7 @@ const migrations = [
     'ALTER TABLE orders ADD COLUMN auto_released INTEGER DEFAULT 0',
     'ALTER TABLE ads ADD COLUMN accepted_covenant INTEGER DEFAULT 0',
     'ALTER TABLE ads ADD COLUMN covenant_accepted_at TEXT',
+    'ALTER TABLE users ADD COLUMN email TEXT',
 ];
 
 for (const sql of migrations) {

@@ -5986,6 +5986,39 @@ body.dark-mode .covenant-cancel-btn { color: #777777; }
     background: rgba(239,68,68,0.1);
 }
 
+.btn-danger-solid {
+    background: #EF4444;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger-solid:hover { background: #DC2626; }
+
+.btn-gray-solid {
+    background: #EEEEEE;
+    color: #555555;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-gray-solid:hover { background: #E0E0E0; }
+
+body.dark-mode .btn-gray-solid { background: #333333; color: #cccccc; }
+body.dark-mode .btn-gray-solid:hover { background: #3d3d3d; }
+
 @media (max-width: 480px) {
     .confirm-modal { padding: 22px 18px; }
 }

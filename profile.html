@@ -52,6 +52,10 @@
                 <span class="profile-info-value" id="infoPhone">—</span>
             </div>
             <div class="profile-info-row">
+                <span class="profile-info-label"><svg class="icon"><use href="icons.svg#icon-mail"></use></svg> البريد الإلكتروني</span>
+                <span class="profile-info-value" id="infoEmail">غير محدد</span>
+            </div>
+            <div class="profile-info-row">
                 <span class="profile-info-label"><svg class="icon"><use href="icons.svg#icon-user"></use></svg> نوع الحساب</span>
                 <span class="profile-info-value" id="infoType">—</span>
             </div>
@@ -59,35 +63,39 @@
                 <span class="profile-info-label"><svg class="icon"><use href="icons.svg#icon-calendar"></use></svg> تاريخ الانضمام</span>
                 <span class="profile-info-value" id="infoDate">—</span>
             </div>
-        </div>
 
-        <!-- إحصائيات سريعة -->
-        <div class="profile-card">
-            <div class="profile-card-title">إحصائياتي</div>
-            <div class="profile-stats">
-                <div class="profile-stat">
-                    <div class="profile-stat-num" id="statOrders">0</div>
-                    <div class="profile-stat-label">طلباتي</div>
-                </div>
-                <div class="profile-stat">
-                    <div class="profile-stat-num" id="statCompleted">0</div>
-                    <div class="profile-stat-label">مكتملة</div>
-                </div>
-                <div class="profile-stat">
-                    <div class="profile-stat-num" id="statSpent">0</div>
-                    <div class="profile-stat-label">ريال مدفوع</div>
-                </div>
-            </div>
-        </div>
+            <div class="profile-actions" style="margin-top:8px">
 
-        <!-- إشعاراتي -->
-        <div class="profile-card" id="notifications">
-            <div class="profile-card-title" style="display:flex;align-items:center;justify-content:space-between">
-                <span>إشعاراتي</span>
-                <span id="notifUnreadCount" style="font-size:11px;font-weight:700;color:#EF4444"></span>
-            </div>
-            <div id="profileNotifList">
-                <p style="text-align:center;color:#999;font-size:13px;padding:16px 0">لا توجد إشعارات</p>
+                <div class="profile-action" onclick="toggleEmailForm()">
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-mail"></use></svg></span>
+                    <span class="profile-action-label">تغيير البريد الإلكتروني</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+                <div class="edit-name-form" id="emailForm" style="display:none">
+                    <input type="email" id="emailInput" placeholder="example@email.com"/>
+                    <button class="btn-small" onclick="saveEmail()">حفظ</button>
+                </div>
+
+                <div class="profile-action" onclick="togglePhoneForm()">
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-phone"></use></svg></span>
+                    <span class="profile-action-label">تغيير رقم الجوال</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+                <div class="edit-name-form" id="phoneForm" style="display:none">
+                    <input type="tel" id="newPhoneInput" placeholder="5XXXXXXXX" maxlength="9"/>
+                    <button class="btn-small" onclick="sendChangePhoneOtp()">إرسال الرمز</button>
+                </div>
+                <div class="edit-name-form" id="phoneOtpForm" style="display:none">
+                    <input type="tel" id="changePhoneOtpInput" placeholder="رمز التحقق"/>
+                    <button class="btn-small" onclick="confirmChangePhone()">تأكيد</button>
+                </div>
+
+                <div class="profile-action danger" onclick="openDeleteAccountModal()">
+                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg></span>
+                    <span class="profile-action-label">حذف الحساب</span>
+                    <span class="profile-action-arrow">←</span>
+                </div>
+
             </div>
         </div>
 
@@ -96,16 +104,10 @@
             <div class="profile-card-title">إجراءات</div>
             <div class="profile-actions">
 
-                <div class="profile-action" onclick="window.location.href='my-orders.html'">
-                    <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span>
-                    <span class="profile-action-label">طلباتي</span>
-                    <span class="profile-action-arrow">←</span>
-                </div>
-
                 <div class="profile-action" id="providerAction" style="display:none"
-                     onclick="window.location.href='provider.html'">
+                     onclick="window.location.href='provider.html#adsSection'">
                     <span class="profile-action-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span>
-                    <span class="profile-action-label">لوحة المزود</span>
+                    <span class="profile-action-label">إعلاناتي</span>
                     <span class="profile-action-arrow">←</span>
                 </div>
 
@@ -149,6 +151,20 @@
         </div>
         <div class="footer-copy">
             جميع الحقوق محفوظة © 2026 <span>غَوْث</span> — عـتـاد الـبـنـاء
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد حذف الحساب -->
+    <div class="confirm-overlay" id="deleteAccountOverlay" style="display:none">
+        <div class="confirm-modal">
+            <div class="confirm-title"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg> حذف الحساب</div>
+            <p style="font-size:14px;color:#555555;line-height:1.8;margin-bottom:20px;font-family:'Cairo',sans-serif">
+                هل أنت متأكد؟ سيتم حذف حسابك وجميع إعلاناتك نهائياً.
+            </p>
+            <div style="display:flex;gap:10px">
+                <button class="btn-danger-solid" style="flex:1" onclick="confirmDeleteAccount()">نعم احذف حسابي</button>
+                <button class="btn-gray-solid" style="flex:1" onclick="closeDeleteAccountModal()">إلغاء</button>
+            </div>
         </div>
     </div>
 

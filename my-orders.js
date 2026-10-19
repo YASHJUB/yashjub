@@ -2,6 +2,15 @@
 
 const API = window.location.origin + '/api';
 
+// الصفحة مخفية بوضع الإعلانات (ماكو مفهوم "طلبات" بنظام الإعلانات)
+(async function redirectAwayInAdsMode() {
+    try {
+        const res  = await fetch(`${API}/settings/active-system`);
+        const data = await res.json();
+        if (data.activeSystem === 'ads') window.location.href = 'index.html';
+    } catch (e) {}
+})();
+
 const serviceIcons = {
     'وايت ماء':    'truck',
     'سطحة':        'tow-truck',

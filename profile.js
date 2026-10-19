@@ -2,7 +2,7 @@
 
 const API = window.location.origin + '/api';
 
-async function loadProfile() {
+function loadProfile() {
     const phone = localStorage.getItem('yashjub_phone');
     const type  = localStorage.getItem('yashjub_type') || 'client';
     const name  = localStorage.getItem('yashjub_name');
@@ -17,6 +17,8 @@ async function loadProfile() {
     document.getElementById('infoPhone').textContent    = `+966${phone}`;
     document.getElementById('infoDate').textContent     = new Date().toLocaleDateString('ar-SA');
 
+    loadMyEmail(phone);
+
     if (type === 'provider') {
         document.getElementById('profileName').textContent  = name || 'مزود خدمة';
         document.getElementById('profileBadge').innerHTML = '<svg class="icon"><use href="icons.svg#icon-worker"></use></svg> مزود';
@@ -29,79 +31,6 @@ async function loadProfile() {
         document.getElementById('profileBadge').innerHTML = '<svg class="icon"><use href="icons.svg#icon-user"></use></svg> عميل';
         document.getElementById('infoType').textContent    = 'عميل';
     }
-
-    // جلب الإحصائيات
-    try {
-        const response = await fetch(`${API}/orders/user/${phone}`);
-        const data     = await response.json();
-
-        if (data.success) {
-            const orders    = data.orders;
-            const completed = orders.filter(o => o.status === 'completed').length;
-            const spent     = orders.reduce((sum, o) => sum + o.price, 0);
-
-            document.getElementById('statOrders').textContent    = orders.length;
-            document.getElementById('statCompleted').textContent = completed;
-            document.getElementById('statSpent').textContent     = spent.toLocaleString();
-        }
-    } catch (error) {
-        console.log('خطأ في جلب الإحصائيات');
-    }
-
-    loadProfileNotifications(phone);
-}
-
-// ══ إشعاراتي ══
-
-const PROFILE_NOTIF_ICONS = {
-    urgent: { icon: 'siren',    bg: 'rgba(239,68,68,0.1)',   color: '#EF4444' },
-    alert:  { icon: 'warning',  bg: 'rgba(245,158,11,0.1)',  color: '#F59E0B' },
-    update: { icon: 'bell',     bg: 'rgba(16,185,129,0.1)',  color: '#10B981' },
-    offer:  { icon: 'confetti', bg: 'rgba(245,197,24,0.15)', color: '#92700A' },
-};
-
-async function loadProfileNotifications(phone) {
-    try {
-        const res  = await fetch(`${API}/notifications/${phone}`);
-        const data = await res.json();
-        if (!data.success) return;
-
-        const unread = data.notifications.filter(n => !n.is_read).length;
-        document.getElementById('notifUnreadCount').textContent = unread > 0 ? `${unread} غير مقروءة` : '';
-
-        const list = document.getElementById('profileNotifList');
-
-        if (!data.notifications.length) {
-            list.innerHTML = '<p style="text-align:center;color:#999;font-size:13px;padding:16px 0">لا توجد إشعارات</p>';
-            return;
-        }
-
-        list.innerHTML = data.notifications.map(n => {
-            const meta = PROFILE_NOTIF_ICONS[n.type] || PROFILE_NOTIF_ICONS.update;
-            return `
-                <div class="profile-notif-item ${n.is_read ? '' : 'unread'}" onclick="markProfileNotifRead(${n.id}, '${phone}')">
-                    <div class="profile-notif-icon" style="background:${meta.bg};color:${meta.color}">
-                        <svg class="icon"><use href="icons.svg#icon-${meta.icon}"></use></svg>
-                    </div>
-                    <div style="flex:1">
-                        <div class="profile-notif-title">${n.title}</div>
-                        <div class="profile-notif-message">${n.message}</div>
-                        <div class="profile-notif-meta">
-                            <span>${new Date(n.created_at.replace(' ', 'T') + 'Z').toLocaleString('ar-SA')}</span>
-                            <span>${n.is_read ? '' : '• غير مقروء'}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } catch (e) {}
-}
-
-async function markProfileNotifRead(id, phone) {
-    try {
-        await fetch(`${API}/notifications/${id}/read`, { method: 'PUT' });
-        loadProfileNotifications(phone);
-    } catch (e) {}
 }
 
 // إظهار/إخفاء فورم تعديل الاسم
@@ -155,6 +84,180 @@ function logoutProfile() {
         localStorage.removeItem('yashjub_type');
         localStorage.removeItem('yashjub_name');
         window.location.href = 'index.html';
+    }
+}
+
+// ══ تغيير البريد الإلكتروني ══
+
+async function loadMyEmail(phone) {
+    try {
+        const res  = await fetch(`${API}/users`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const me = data.users.find(u => u.phone === phone);
+        if (me && me.email) {
+            document.getElementById('infoEmail').textContent = me.email;
+        }
+    } catch (e) {}
+}
+
+function toggleEmailForm() {
+    const form = document.getElementById('emailForm');
+    const isHidden = form.style.display === 'none';
+    form.style.display = isHidden ? 'flex' : 'none';
+
+    if (isHidden) {
+        const current = document.getElementById('infoEmail').textContent;
+        document.getElementById('emailInput').value = current === 'غير محدد' ? '' : current;
+        document.getElementById('emailInput').focus();
+    }
+}
+
+async function saveEmail() {
+    const email = document.getElementById('emailInput').value.trim();
+    const phone = localStorage.getItem('yashjub_phone');
+
+    if (!email) {
+        alert('❌ يرجى إدخال بريد إلكتروني صحيح');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/users/${phone}/email`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('infoEmail').textContent = data.email;
+            document.getElementById('emailForm').style.display = 'none';
+            showAppAlert('✅ تم تحديث البريد الإلكتروني');
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ تغيير رقم الجوال (يتطلب التحقق من OTP للرقم الجديد) ══
+
+let pendingNewPhone = null;
+
+function togglePhoneForm() {
+    const form = document.getElementById('phoneForm');
+    const isHidden = form.style.display === 'none';
+    form.style.display = isHidden ? 'flex' : 'none';
+    document.getElementById('phoneOtpForm').style.display = 'none';
+    pendingNewPhone = null;
+
+    if (isHidden) {
+        document.getElementById('newPhoneInput').value = '';
+        document.getElementById('newPhoneInput').focus();
+    }
+}
+
+async function sendChangePhoneOtp() {
+    const newPhone = document.getElementById('newPhoneInput').value.trim();
+    const currentPhone = localStorage.getItem('yashjub_phone');
+
+    if (newPhone.length !== 9) {
+        alert('❌ رقم الجوال يجب أن يكون 9 أرقام');
+        return;
+    }
+
+    if (newPhone === currentPhone) {
+        alert('❌ هذا هو رقمك الحالي');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/auth/send-otp`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ phone: newPhone })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            pendingNewPhone = newPhone;
+            alert(`📱 تم إرسال رمز التحقق:\n\n${data.otp}\n\n(في النسخة الحقيقية يُرسل عبر SMS)`);
+            document.getElementById('phoneOtpForm').style.display = 'flex';
+            document.getElementById('changePhoneOtpInput').value = '';
+            document.getElementById('changePhoneOtpInput').focus();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function confirmChangePhone() {
+    const otp = document.getElementById('changePhoneOtpInput').value.trim();
+    const currentPhone = localStorage.getItem('yashjub_phone');
+
+    if (!otp || !pendingNewPhone) {
+        alert('❌ يرجى إدخال رمز التحقق');
+        return;
+    }
+
+    try {
+        const res  = await fetch(`${API}/users/${currentPhone}/change-phone`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ newPhone: pendingNewPhone, otp })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            localStorage.setItem('yashjub_phone', data.phone);
+            document.getElementById('profilePhone').textContent = `+966${data.phone}`;
+            document.getElementById('infoPhone').textContent    = `+966${data.phone}`;
+            document.getElementById('phoneForm').style.display    = 'none';
+            document.getElementById('phoneOtpForm').style.display = 'none';
+            pendingNewPhone = null;
+            showAppAlert('✅ تم تحديث رقم جوالك بنجاح');
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// ══ حذف الحساب نهائياً ══
+
+function openDeleteAccountModal() {
+    document.getElementById('deleteAccountOverlay').style.display = 'flex';
+}
+
+function closeDeleteAccountModal() {
+    document.getElementById('deleteAccountOverlay').style.display = 'none';
+}
+
+async function confirmDeleteAccount() {
+    const phone = localStorage.getItem('yashjub_phone');
+
+    try {
+        const res  = await fetch(`${API}/users/${phone}`, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (data.success) {
+            localStorage.removeItem('yashjub_phone');
+            localStorage.removeItem('yashjub_type');
+            localStorage.removeItem('yashjub_name');
+            showAppAlert('✅ تم حذف حسابك نهائياً', () => window.location.href = 'index.html');
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    } finally {
+        closeDeleteAccountModal();
     }
 }
 

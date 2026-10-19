@@ -190,6 +190,104 @@ app.put('/api/users/:phone/name', (req, res) => {
     res.json({ success: true, name: name.trim() });
 });
 
+// تغيير البريد الإلكتروني (profile.html)
+app.put('/api/users/:phone/email', (req, res) => {
+    const { email } = req.body;
+    const { phone } = req.params;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        return res.json({ success: false, message: 'البريد الإلكتروني غير صحيح' });
+    }
+
+    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    db.prepare('UPDATE users SET email = ? WHERE phone = ?').run(email.trim(), phone);
+
+    res.json({ success: true, email: email.trim() });
+});
+
+// تغيير رقم الجوال بعد التحقق من OTP المُرسَل للرقم الجديد (نفس POST /api/auth/send-otp)،
+// مع ترحيل كل البيانات المرتبطة بالرقم القديم (الطلبات، الإعلانات، الإشعارات، إلخ) للرقم الجديد
+app.put('/api/users/:phone/change-phone', (req, res) => {
+    const oldPhone = req.params.phone;
+    const { newPhone, otp } = req.body;
+
+    if (!newPhone || newPhone.length !== 9 || !otp) {
+        return res.json({ success: false, message: 'بيانات غير صحيحة' });
+    }
+
+    if (newPhone === oldPhone) {
+        return res.json({ success: false, message: 'هذا هو رقمك الحالي' });
+    }
+
+    const currentUser = db.prepare('SELECT * FROM users WHERE phone = ?').get(oldPhone);
+    if (!currentUser) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    const newPhoneRow = db.prepare('SELECT * FROM users WHERE phone = ?').get(newPhone);
+    if (!newPhoneRow || newPhoneRow.otp !== otp) {
+        return res.json({ success: false, message: 'رمز التحقق غير صحيح' });
+    }
+
+    // الرقم الجديد مستخدم أصلاً بحساب حقيقي آخر (مختلف عن صف التحقق المؤقت اللي أنشأه send-otp)
+    if (newPhoneRow.verified) {
+        return res.json({ success: false, message: 'هذا الرقم مستخدم بحساب آخر' });
+    }
+
+    const migrate = db.transaction(() => {
+        db.prepare('DELETE FROM users WHERE phone = ?').run(newPhone);
+        db.prepare('UPDATE users SET phone = ? WHERE phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE orders SET phone = ? WHERE phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE orders SET provider_phone = ? WHERE provider_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE providers SET phone = ? WHERE phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE ads SET provider_phone = ? WHERE provider_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE chats SET sender_phone = ? WHERE sender_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE notifications SET receiver_phone = ? WHERE receiver_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE notifications SET target_phone = ? WHERE target_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE complaints SET reporter_phone = ? WHERE reporter_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE complaints SET reported_phone = ? WHERE reported_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE reviews SET reviewer_phone = ? WHERE reviewer_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE reviews SET reviewed_phone = ? WHERE reviewed_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE testimonials SET client_phone = ? WHERE client_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE invoices SET client_phone = ? WHERE client_phone = ?').run(newPhone, oldPhone);
+        db.prepare('UPDATE ad_reviews SET reviewer_phone = ? WHERE reviewer_phone = ?').run(newPhone, oldPhone);
+    });
+
+    try {
+        migrate();
+    } catch (err) {
+        console.error(err);
+        return res.json({ success: false, message: 'تعذّر تغيير رقم الجوال' });
+    }
+
+    res.json({ success: true, phone: newPhone });
+});
+
+// حذف الحساب نهائياً (profile.html) — يحذف المستخدم وكل إعلاناته (لو كان مزوّد إعلانات)
+app.delete('/api/users/:phone', (req, res) => {
+    const { phone } = req.params;
+
+    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    const adIds = db.prepare('SELECT id FROM ads WHERE provider_phone = ?').all(phone).map(a => a.id);
+
+    const deleteAll = db.transaction(() => {
+        adIds.forEach(id => db.prepare('DELETE FROM ad_reviews WHERE ad_id = ?').run(id));
+        db.prepare('DELETE FROM ads WHERE provider_phone = ?').run(phone);
+        db.prepare('DELETE FROM users WHERE phone = ?').run(phone);
+    });
+    deleteAll();
+
+    res.json({ success: true });
+});
+
 // ========== API الطلبات ==========
 
 app.post('/api/orders', (req, res) => {
@@ -526,7 +624,7 @@ app.put('/api/orders/:id/assign-provider', (req, res) => {
 });
 
 app.get('/api/users', (req, res) => {
-    const users = db.prepare('SELECT id, phone, name, verified, created_at FROM users').all();
+    const users = db.prepare('SELECT id, phone, name, email, verified, created_at FROM users').all();
     res.json({ success: true, users });
 });
 
