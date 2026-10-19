@@ -23,7 +23,7 @@
     <!-- هيرو -->
     <div class="contact-hero">
         <h1>تواصل <span>معنا</span> <svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></h1>
-        <p>نحن هنا لمساعدتك في أي وقت — فريق الدعم متاح 24/7</p>
+        <p id="contactHeroDesc">نحن هنا لمساعدتك في أي وقت — فريق الدعم متاح 24/7</p>
     </div>
 
     <!-- قسم التواصل -->
@@ -132,50 +132,50 @@
 
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question">
-                    <span>كيف أطلب خدمة؟</span>
+                    <span id="faq1Q">كيف أطلب خدمة؟</span>
                     <span class="faq-icon">+</span>
                 </div>
-                <div class="faq-answer">
+                <div class="faq-answer" id="faq1A">
                     سجّل دخولك، اختر الخدمة التي تريدها، حدد موقعك، وأكّد الطلب. المزود سيصل إليك في أقرب وقت!
                 </div>
             </div>
 
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question">
-                    <span>كيف يعمل نظام الدفع؟</span>
+                    <span id="faq2Q">كيف يعمل نظام الدفع؟</span>
                     <span class="faq-icon">+</span>
                 </div>
-                <div class="faq-answer">
+                <div class="faq-answer" id="faq2A">
                     ندفع مبلغ الخدمة عند التأكيد ويُحفظ في نظام الأمانة، ويُحرَّر للمزود فقط بعد اكتمال الخدمة وتأكيدك.
                 </div>
             </div>
 
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question">
-                    <span>كم نسبة العمولة؟</span>
+                    <span id="faq3Q">كم نسبة العمولة؟</span>
                     <span class="faq-icon">+</span>
                 </div>
-                <div class="faq-answer">
+                <div class="faq-answer" id="faq3A">
                     رسوم الخدمة 5% فقط من قيمة الطلب، تُخصم تلقائياً من مستحقات المزود.
                 </div>
             </div>
 
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question">
-                    <span>كيف أنضم كمزود خدمة؟</span>
+                    <span id="faq4Q">كيف أنضم كمزود خدمة؟</span>
                     <span class="faq-icon">+</span>
                 </div>
-                <div class="faq-answer">
+                <div class="faq-answer" id="faq4A">
                     اضغط على "انضم كمزود" في الصفحة الرئيسية، اختر مستوى التسجيل المناسب، وأدخل بياناتك. سيتم مراجعة طلبك خلال 24 ساعة.
                 </div>
             </div>
 
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question">
-                    <span>هل غَوْث متاح في كل مناطق السعودية؟</span>
+                    <span id="faq5Q">هل غَوْث متاح في كل مناطق السعودية؟</span>
                     <span class="faq-icon">+</span>
                 </div>
-                <div class="faq-answer">
+                <div class="faq-answer" id="faq5A">
                     حالياً نعمل في الرياض ونوسّع نطاقنا تدريجياً لتشمل جميع مناطق المملكة قريباً.
                 </div>
             </div>
@@ -198,6 +198,7 @@
     </div>
 
     <script src="alert.js"></script>
+    <script src="contact.js"></script>
     <script>
         function sendMessage() {
             const name    = document.getElementById('contactName').value;
