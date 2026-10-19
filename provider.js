@@ -20,11 +20,24 @@ const LEVEL_BADGES = {
 };
 
 // تحميل الصفحة
-function loadProvider() {
+async function loadProvider() {
     const phone = localStorage.getItem('yashjub_phone');
     const type  = localStorage.getItem('yashjub_type');
 
-    if (!phone || type !== 'provider') {
+    if (!phone) {
+        showAppAlert('⚠️ هذه الصفحة للمزودين فقط', () => window.location.href = 'login.html');
+        return;
+    }
+
+    // بوضع النظام المدفوع الصفحة لمزوّد مسجّل فقط — بوضع الإعلانات أي مستخدم مسجّل دخوله يدخلها (ماكو تسجيل مزوّد منفصل بعد الآن، يدير إعلاناته مباشرة من "إعلاناتي")
+    let activeSystem = 'paid';
+    try {
+        const res  = await fetch(`${API}/settings/active-system`);
+        const data = await res.json();
+        if (data.success) activeSystem = data.activeSystem;
+    } catch (e) {}
+
+    if (type !== 'provider' && activeSystem !== 'ads') {
         showAppAlert('⚠️ هذه الصفحة للمزودين فقط', () => window.location.href = 'login.html');
         return;
     }
@@ -79,9 +92,10 @@ async function loadProviderProfile(phone) {
             loadProducts();
         }
 
-        // تحديث عرض التقييم (بطاقة الهيدر + بطاقة الإحصائيات)
+        // تحديث عرض التقييم (بطاقة الهيدر + بطاقتي الإحصائيات بوضعي النظام المدفوع/الإعلانات)
         document.getElementById('providerHeroRatingNum').textContent = me.rating;
         document.getElementById('providerRatingStat').textContent    = me.rating;
+        document.getElementById('adsStatRating').textContent         = me.rating;
         document.getElementById('providerHeroStars').innerHTML = Array.from({ length: 5 }, (_, i) =>
             `<svg class="icon" style="opacity:${i < Math.round(me.rating) ? 1 : 0.3}"><use href="icons.svg#icon-star"></use></svg>`
         ).join('');
@@ -641,8 +655,28 @@ async function checkActiveSystemForAds(phone) {
         document.getElementById('adsSection').style.display = 'block';
         document.getElementById('adWhatsappInput').value = phone;
 
+        // بطاقة الإحصائيات وزر "متاح" يتحولون لنسخة الإعلانات (إحصائيات إعلانات بدل الطلبات، "حسابي" بدل التوفر)
+        document.getElementById('paidStatsGrid').style.display         = 'none';
+        document.getElementById('adsStatsGrid').style.display          = 'grid';
+        document.getElementById('availabilityToggleWrap').style.display = 'none';
+        document.getElementById('myAccountBtn').style.display           = 'inline-block';
+
         loadCitiesForAds();
         loadMyAds();
+        loadAdsStats(phone);
+    } catch (e) {}
+}
+
+// بطاقات الإحصائيات الأربع بوضع الإعلانات (إعلانات نشطة/معطلة + مشاهدات كلية)
+async function loadAdsStats(phone) {
+    try {
+        const res  = await fetch(`${API}/ads/provider/${phone}/stats`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        document.getElementById('adsStatActive').textContent   = data.active_count;
+        document.getElementById('adsStatInactive').textContent = data.inactive_count;
+        document.getElementById('adsStatViews').textContent    = data.total_views;
     } catch (e) {}
 }
 

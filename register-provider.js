@@ -1,5 +1,16 @@
 // كود تسجيل المزود في غَوْث
 
+// بوضع الإعلانات ماكو حاجة لتسجيل مزوّد منفصل — أي مستخدم مسجّل دخوله ينشر إعلاناته مباشرة من "إعلاناتي" (provider.html#adsSection)
+(async function redirectAwayInAdsMode() {
+    try {
+        const res  = await fetch(window.location.origin + '/api/settings/active-system');
+        const data = await res.json();
+        if (data.activeSystem === 'ads') {
+            showAppAlert('ℹ️ ما تحتاج تسجيل منفصل — سجّل دخولك وانشر إعلانك مباشرة', () => window.location.href = 'login.html');
+        }
+    } catch (e) {}
+})();
+
 let selectedLevel = 0;
 
 // اختيار المستوى

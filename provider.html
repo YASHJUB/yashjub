@@ -78,18 +78,21 @@
                 </div>
             </div>
             <div class="provider-hero-left">
-                <div class="availability-toggle">
+                <div class="availability-toggle" id="availabilityToggleWrap">
                     <span class="avail-label" id="availLabel">متاح</span>
                     <label class="toggle">
                         <input type="checkbox" id="availToggle" checked onchange="toggleAvailability()">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
+                <button class="btn-small" id="myAccountBtn" style="display:none" onclick="window.location.href='profile.html'">
+                    حسابي <svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg>
+                </button>
             </div>
         </div>
 
-        <!-- الإحصائيات -->
-        <div class="provider-stats-grid">
+        <!-- الإحصائيات (وضع النظام المدفوع) -->
+        <div class="provider-stats-grid" id="paidStatsGrid">
             <div class="provider-stat-card">
                 <div class="provider-stat-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
                 <div class="provider-stat-num" id="statToday">0</div>
@@ -109,6 +112,30 @@
                 <div class="provider-stat-icon" style="background:rgba(139,92,246,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
                 <div class="provider-stat-num">93%</div>
                 <div class="provider-stat-label">نسبة الإتمام</div>
+            </div>
+        </div>
+
+        <!-- الإحصائيات (وضع الإعلانات) -->
+        <div class="provider-stats-grid" id="adsStatsGrid" style="display:none">
+            <div class="provider-stat-card">
+                <div class="provider-stat-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
+                <div class="provider-stat-num" id="adsStatActive">0</div>
+                <div class="provider-stat-label">إعلاناتي النشطة</div>
+            </div>
+            <div class="provider-stat-card">
+                <div class="provider-stat-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg></div>
+                <div class="provider-stat-num" id="adsStatInactive">0</div>
+                <div class="provider-stat-label">إعلانات معطلة</div>
+            </div>
+            <div class="provider-stat-card">
+                <div class="provider-stat-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-eye"></use></svg></div>
+                <div class="provider-stat-num" id="adsStatViews">0</div>
+                <div class="provider-stat-label">المشاهدات الكلية</div>
+            </div>
+            <div class="provider-stat-card">
+                <div class="provider-stat-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
+                <div class="provider-stat-num" id="adsStatRating">5.0</div>
+                <div class="provider-stat-label">التقييم</div>
             </div>
         </div>
 

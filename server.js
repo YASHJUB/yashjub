@@ -1095,6 +1095,17 @@ app.get('/api/ads', (req, res) => {
     res.json({ success: true, ads });
 });
 
+// إحصائيات إعلانات مزوّد معيّن (بطاقات الإحصائيات بـ provider.html بوضع الإعلانات)
+app.get('/api/ads/provider/:phone/stats', (req, res) => {
+    const ads = db.prepare('SELECT is_active, views_count FROM ads WHERE provider_phone = ?').all(req.params.phone);
+
+    const active_count   = ads.filter(a => a.is_active).length;
+    const inactive_count = ads.filter(a => !a.is_active).length;
+    const total_views    = ads.reduce((sum, a) => sum + a.views_count, 0);
+
+    res.json({ success: true, active_count, inactive_count, total_views });
+});
+
 app.get('/api/ads/:id', (req, res) => {
     const ad = db.prepare(`${AD_JOIN_SQL} WHERE ads.id = ?`).get(req.params.id);
     if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });

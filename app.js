@@ -173,6 +173,10 @@ async function switchToAdsMode() {
     if (heroSection) heroSection.style.display = 'none';
     if (statsSection) statsSection.style.display = 'none';
 
+    // ماكو تسجيل مزوّد منفصل بوضع الإعلانات — أي مستخدم مسجّل دخوله ينشر إعلاناته مباشرة
+    const joinProviderLink = document.getElementById('joinProviderLink');
+    if (joinProviderLink) joinProviderLink.style.display = 'none';
+
     const desc    = document.getElementById('providerSectionDesc');
     const bens    = document.getElementById('providerSectionBenefits');
     const btn     = document.getElementById('providerSectionBtn');
@@ -251,12 +255,11 @@ function renderAdCard(ad) {
     `;
 }
 
-// زر "انضم كمزود" / "انشر إعلانك" بأسفل الرئيسية — يوديك لنشر إعلان مباشرة لو مسجّل كمزود، أو للتسجيل أولاً
+// زر "انضم كمزود" / "انشر إعلانك" بأسفل الرئيسية — بوضع الإعلانات: يوديك لـ"إعلاناتي" مباشرة لو مسجّل دخولك (ماكو تسجيل مزوّد منفصل بعد الآن)، أو لتسجيل الدخول أولاً
 function goToProviderSection() {
     if (currentActiveSystem === 'ads') {
         const phone = localStorage.getItem('yashjub_phone');
-        const type  = localStorage.getItem('yashjub_type');
-        window.location.href = (phone && type === 'provider') ? 'provider.html#adsSection' : 'register-provider.html';
+        window.location.href = phone ? 'provider.html#adsSection' : 'login.html';
     } else {
         window.location.href = 'register-provider.html';
     }
@@ -318,9 +321,9 @@ function applyLoginUI() {
         document.getElementById('sidebarLoginBtn').style.display  = 'none';
         document.getElementById('sidebarLogoutBtn').style.display = 'block';
 
-        // رابط "إعلاناتي" يظهر فقط لمزوّد مسجّل دخوله (يوديه للوحته — راجع قسم إعلاناتي بـprovider.html)
+        // رابط "إعلاناتي" يظهر لأي مستخدم مسجّل دخوله بوضع الإعلانات فقط (ماكو تسجيل مزوّد منفصل بعد الآن) — بوضع النظام المدفوع ما توصل الدالة هذي أصلاً لمزوّد (يتحوّل لـprovider.html قبلها بـcheckActiveSystem())
         const myAdsLink = document.getElementById('myAdsLink');
-        if (myAdsLink) myAdsLink.style.display = (type === 'provider') ? 'flex' : 'none';
+        if (myAdsLink) myAdsLink.style.display = (currentActiveSystem === 'ads') ? 'flex' : 'none';
 
         // إظهار جرس الإشعارات وتحميلها
         const bellWrap = document.getElementById('notifBellWrap');
