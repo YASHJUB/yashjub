@@ -3669,6 +3669,10 @@ body.dark-mode .order-card { background-color: #1a1a1a; border-color: #333333; }
 body.dark-mode .order-service-header h2 { color: #ffffff; }
 body.dark-mode .order-divider { background-color: #333333; }
 body.dark-mode .service-type { background-color: #262626; color: #cccccc; }
+body.dark-mode .detail-row { border-bottom-color: #2a2a2a; }
+body.dark-mode .detail-label { color: #999999; }
+body.dark-mode .detail-value { color: #ffffff; }
+body.dark-mode .ad-description-text { color: #cccccc; }
 
 body.dark-mode .order-field label { color: #ffffff; }
 body.dark-mode .order-field input,
@@ -7255,3 +7259,43 @@ body.dark-mode .comment-avatar { background: #2a2a2a; }
 body.dark-mode .comment-name { color: #ffffff; }
 body.dark-mode .comment-text { color: #cccccc; }
 body.dark-mode .comment-form-row input { background: #1a1a1a; border-color: #333333; color: #ffffff; }
+
+/* ══ زر الوضع الداكن بكل الصفحات — وضع داكن لصفحة تسجيل الدخول (login.html، أول صفحة بالمشروع فيها هذا الزر على خلفية بيضاء مو سوداء) ══ */
+.login-theme-btn { color: #111111; }
+body.dark-mode .login-theme-btn { color: #ffffff; }
+
+body.dark-mode .login-right { background: #111111; }
+body.dark-mode .login-back { color: #888888; }
+body.dark-mode .login-back:hover { color: #ffffff; }
+body.dark-mode .login-title { color: #ffffff; }
+body.dark-mode .login-desc { color: #999999; }
+body.dark-mode .type-tab { background: #1a1a1a; border-color: #333333; color: #888888; }
+body.dark-mode .type-tab.active { background: rgba(245,197,24,0.12); border-color: #F5C518; color: #ffffff; }
+body.dark-mode .login-field-label { color: #ffffff; }
+body.dark-mode .input-group { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .input-group input { color: #ffffff; }
+body.dark-mode .otp-input { background: #1a1a1a; border-color: #333333; color: #ffffff; }
+body.dark-mode .otp-info { background: rgba(245,197,24,0.1); color: #F5C518; }
+body.dark-mode .login-divider { color: #555555; }
+body.dark-mode .login-divider::before,
+body.dark-mode .login-divider::after { background: #333333; }
+body.dark-mode .login-register-link { color: #888888; }
+body.dark-mode .login-terms { color: #777777; }
+body.dark-mode .login-terms a { color: #aaaaaa; }
+body.dark-mode .name-popup-card { background: #1a1a1a; }
+body.dark-mode .name-popup-title { color: #ffffff; }
+body.dark-mode .name-popup-desc { color: #999999; }
+body.dark-mode .name-popup-input { background: #111111; border-color: #333333; color: #ffffff; }
+
+/* ══ وضع داكن — الشروط والأحكام / سياسة الخصوصية (terms.html/privacy.html) ══ */
+body.dark-mode .terms-section { background: #0a0a0a; }
+body.dark-mode .terms-index { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .terms-index-title { color: #ffffff; }
+body.dark-mode .terms-index-item { color: #999999; border-bottom-color: #2a2a2a; }
+body.dark-mode .terms-index-item:hover { color: #F5C518; }
+body.dark-mode .terms-section-block { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .terms-section-block h2 { color: #ffffff; }
+body.dark-mode .terms-section-block p { color: #aaaaaa; }
+body.dark-mode .terms-contact-box { background: rgba(245,197,24,0.1); color: #cccccc; }
+
+.ad-description-text { color: #444444; }

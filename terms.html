@@ -19,6 +19,7 @@
             <div class="tagline">عــتــاد الـبـنـاء</div>
         </div>
         <div class="header-left">
+            <button class="theme-btn" onclick="toggleTheme()" id="themeBtn"><svg class="icon"><use href="icons.svg#icon-moon"></use></svg></button>
             <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
         </div>
     </div>
@@ -164,5 +165,26 @@
         </div>
     </div>
 
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const btn  = document.getElementById('themeBtn');
+            const isDark = body.classList.toggle('dark-mode');
+
+            btn.innerHTML = isDark
+                ? '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>'
+                : '<svg class="icon"><use href="icons.svg#icon-moon"></use></svg>';
+            localStorage.setItem('yashjub_theme', isDark ? 'dark' : 'light');
+        }
+
+        (function loadTheme() {
+            const theme = localStorage.getItem('yashjub_theme');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                const btn = document.getElementById('themeBtn');
+                if (btn) btn.innerHTML = '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>';
+            }
+        })();
+    </script>
 </body>
 </html>

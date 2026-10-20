@@ -183,3 +183,27 @@ async function submitRegistration() {
         alert('❌ خطأ في الاتصال بالسيرفر');
     }
 }
+
+// ══ الوضع الليلي ══
+
+function toggleTheme() {
+    const body = document.body;
+    const btn  = document.getElementById('themeBtn');
+    const isDark = body.classList.toggle('dark-mode');
+
+    btn.innerHTML = isDark
+        ? '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>'
+        : '<svg class="icon"><use href="icons.svg#icon-moon"></use></svg>';
+    localStorage.setItem('yashjub_theme', isDark ? 'dark' : 'light');
+}
+
+function loadTheme() {
+    const theme = localStorage.getItem('yashjub_theme');
+    if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.innerHTML = '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>';
+    }
+}
+
+loadTheme();
