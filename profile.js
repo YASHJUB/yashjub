@@ -29,6 +29,8 @@ function loadProfile() {
     document.getElementById('infoDate').textContent     = new Date().toLocaleDateString('ar-SA');
 
     loadMyEmail(phone);
+    renderAvatar(localStorage.getItem('yashjub_avatar'));
+    loadMyAvatar(phone);
 
     if (type === 'provider') {
         document.getElementById('profileName').textContent  = name || 'مزود خدمة';
@@ -94,6 +96,7 @@ function logoutProfile() {
         localStorage.removeItem('yashjub_phone');
         localStorage.removeItem('yashjub_type');
         localStorage.removeItem('yashjub_name');
+        localStorage.removeItem('yashjub_avatar');
         window.location.href = 'index.html';
     }
 }
@@ -111,6 +114,55 @@ async function loadMyEmail(phone) {
             document.getElementById('infoEmail').textContent = me.email;
         }
     } catch (e) {}
+}
+
+// ══ الصورة الشخصية (أفاتار) — موحّدة بين العميل والمزوّد، JPG أو PDF فقط ≤5MB ══
+
+async function loadMyAvatar(phone) {
+    try {
+        const res  = await fetch(`${API}/users`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const me = data.users.find(u => u.phone === phone);
+        if (me && me.avatar_path) {
+            localStorage.setItem('yashjub_avatar', me.avatar_path);
+            renderAvatar(me.avatar_path);
+        }
+    } catch (e) {}
+}
+
+function renderAvatar(avatarPath) {
+    const el = document.getElementById('profileAvatar');
+    el.innerHTML = avatarPath
+        ? `<img src="${avatarPath}" class="avatar-img" alt="صورتي">`
+        : '<svg class="icon"><use href="icons.svg#icon-user"></use></svg>';
+}
+
+async function uploadAvatar(event) {
+    const file  = event.target.files[0];
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!file || !phone) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+        const res  = await fetch(`${API}/users/${phone}/avatar`, { method: 'PUT', body: formData });
+        const data = await res.json();
+
+        if (data.success) {
+            localStorage.setItem('yashjub_avatar', data.avatarPath);
+            renderAvatar(data.avatarPath);
+            showAppAlert('✅ تم تحديث صورتك الشخصية');
+        } else {
+            showAppAlert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        showAppAlert('❌ تعذّر رفع الصورة');
+    }
+
+    event.target.value = '';
 }
 
 function toggleEmailForm() {
@@ -261,6 +313,7 @@ async function confirmDeleteAccount() {
             localStorage.removeItem('yashjub_phone');
             localStorage.removeItem('yashjub_type');
             localStorage.removeItem('yashjub_name');
+            localStorage.removeItem('yashjub_avatar');
             showAppAlert('✅ تم حذف حسابك نهائياً', () => window.location.href = 'index.html');
         } else {
             alert(`❌ ${data.message}`);

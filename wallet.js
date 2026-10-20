@@ -38,6 +38,7 @@ async function loadWalletPage() {
 
     document.getElementById('providerNameSidebar').textContent  = 'مزود خدمة';
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
+    renderSidebarAvatar();
 
     loadProviderIdentity(phone);
     loadWallet(phone);
@@ -54,6 +55,7 @@ function switchWalletToAdsMode(phone) {
     const savedName = localStorage.getItem('yashjub_name');
     document.getElementById('providerNameSidebar').textContent  = savedName || 'مستخدم غَوْث';
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
+    renderSidebarAvatar();
     const badge = document.getElementById('sidebarProviderBadge');
     if (badge) badge.style.display = 'none';
 
@@ -214,6 +216,13 @@ async function loadMessagesBadge() {
     } catch (e) {}
 }
 
+// الصورة الشخصية (أفاتار) بالسايد بار — موحّدة للعميل والمزوّد (راجع "الصورة الشخصية" بـprofile.js)
+function renderSidebarAvatar() {
+    const avatarPath = localStorage.getItem('yashjub_avatar');
+    const el = document.getElementById('sidebarUserIcon');
+    if (el && avatarPath) el.innerHTML = `<img src="${avatarPath}" class="avatar-img" alt="">`;
+}
+
 // اسم المزود وشارة المستوى بالسايد بار
 async function loadProviderIdentity(phone) {
     try {
@@ -266,6 +275,7 @@ function providerLogout() {
     localStorage.removeItem('yashjub_phone');
     localStorage.removeItem('yashjub_type');
     localStorage.removeItem('yashjub_name');
+    localStorage.removeItem('yashjub_avatar');
     window.location.href = 'index.html';
 }
 

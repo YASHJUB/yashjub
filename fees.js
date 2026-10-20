@@ -26,6 +26,7 @@ function loadFeesPage() {
     const savedName = localStorage.getItem('yashjub_name');
     document.getElementById('sidebarUserName').textContent = savedName || 'مستخدم غَوْث';
     document.getElementById('sidebarPhone').textContent    = `+966${phone}`;
+    renderSidebarAvatar();
 
     loadNotifBell();
     setInterval(loadNotifBell, 60000);
@@ -50,6 +51,13 @@ async function loadMessagesBadge() {
         badge.textContent   = totalUnread;
         badge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
     } catch (e) {}
+}
+
+// الصورة الشخصية (أفاتار) بالسايد بار — موحّدة للعميل والمزوّد (راجع "الصورة الشخصية" بـprofile.js)
+function renderSidebarAvatar() {
+    const avatarPath = localStorage.getItem('yashjub_avatar');
+    const el = document.getElementById('sidebarUserIcon');
+    if (el && avatarPath) el.innerHTML = `<img src="${avatarPath}" class="avatar-img" alt="">`;
 }
 
 // حساب الرسوم تلقائياً (1% من قيمة الخدمة المُدخلة)
@@ -232,6 +240,7 @@ function logout() {
     localStorage.removeItem('yashjub_phone');
     localStorage.removeItem('yashjub_type');
     localStorage.removeItem('yashjub_name');
+    localStorage.removeItem('yashjub_avatar');
     window.location.href = 'index.html';
 }
 

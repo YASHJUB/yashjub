@@ -168,7 +168,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
 
     // isProvider: يستخدمها login.html بوضع الإعلانات (دخول موحّد بدون تبويبي عميل/مزود) لتحديد النوع تلقائياً بدل اختيار المستخدم اليدوي
     const isProvider = !!(provider && provider.status === 'approved');
-    res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone, name: user.name, isProvider });
+    res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone, name: user.name, avatarPath: user.avatar_path, isProvider });
 });
 
 app.put('/api/users/:phone/name', (req, res) => {
@@ -207,6 +207,25 @@ app.put('/api/users/:phone/email', (req, res) => {
     db.prepare('UPDATE users SET email = ? WHERE phone = ?').run(email.trim(), phone);
 
     res.json({ success: true, email: email.trim() });
+});
+
+// رفع صورة شخصية (أفاتار) — نفس قيود الملفات المستخدمة لمستندات المزودين (JPG أو PDF فقط، ≤5MB)، موحّدة لكل المستخدمين (عميل/مزوّد)
+app.put('/api/users/:phone/avatar', upload.single('avatar'), (req, res) => {
+    const { phone } = req.params;
+
+    if (!req.file) {
+        return res.json({ success: false, message: 'يرجى اختيار صورة' });
+    }
+
+    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    const avatarPath = `/uploads/${req.file.filename}`;
+    db.prepare('UPDATE users SET avatar_path = ? WHERE phone = ?').run(avatarPath, phone);
+
+    res.json({ success: true, avatarPath });
 });
 
 // تغيير رقم الجوال بعد التحقق من OTP المُرسَل للرقم الجديد (نفس POST /api/auth/send-otp)،
@@ -624,7 +643,7 @@ app.put('/api/orders/:id/assign-provider', (req, res) => {
 });
 
 app.get('/api/users', (req, res) => {
-    const users = db.prepare('SELECT id, phone, name, email, verified, created_at FROM users').all();
+    const users = db.prepare('SELECT id, phone, name, email, avatar_path, verified, created_at FROM users').all();
     res.json({ success: true, users });
 });
 

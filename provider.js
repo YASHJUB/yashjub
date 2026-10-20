@@ -46,6 +46,7 @@ async function loadProvider() {
     document.getElementById('providerName').textContent        = 'مزود خدمة';
     document.getElementById('providerNameSidebar').textContent = 'مزود خدمة';
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
+    renderAvatars();
 
     // تحميل الطلبات
     loadOrders(phone);
@@ -409,6 +410,7 @@ function providerLogout() {
     localStorage.removeItem('yashjub_phone');
     localStorage.removeItem('yashjub_type');
     localStorage.removeItem('yashjub_name');
+    localStorage.removeItem('yashjub_avatar');
     window.location.href = 'index.html';
 }
 
@@ -1113,6 +1115,18 @@ async function loadMessagesBadge() {
         badge.textContent   = totalUnread;
         badge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
     } catch (e) {}
+}
+
+// الصورة الشخصية (أفاتار) بالسايد بار وبطاقة المزوّد الرئيسية — موحّدة للعميل والمزوّد (راجع "الصورة الشخصية" بـprofile.js)
+function renderAvatars() {
+    const avatarPath = localStorage.getItem('yashjub_avatar');
+    if (!avatarPath) return;
+
+    const sidebarEl = document.getElementById('sidebarUserIcon');
+    if (sidebarEl) sidebarEl.innerHTML = `<img src="${avatarPath}" class="avatar-img" alt="">`;
+
+    const heroEl = document.getElementById('providerHeroAvatar');
+    if (heroEl) heroEl.innerHTML = `<img src="${avatarPath}" class="avatar-img" alt="">`;
 }
 
 // ══ جرس الإشعارات ══

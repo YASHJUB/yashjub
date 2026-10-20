@@ -10,6 +10,13 @@ const LEVEL_BADGES = {
     business: { label: 'شركة',       icon: 'trophy'       },
 };
 
+// الصورة الشخصية (أفاتار) بالسايد بار — موحّدة للعميل والمزوّد (راجع "الصورة الشخصية" بـprofile.js)
+function renderSidebarAvatar() {
+    const avatarPath = localStorage.getItem('yashjub_avatar');
+    const el = document.getElementById('sidebarUserIcon');
+    if (el && avatarPath) el.innerHTML = `<img src="${avatarPath}" class="avatar-img" alt="">`;
+}
+
 // تحميل الصفحة
 function loadProviderOrdersPage() {
     const phone = localStorage.getItem('yashjub_phone');
@@ -22,6 +29,7 @@ function loadProviderOrdersPage() {
 
     document.getElementById('providerNameSidebar').textContent  = 'مزود خدمة';
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
+    renderSidebarAvatar();
 
     loadProviderIdentity(phone);
     loadOrders(phone);
@@ -365,6 +373,7 @@ function providerLogout() {
     localStorage.removeItem('yashjub_phone');
     localStorage.removeItem('yashjub_type');
     localStorage.removeItem('yashjub_name');
+    localStorage.removeItem('yashjub_avatar');
     window.location.href = 'index.html';
 }
 

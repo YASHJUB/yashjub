@@ -92,6 +92,8 @@ async function verifyOTP() {
             localStorage.setItem('yashjub_phone', phone);
             localStorage.setItem('yashjub_type', userType);
 
+            if (data.avatarPath) localStorage.setItem('yashjub_avatar', data.avatarPath);
+
             if (data.name) {
                 // عنده اسم محفوظ مسبقاً
                 localStorage.setItem('yashjub_name', data.name);

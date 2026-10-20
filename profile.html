@@ -26,7 +26,13 @@
 
     <!-- رأس الصفحة -->
     <div class="profile-hero">
-        <div class="profile-avatar"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
+        <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="profileAvatar"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
+            <button class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()" title="تغيير الصورة الشخصية">
+                <svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg>
+            </button>
+            <input type="file" id="avatarInput" accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf" style="display:none" onchange="uploadAvatar(event)">
+        </div>
         <div class="profile-hero-info">
             <div class="profile-name-row">
                 <h1 id="profileName">مستخدم غَوْث</h1>

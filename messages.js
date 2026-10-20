@@ -19,6 +19,7 @@ function loadMessagesPage() {
     const savedName = localStorage.getItem('yashjub_name');
     document.getElementById('sidebarUserName').textContent = savedName || 'مستخدم غَوْث';
     document.getElementById('sidebarPhone').textContent    = `+966${myPhone}`;
+    renderSidebarAvatar();
 
     loadNotifBell();
     setInterval(loadNotifBell, 60000);
@@ -304,6 +305,7 @@ function logout() {
     localStorage.removeItem('yashjub_phone');
     localStorage.removeItem('yashjub_type');
     localStorage.removeItem('yashjub_name');
+    localStorage.removeItem('yashjub_avatar');
     window.location.href = 'index.html';
 }
 
@@ -326,6 +328,13 @@ function loadTheme() {
         const btn = document.getElementById('themeBtn');
         if (btn) btn.innerHTML = '<svg class="icon"><use href="icons.svg#icon-sun"></use></svg>';
     }
+}
+
+// الصورة الشخصية (أفاتار) بالسايد بار — موحّدة للعميل والمزوّد (راجع "الصورة الشخصية" بـprofile.js)
+function renderSidebarAvatar() {
+    const avatarPath = localStorage.getItem('yashjub_avatar');
+    const el = document.getElementById('sidebarUserIcon');
+    if (el && avatarPath) el.innerHTML = `<img src="${avatarPath}" class="avatar-img" alt="">`;
 }
 
 // تشغيل عند فتح الصفحة

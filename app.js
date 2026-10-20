@@ -399,6 +399,7 @@ function applyLoginUI() {
         document.getElementById('sidebarUserName') && (document.getElementById('sidebarUserName').textContent = savedName || (type === 'provider' ? 'مزود خدمة' : 'عميل'));
         document.getElementById('sidebarLoginBtn').style.display  = 'none';
         document.getElementById('sidebarLogoutBtn').style.display = 'block';
+        renderSidebarAvatar();
 
         // رابط "إعلاناتي" يظهر لأي مستخدم مسجّل دخوله بوضع الإعلانات فقط (ماكو تسجيل مزوّد منفصل بعد الآن) — بوضع النظام المدفوع ما توصل الدالة هذي أصلاً لمزوّد (يتحوّل لـprovider.html قبلها بـcheckActiveSystem())
         const myAdsLink = document.getElementById('myAdsLink');
@@ -430,6 +431,13 @@ async function loadMessagesBadge() {
         badge.textContent   = totalUnread;
         badge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
     } catch (e) {}
+}
+
+// الصورة الشخصية (أفاتار) بالسايد بار — موحّدة للعميل والمزوّد، مكرَّرة بكل صفحة فيها سايد بار (راجع "الصورة الشخصية" بـprofile.js)
+function renderSidebarAvatar() {
+    const avatarPath = localStorage.getItem('yashjub_avatar');
+    const el = document.getElementById('sidebarUserIcon');
+    if (el && avatarPath) el.innerHTML = `<img src="${avatarPath}" class="avatar-img" alt="">`;
 }
 
 
@@ -529,6 +537,7 @@ function logout() {
     localStorage.removeItem('yashjub_phone');
     localStorage.removeItem('yashjub_type');
     localStorage.removeItem('yashjub_name');
+    localStorage.removeItem('yashjub_avatar');
     location.reload();
 }
 

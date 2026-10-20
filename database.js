@@ -405,6 +405,7 @@ const migrations = [
     'ALTER TABLE ads ADD COLUMN accepted_covenant INTEGER DEFAULT 0',
     'ALTER TABLE ads ADD COLUMN covenant_accepted_at TEXT',
     'ALTER TABLE users ADD COLUMN email TEXT',
+    'ALTER TABLE users ADD COLUMN avatar_path TEXT',
     'ALTER TABLE ads ADD COLUMN is_featured INTEGER DEFAULT 0',
     'ALTER TABLE ads ADD COLUMN featured_until TEXT',
     'ALTER TABLE ads ADD COLUMN featured_count INTEGER DEFAULT 0',
