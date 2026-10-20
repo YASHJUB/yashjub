@@ -337,6 +337,13 @@
 
 **قيود معروفة ومتعمّدة**: نفس نمط المشروع — `DELETE /api/comments/:id` بدون تحقق هوية سيرفر حقيقي (الحماية الوحيدة client-side بإخفاء الزر). ماكو حد أقصى لعدد التعليقات أو منع تكرار نفس المحتوى. ماكو إشعار لصاحب التعليق لو ردّ عليه أحد (نظام التعليقات مسطّح بدون "ردود" متداخلة).
 
+### قسم "إعلانات ذات صلة" (`ad-details.html`، بين التعليقات والتقييمات)
+شبكة 3×3 (9 مربعات) تعرض إعلانات ثانية بنفس قسم الإعلان الحالي (`category`) — صور بس، بدون أي نص، تودّي لصفحة تفاصيل الإعلان المعني عند الضغط.
+
+**`GET /api/ads` صار يدعم `exclude`/`limit`** (استعلامان جديدان، باقي الاستعلامات القديمة ما تأثرت) — `exclude=ID` يستبعد إعلان واحد بمعرّفه (`AND ads.id != ?`)، و`limit=N` يضيف `LIMIT N` بآخر الاستعلام (بعد `ORDER BY`). `loadRelatedAds()` بـ`ad-details.js` يستدعيه بـ`category=<قسم الإعلان الحالي>&limit=9&exclude=<معرّف الإعلان الحالي>` — فما تتكرر الترتيب-نفس-المنطق الموجود أصلاً بـ`GET /api/ads` (المتصدّر أولاً، ثم الأعلى تقييماً، ثم الأحدث) بما إنه مجرد نفس الاستعلام بفلترة إضافية.
+
+**كل مربع (`.related-ad-item`)**: صورة الإعلان الأولى خلفية كاملة، أو خلفية سوداء ثابتة + أيقونة القسم (`AD_CATEGORY_ICONS`) بالمنتصف لو بدون صور — نفس منطق خلفية `.ad-card` المستخدم بباقي بطاقات الإعلانات بالمشروع، بس بدون أي نص فوقها هنا. **لو الإعلانات المُرجَعة أقل من 9**، الباقي يُملأ بمربعات رمادية فارغة (`.related-ad-placeholder`) بدون أي محتوى — القسم يظهر دايماً بـ9 مربعات بالضبط بغض النظر عن عدد الإعلانات الفعلية المتوفرة (حتى لو صفر، تطلع 9 مربعات فاضية) — سلوك مقصود حسب الطلب الأصلي، مو حالة فاضية مخفية زي باقي أقسام المشروع المشابهة.
+
 ### الخرائط (Leaflet + OpenStreetMap — مجاني بالكامل، بدون مفتاح API)
 تحديد المواقع بالمشروع يعتمد على خرائط Leaflet مع بلاطات OpenStreetMap، تُحمَّل عبر CDN (`unpkg.com/leaflet@1.9.4`) بكل صفحة معنية — بدون حزمة npm. مركز الخريطة الافتراضي: الرياض `[24.7136, 46.6753]`.
 
@@ -663,7 +670,7 @@ GET  /api/settings                            يرجّع كل إعدادات ا�
 PUT  /api/settings/:key                       body: { value } — يحدّث إعداد موجود، يرفض لو المفتاح غير معرّف بالجدول
 GET  /api/settings/active-system               يرجّع { activeSystem: 'paid'|'ads' } — محسوبة فقط من قيمة ads_system (true→ads، غير ذلك→paid)
 POST /api/ads                                 body: providerPhone, providerName, category, title, description, priceFrom, priceTo, city, district, whatsapp, acceptedCovenant — يرفض لو المزوّد عنده إعلان بنفس category (يرجّع existingAdId)، ويرفض بدون acceptedCovenant=true (راجع "معاهدة غوث")
-GET  /api/ads                                 query: category, city, district, price_from, price_to, providerPhone, includeInactive — بدون includeInactive يُستبعد غير النشط تلقائياً؛ الترتيب: الأعلى تقييماً ثم الأحدث
+GET  /api/ads                                 query: category, city, district, price_from, price_to, providerPhone, includeInactive, exclude (استبعاد إعلان واحد بمعرّفه)، limit — بدون includeInactive يُستبعد غير النشط تلقائياً؛ الترتيب: المتصدّر أولاً ثم الأعلى تقييماً ثم الأحدث
 GET  /api/ads/provider/:phone/stats           يرجّع active_count/inactive_count/total_views لكل إعلانات مزوّد معيّن — تستخدمها بطاقات الإحصائيات بـ provider.html بوضع الإعلانات
 GET  /api/ads/:id                             تفاصيل إعلان + يزيد views_count تلقائياً بكل استدعاء
 PUT  /api/ads/:id                             تعديل أي حقل (title/description/priceFrom/priceTo/city/district/whatsapp/category/isActive/images) — بدون تحقق هوية فعلي (نفس نمط باقي المشروع)

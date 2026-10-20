@@ -7299,3 +7299,50 @@ body.dark-mode .terms-section-block p { color: #aaaaaa; }
 body.dark-mode .terms-contact-box { background: rgba(245,197,24,0.1); color: #cccccc; }
 
 .ad-description-text { color: #444444; }
+
+/* ══ إعلانات ذات صلة (ad-details.html) ══ */
+.related-ads-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.related-ad-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+    background-color: #111111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.related-ad-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    transition: background 0.15s;
+}
+
+.related-ad-item:hover::after { background: rgba(0,0,0,0.15); }
+
+.related-ad-item .icon { width: 26px; height: 26px; color: rgba(255,255,255,0.4); }
+
+.related-ad-placeholder {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    background: #F0F0F0;
+}
+
+body.dark-mode .related-ad-placeholder { background: #1a1a1a; }
+
+@media (max-width: 480px) {
+    .related-ads-grid { gap: 2px; }
+}

@@ -1174,7 +1174,7 @@ app.post('/api/ads', (req, res) => {
 });
 
 app.get('/api/ads', (req, res) => {
-    const { category, city, district, price_from, price_to, includeInactive, providerPhone } = req.query;
+    const { category, city, district, price_from, price_to, includeInactive, providerPhone, exclude, limit } = req.query;
 
     let sql = `${AD_JOIN_SQL} WHERE 1=1`;
     const params = [];
@@ -1186,9 +1186,12 @@ app.get('/api/ads', (req, res) => {
     if (price_from)        { sql += ' AND ads.price_from >= ?'; params.push(Number(price_from)); }
     if (price_to)          { sql += ' AND ads.price_from <= ?'; params.push(Number(price_to)); }
     if (providerPhone)     { sql += ' AND ads.provider_phone = ?'; params.push(providerPhone); }
+    if (exclude)            { sql += ' AND ads.id != ?'; params.push(Number(exclude)); }
 
     // المتصدرة (is_featured) أولاً دايماً، ثم الأعلى تقييماً، ثم الأحدث (الإعلانات بدون تقييم تُعامل كأقل أولوية من المقيَّمة، لكن تبقى مرتبة بالأحدث بينها)
     sql += ' ORDER BY ads.is_featured DESC, (avg_rating IS NULL) ASC, avg_rating DESC, ads.created_at DESC';
+
+    if (limit) { sql += ' LIMIT ?'; params.push(Number(limit)); }
 
     const ads = db.prepare(sql).all(...params);
     res.json({ success: true, ads });

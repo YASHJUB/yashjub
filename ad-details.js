@@ -44,9 +44,44 @@ async function loadAdDetails() {
         loadAdReviews();
         checkAdFavorited();
         loadComments();
+        loadRelatedAds();
     } catch (e) {
         showAppAlert('❌ خطأ في الاتصال بالسيرفر', () => window.location.href = 'index.html');
     }
+}
+
+// ══ إعلانات ذات صلة (نفس القسم، ماعدا الإعلان الحالي) ══
+
+async function loadRelatedAds() {
+    try {
+        const res  = await fetch(`${API}/ads?category=${encodeURIComponent(currentAd.category)}&limit=9&exclude=${adId}`);
+        const data = await res.json();
+        if (data.success) renderRelatedAds(data.ads);
+    } catch (e) {}
+}
+
+function renderRelatedAds(ads) {
+    const grid = document.getElementById('relatedAdsGrid');
+
+    let html = ads.map(ad => {
+        const icon = AD_CATEGORY_ICONS[ad.category] || 'wrench';
+        let images = [];
+        try { images = JSON.parse(ad.images || '[]'); } catch (e) { images = []; }
+        const hasImage = images.length > 0;
+        const bgStyle  = hasImage ? `background-image:url('${images[0]}')` : '';
+
+        return `
+            <div class="related-ad-item" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${ad.id}'">
+                ${!hasImage ? `<svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    for (let i = ads.length; i < 9; i++) {
+        html += '<div class="related-ad-placeholder"></div>';
+    }
+
+    grid.innerHTML = html;
 }
 
 // ══ تعليقات الإعلان ══
