@@ -15,7 +15,7 @@ let productMarker = null;
 
 const LEVEL_BADGES = {
     basic:    { label: 'مزود أساسي', icon: 'medal-silver' },
-    verified: { label: 'مزود موثق',  icon: 'medal-gold'   },
+    verified: { label: 'موثق',       icon: 'medal-gold'   },
     business: { label: 'شركة',       icon: 'trophy'       },
 };
 
@@ -83,9 +83,6 @@ async function loadProviderProfile(phone) {
         currentProviderName = me.name;
         document.getElementById('providerName').textContent        = me.name;
         document.getElementById('providerNameSidebar').textContent = me.name;
-        const serviceTypeEl = document.getElementById('providerServiceType');
-        serviceTypeEl.textContent   = `مزود خدمة (${me.service_type})`;
-        serviceTypeEl.style.display = 'block';
 
         if (me.service_type === 'حاوية') {
             currentProviderId = me.id;

@@ -34,7 +34,7 @@ function loadProfile() {
 
     if (type === 'provider') {
         document.getElementById('profileName').textContent  = name || 'مزود خدمة';
-        document.getElementById('profileBadge').innerHTML = '<svg class="icon"><use href="icons.svg#icon-worker"></use></svg> مزود';
+        document.getElementById('profileBadge').innerHTML = '<svg class="icon"><use href="icons.svg#icon-worker"></use></svg>';
         document.getElementById('profileBadge').style.background = 'rgba(245,197,24,0.2)';
         document.getElementById('profileBadge').style.color = '#92700A';
         document.getElementById('infoType').textContent    = 'مزود خدمة';

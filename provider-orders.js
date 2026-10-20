@@ -6,7 +6,7 @@ let allOrders = [];
 
 const LEVEL_BADGES = {
     basic:    { label: 'مزود أساسي', icon: 'medal-silver' },
-    verified: { label: 'مزود موثق',  icon: 'medal-gold'   },
+    verified: { label: 'موثق',       icon: 'medal-gold'   },
     business: { label: 'شركة',       icon: 'trophy'       },
 };
 
