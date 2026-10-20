@@ -7154,3 +7154,104 @@ body.dark-mode .favorite-missing-text { color: #888888; }
     .favorite-missing-card { height: 240px; }
 }
 body.dark-mode .dispute-notice-box   { background: rgba(239,68,68,0.12); }
+
+/* ══ تعليقات الإعلانات ══ */
+
+.comment-form-row {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-form-row input {
+    flex: 1;
+    border: 1.5px solid #EEEEEE;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    transition: border-color 0.15s;
+}
+
+.comment-form-row input:focus {
+    outline: none;
+    border-color: #F5C518;
+}
+
+.comment-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #FAFAFA;
+    border-radius: 12px;
+    padding: 12px 40px 12px 14px;
+    margin-bottom: 10px;
+}
+
+.comment-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #EEEEEE;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.comment-avatar .icon { width: 17px; height: 17px; color: #888888; }
+
+.comment-body { flex: 1; min-width: 0; }
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+}
+
+.comment-name {
+    font-weight: 700;
+    font-size: 13px;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.comment-time {
+    font-size: 11px;
+    color: #999999;
+    font-family: 'Cairo', sans-serif;
+}
+
+.comment-text {
+    font-size: 13px;
+    color: #333333;
+    line-height: 1.6;
+    font-family: 'Cairo', sans-serif;
+    word-break: break-word;
+}
+
+.comment-delete-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #EF4444;
+    padding: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.comment-item:hover .comment-delete-btn { opacity: 1; }
+.comment-delete-btn .icon { width: 15px; height: 15px; }
+
+@media (max-width: 768px) {
+    .comment-delete-btn { opacity: 1; }
+}
+
+body.dark-mode .comment-item { background: #1a1a1a; }
+body.dark-mode .comment-avatar { background: #2a2a2a; }
+body.dark-mode .comment-name { color: #ffffff; }
+body.dark-mode .comment-text { color: #cccccc; }
+body.dark-mode .comment-form-row input { background: #1a1a1a; border-color: #333333; color: #ffffff; }

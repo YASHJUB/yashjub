@@ -2717,13 +2717,76 @@ function renderAdsAdminTable() {
             <td>${a.price_to ? `${a.price_from}-${a.price_to}` : `من ${a.price_from}`} ر</td>
             <td>${a.views_count}</td>
             <td>${a.avg_rating ? `⭐ ${a.avg_rating} (${a.reviews_count})` : '—'}</td>
+            <td>${a.comments_count || 0} <button class="btn-detail" onclick="openAdCommentsPanel(${a.id}, '${(a.title || '').replace(/'/g, "\\'")}')">عرض</button></td>
             <td>${a.is_active ? '<span class="badge badge-done">نشط</span>' : '<span class="badge badge-gray">موقوف</span>'}</td>
             <td>
                 <button class="btn-detail" onclick="toggleAdStatusAdmin(${a.id}, ${a.is_active ? 0 : 1})">${a.is_active ? 'إيقاف' : 'تفعيل'}</button>
                 <button class="btn-detail" style="color:var(--red)" onclick="deleteAdAdmin(${a.id})">حذف</button>
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="10" style="text-align:center;color:var(--text3)">لا توجد إعلانات مطابقة</td></tr>';
+    `).join('') || '<tr><td colspan="11" style="text-align:center;color:var(--text3)">لا توجد إعلانات مطابقة</td></tr>';
+}
+
+// ══ عرض/إدارة تعليقات إعلان (panel جانبي) ══
+
+let currentAdCommentsId = null;
+
+async function openAdCommentsPanel(adId, adTitle) {
+    currentAdCommentsId = adId;
+    document.getElementById('adCommentsPanelTitle').textContent = adTitle || `#${adId}`;
+    document.getElementById('adCommentsPanelOverlay').style.display = 'block';
+    await loadAdCommentsPanel();
+}
+
+function closeAdCommentsPanel() {
+    document.getElementById('adCommentsPanelOverlay').style.display = 'none';
+    currentAdCommentsId = null;
+}
+
+async function loadAdCommentsPanel() {
+    if (!currentAdCommentsId) return;
+
+    try {
+        const res  = await fetch(`${API}/comments/${currentAdCommentsId}?includeHidden=1`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        document.getElementById('adCommentsPanelSub').textContent = `${data.comments.length} تعليق`;
+
+        document.getElementById('adCommentsPanelList').innerHTML = data.comments.map(c => `
+            <div class="ad-comment-row">
+                <div class="ad-comment-row-top">
+                    <span class="ad-comment-row-name">${c.commenter_name || 'مستخدم'}${!c.is_visible ? ' <span class="badge badge-gray">مخفي</span>' : ''}</span>
+                    <span class="ad-comment-row-time">${new Date(c.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('ar-SA')}</span>
+                </div>
+                <div class="ad-comment-row-text">${c.comment}</div>
+                <button class="btn-detail" onclick="toggleCommentVisibility(${c.id}, ${c.is_visible ? 0 : 1})">${c.is_visible ? 'إخفاء' : 'إظهار'}</button>
+                <button class="btn-detail" style="color:var(--red)" onclick="deleteCommentAdmin(${c.id})">حذف</button>
+            </div>
+        `).join('') || '<p style="text-align:center;color:var(--text3);padding:20px">لا توجد تعليقات</p>';
+    } catch (e) {}
+}
+
+async function toggleCommentVisibility(id, isVisible) {
+    try {
+        await fetch(`${API}/comments/${id}/hide`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isVisible: !!isVisible }),
+        });
+        loadAdCommentsPanel();
+        loadAdsAdminPage();
+    } catch (e) {}
+}
+
+async function deleteCommentAdmin(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا التعليق نهائياً؟')) return;
+
+    try {
+        await fetch(`${API}/comments/${id}`, { method: 'DELETE' });
+        loadAdCommentsPanel();
+        loadAdsAdminPage();
+    } catch (e) {}
 }
 
 async function toggleAdStatusAdmin(id, newState) {

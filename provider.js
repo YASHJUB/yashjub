@@ -756,6 +756,7 @@ function renderMyAds() {
                 <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>
                 <span><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating || '—'} (${ad.reviews_count || 0} تقييم)</span>
                 <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</span>
+                <span style="cursor:pointer" onclick="window.location.href='ad-details.html?id=${ad.id}#commentsSection'"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg> ${ad.comments_count || 0} تعليق</span>
             </div>
             <div class="product-item-actions">
                 <button class="btn-small" onclick="editAd(${ad.id})"><svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تعديل</button>

@@ -1134,7 +1134,8 @@ app.get('/api/settings/active-system', (req, res) => {
 const AD_JOIN_SQL = `
     SELECT ads.*,
         (SELECT ROUND(AVG(rating), 1) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS avg_rating,
-        (SELECT COUNT(*) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS reviews_count
+        (SELECT COUNT(*) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS reviews_count,
+        (SELECT COUNT(*) FROM comments WHERE comments.ad_id = ads.id) AS comments_count
     FROM ads
 `;
 
@@ -1474,6 +1475,59 @@ app.get('/api/favorites/:phone', (req, res) => {
 app.get('/api/favorites/check/:ad_id/:phone', (req, res) => {
     const row = db.prepare('SELECT id FROM favorites WHERE ad_id = ? AND phone = ?').get(req.params.ad_id, req.params.phone);
     res.json({ success: true, isFavorited: !!row });
+});
+
+// ========== API تعليقات الإعلانات ==========
+
+app.post('/api/comments', (req, res) => {
+    const { adId, commenterPhone, commenterName, comment } = req.body;
+
+    if (!adId || !commenterPhone || !comment || !comment.trim()) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(adId);
+    if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
+
+    const result = db.prepare(`
+        INSERT INTO comments (ad_id, commenter_phone, commenter_name, comment)
+        VALUES (?, ?, ?, ?)
+    `).run(adId, commenterPhone, commenterName || null, comment.trim());
+
+    // إشعار للمعلن (لو المعلّق مو نفس صاحب الإعلان)
+    if (ad.provider_phone && ad.provider_phone !== commenterPhone) {
+        const excerpt = comment.trim().length > 50 ? comment.trim().slice(0, 50) + '...' : comment.trim();
+        createNotification(
+            'تعليق جديد على إعلانك 💬',
+            `${commenterName || 'مستخدم'} علّق على إعلانك "${ad.title}": ${excerpt}`,
+            'update', 'specific', ad.provider_phone, ad.provider_phone
+        );
+    }
+
+    const newComment = db.prepare('SELECT * FROM comments WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, comment: newComment });
+});
+
+// تعليقات إعلان معيّن — الظاهرة فقط افتراضياً، أو الكل لو includeHidden=1 (لوحة الإدارة)
+app.get('/api/comments/:ad_id', (req, res) => {
+    const sql = req.query.includeHidden
+        ? 'SELECT * FROM comments WHERE ad_id = ? ORDER BY created_at ASC'
+        : 'SELECT * FROM comments WHERE ad_id = ? AND is_visible = 1 ORDER BY created_at ASC';
+
+    const comments = db.prepare(sql).all(req.params.ad_id);
+    res.json({ success: true, comments });
+});
+
+app.delete('/api/comments/:id', (req, res) => {
+    db.prepare('DELETE FROM comments WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+// إخفاء/إظهار تعليق (لوحة الإدارة) — body اختياري { isVisible }، افتراضياً يخفي
+app.put('/api/comments/:id/hide', (req, res) => {
+    const isVisible = req.body && req.body.isVisible !== undefined ? (req.body.isVisible ? 1 : 0) : 0;
+    db.prepare('UPDATE comments SET is_visible = ? WHERE id = ?').run(isVisible, req.params.id);
+    res.json({ success: true });
 });
 
 // ========== API الرسائل الداخلية (مرتبطة بالإعلانات) ==========

@@ -496,7 +496,12 @@
         .chat-list-last-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
         .chat-list-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-        #chatPanelOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; }
+        #chatPanelOverlay, #adCommentsPanelOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; }
+        .ad-comment-row { border-bottom: 1px solid var(--gray2); padding: 12px 0; }
+        .ad-comment-row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+        .ad-comment-row-name { font-weight: 700; font-size: 13px; }
+        .ad-comment-row-time { font-size: 11px; color: var(--text3); }
+        .ad-comment-row-text { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 6px; }
         .chat-side-panel {
             position: absolute; top: 0; right: 0; height: 100%; width: 420px; max-width: 92vw;
             background: var(--white); display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.15);
@@ -1840,7 +1845,7 @@
                                 <tr>
                                     <th>#</th><th>العنوان</th><th>المزوّد</th><th>القسم</th>
                                     <th>المدينة</th><th>السعر</th><th>المشاهدات</th><th>التقييم</th>
-                                    <th>الحالة</th><th>إجراء</th>
+                                    <th>التعليقات</th><th>الحالة</th><th>إجراء</th>
                                 </tr>
                             </thead>
                             <tbody id="allAdsTable"></tbody>
@@ -2032,6 +2037,20 @@
                         <input type="text" id="chatPanelInput" placeholder="اكتب رسالة كإدارة..." onkeydown="if(event.key==='Enter') sendAdminChatMessage()"/>
                         <button class="btn-gold" onclick="sendAdminChatMessage()">إرسال</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Panel جانبي لعرض/إدارة تعليقات إعلان معيّن -->
+            <div id="adCommentsPanelOverlay" onclick="if(event.target===this) closeAdCommentsPanel()">
+                <div class="chat-side-panel">
+                    <div class="chat-side-header">
+                        <div>
+                            <div class="chat-side-title">تعليقات: <span id="adCommentsPanelTitle"></span></div>
+                            <div class="chat-side-sub" id="adCommentsPanelSub"></div>
+                        </div>
+                        <button class="chat-side-close" onclick="closeAdCommentsPanel()">✕</button>
+                    </div>
+                    <div class="chat-side-messages" id="adCommentsPanelList"></div>
                 </div>
             </div>
             <!-- ══ NOTIFICATIONS PAGE ══ -->

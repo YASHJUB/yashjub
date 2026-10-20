@@ -95,6 +95,23 @@
         </div>
     </div>
 
+    <!-- التعليقات -->
+    <div class="services-new" id="commentsSection">
+        <h2>التعليقات 💬 <span id="commentsCountLabel">(0)</span></h2>
+
+        <div style="max-width:700px;margin:0 auto 20px" id="commentFormWrap">
+            <div class="comment-form-row">
+                <input type="text" id="commentInput" placeholder="اكتب تعليقاً..." maxlength="500" onkeydown="if(event.key==='Enter') submitComment()">
+                <button class="btn" onclick="submitComment()">إرسال <svg class="icon"><use href="icons.svg#icon-chat"></use></svg></button>
+            </div>
+        </div>
+        <div style="max-width:700px;margin:0 auto 20px;display:none;text-align:center" id="commentLoginPrompt">
+            <p class="services-subtitle">سجّل دخولك للتعليق</p>
+        </div>
+
+        <div id="commentsList" style="max-width:700px;margin:0 auto"></div>
+    </div>
+
     <!-- التقييمات -->
     <div class="services-new">
         <h2>التقييمات</h2>

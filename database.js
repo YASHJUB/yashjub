@@ -307,6 +307,17 @@ db.exec(`
         UNIQUE(phone, ad_id)
     );
 
+    -- جدول تعليقات الإعلانات
+    CREATE TABLE IF NOT EXISTS comments (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        ad_id           INTEGER NOT NULL,
+        commenter_phone TEXT NOT NULL,
+        commenter_name  TEXT,
+        comment         TEXT NOT NULL,
+        is_visible      INTEGER DEFAULT 1,
+        created_at      TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)

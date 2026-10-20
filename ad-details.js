@@ -43,9 +43,117 @@ async function loadAdDetails() {
         renderAdDetails(currentAd);
         loadAdReviews();
         checkAdFavorited();
+        loadComments();
     } catch (e) {
         showAppAlert('❌ خطأ في الاتصال بالسيرفر', () => window.location.href = 'index.html');
     }
+}
+
+// ══ تعليقات الإعلان ══
+
+async function loadComments() {
+    const myPhone = localStorage.getItem('yashjub_phone');
+
+    const formWrap    = document.getElementById('commentFormWrap');
+    const loginPrompt = document.getElementById('commentLoginPrompt');
+    if (myPhone) {
+        formWrap.style.display    = 'block';
+        loginPrompt.style.display = 'none';
+    } else {
+        formWrap.style.display    = 'none';
+        loginPrompt.style.display = 'block';
+    }
+
+    try {
+        const res  = await fetch(`${API}/comments/${adId}`);
+        const data = await res.json();
+        if (data.success) renderComments(data.comments);
+    } catch (e) {}
+}
+
+function renderComments(comments) {
+    document.getElementById('commentsCountLabel').textContent = `(${comments.length})`;
+
+    const list = document.getElementById('commentsList');
+    if (!comments.length) {
+        list.innerHTML = `<p class="services-subtitle" style="text-align:center">كن أول من يعلّق على هذا الإعلان!</p>`;
+        return;
+    }
+
+    const myPhone = localStorage.getItem('yashjub_phone');
+    const isAdOwner = currentAd && myPhone && myPhone === currentAd.provider_phone;
+
+    list.innerHTML = comments.map(c => {
+        const canDelete = myPhone && (myPhone === c.commenter_phone || isAdOwner);
+        return `
+            <div class="comment-item">
+                <div class="comment-avatar"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
+                <div class="comment-body">
+                    <div class="comment-header">
+                        <span class="comment-name">${c.commenter_name || 'مستخدم'}</span>
+                        <span class="comment-time">${timeAgo(c.created_at)}</span>
+                    </div>
+                    <div class="comment-text">${c.comment}</div>
+                </div>
+                ${canDelete ? `<button class="comment-delete-btn" onclick="deleteComment(${c.id})"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg></button>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+async function submitComment() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) {
+        showAppAlert('⚠️ سجّل دخولك للتعليق', () => window.location.href = 'login.html');
+        return;
+    }
+
+    const input = document.getElementById('commentInput');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    const name = localStorage.getItem('yashjub_name') || 'مستخدم';
+
+    try {
+        const res  = await fetch(`${API}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adId, commenterPhone: phone, commenterName: name, comment: text }),
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+            showAppAlert(`❌ ${data.message}`);
+            return;
+        }
+
+        input.value = '';
+        loadComments();
+    } catch (e) {
+        showAppAlert('❌ تعذّر إرسال التعليق');
+    }
+}
+
+async function deleteComment(commentId) {
+    try {
+        await fetch(`${API}/comments/${commentId}`, { method: 'DELETE' });
+    } catch (e) {}
+    loadComments();
+}
+
+// وقت نسبي بسيط ("منذ X دقيقة/ساعة/يوم") — التواريخ مخزّنة UTC بدون منطقة زمنية بقاعدة البيانات
+function timeAgo(dateStr) {
+    const then    = new Date(dateStr.replace(' ', 'T') + 'Z').getTime();
+    const minutes = Math.max(0, Math.round((Date.now() - then) / 60000));
+
+    if (minutes < 1)  return 'الآن';
+    if (minutes < 60) return `منذ ${minutes} دقيقة`;
+
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `منذ ${hours} ساعة`;
+
+    const days = Math.round(hours / 24);
+    return `منذ ${days} يوم`;
 }
 
 // ══ مفضلة الإعلانات ══
