@@ -2526,16 +2526,6 @@ body.dark-mode .avatar-menu button:hover { background: #262626; }
     direction: ltr;
 }
 
-.profile-badge {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 14px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.8);
-    font-family: 'Cairo', sans-serif;
-}
-
 .profile-container {
     max-width: 600px;
     margin: 30px auto;
@@ -7419,3 +7409,34 @@ body.dark-mode .related-ad-placeholder { background: #1a1a1a; }
 @media (max-width: 480px) {
     .related-ads-grid { gap: 2px; }
 }
+
+/* ══ وضع داكن — بطاقات صفحة "حسابي" (profile.html) — كانت ما لها أي دعم وضع ليلي إطلاقاً ══ */
+body.dark-mode .profile-card { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .profile-card-title { color: #ffffff; border-bottom-color: #2a2a2a; }
+body.dark-mode .profile-info-row { border-bottom-color: #2a2a2a; }
+body.dark-mode .profile-info-label { color: #999999; }
+body.dark-mode .profile-info-value { color: #ffffff; }
+body.dark-mode .profile-stat { background: #111111; }
+body.dark-mode .profile-stat-label { color: #999999; }
+body.dark-mode .profile-action:hover { background: #262626; }
+body.dark-mode .profile-action.danger:hover { background: rgba(239,68,68,0.1); }
+body.dark-mode .profile-action-label { color: #ffffff; }
+body.dark-mode .profile-action-arrow { color: #555555; }
+body.dark-mode .edit-name-form input { background: #111111; color: #ffffff; }
+
+/* ══ وضع داكن — مكوّنات نافذة التأكيد/الفورم المنبثق المشتركة بكل الموقع (كانت بدون أي دعم وضع ليلي إطلاقاً بأي صفحة) ══ */
+body.dark-mode .confirm-modal { background: #1a1a1a; }
+body.dark-mode .confirm-title { color: #ffffff; }
+body.dark-mode .confirm-details { background: #111111; border-color: #333333; }
+body.dark-mode .confirm-detail-row + .confirm-detail-row { border-top-color: #2a2a2a; }
+body.dark-mode .confirm-detail-label { color: #999999; }
+body.dark-mode .confirm-detail-value { color: #ffffff; }
+
+body.dark-mode .complaint-form-modal { background: #1a1a1a; }
+body.dark-mode .complaint-form-modal h3 { color: #ffffff; }
+body.dark-mode .complaint-form-modal label { color: #ffffff; }
+body.dark-mode .complaint-form-modal select,
+body.dark-mode .complaint-form-modal textarea { background: #111111; border-color: #333333; color: #ffffff; }
+
+.confirm-modal-text { font-size: 14px; color: #555555; line-height: 1.8; margin-bottom: 20px; font-family: 'Cairo', sans-serif; }
+body.dark-mode .confirm-modal-text { color: #aaaaaa; }
