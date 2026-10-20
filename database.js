@@ -298,6 +298,15 @@ db.exec(`
         created_at  TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول مفضلة الإعلانات
+    CREATE TABLE IF NOT EXISTS favorites (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        phone      TEXT NOT NULL,
+        ad_id      INTEGER NOT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        UNIQUE(phone, ad_id)
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)

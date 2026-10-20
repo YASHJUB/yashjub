@@ -7081,4 +7081,76 @@ body.dark-mode .coins-transaction-desc { color: #ffffff; }
 
 body.dark-mode .feature-ad-btn { background: rgba(245,197,24,0.1); color: #F5C518; border-color: rgba(245,197,24,0.3); }
 body.dark-mode .featured-ad-badge { background: rgba(245,197,24,0.1); color: #F5C518; }
+
+/* ══ مفضلة الإعلانات ══ */
+
+.ad-card-fav-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 4;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.35);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.ad-card-fav-btn .icon {
+    width: 20px;
+    height: 20px;
+    color: rgba(255,255,255,0.7);
+    transition: color 0.15s;
+}
+
+.ad-card-fav-btn.active .icon { color: #EF4444; }
+
+.ad-card-fav-btn.pulse .icon { animation: favHeartPulse 0.3s ease; }
+
+@keyframes favHeartPulse {
+    50% { transform: scale(1.3); }
+}
+
+/* زر المفضلة بصفحة تفاصيل الإعلان — نفس شكل زر البطاقة، فوق معرض الصور (`.ad-gallery` بالفعل position:relative) */
+.ad-detail-fav-btn {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 5;
+}
+
+/* بطاقة "الإعلان لم يعد متاحاً" بصفحة المفضلة — بديل .ad-card لإعلان مُحذوف */
+.favorite-missing-card {
+    height: 280px;
+    border-radius: 16px;
+    background: #EFEFEF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    padding: 20px;
+}
+
+.favorite-missing-card .icon { width: 34px; height: 34px; color: #999999; }
+
+.favorite-missing-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #777777;
+    font-family: 'Cairo', sans-serif;
+}
+
+body.dark-mode .favorite-missing-card { background: #1a1a1a; }
+body.dark-mode .favorite-missing-text { color: #888888; }
+
+@media (max-width: 480px) {
+    .favorite-missing-card { height: 240px; }
+}
 body.dark-mode .dispute-notice-box   { background: rgba(239,68,68,0.12); }

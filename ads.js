@@ -21,12 +21,13 @@ const params       = new URLSearchParams(window.location.search);
 const currentCategory = params.get('category') || '';
 
 // تحميل عنوان القسم + المدن + أول بحث
-function loadAdsPage() {
+async function loadAdsPage() {
     const icon = AD_CATEGORY_ICONS[currentCategory] || 'wrench';
     document.getElementById('categoryIconUse').setAttribute('href', `icons.svg#icon-${icon}`);
     document.getElementById('categoryTitle').textContent = currentCategory || 'كل الإعلانات';
 
     loadCities();
+    await loadFavoriteIds();
     searchAds();
 }
 
@@ -144,11 +145,15 @@ function renderAdCard(ad) {
     try { images = JSON.parse(ad.images || '[]'); } catch (e) { images = []; }
     const hasImage = images.length > 0;
     const bgStyle = hasImage ? `background-image:url('${images[0]}')` : '';
+    const isFav = favoriteAdIds.has(ad.id);
 
     return `
         <div class="ad-card ${ad.is_featured ? 'featured' : ''}" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${ad.id}'">
             ${hasImage ? '<div class="ad-card-overlay"></div>' : ''}
             ${ad.is_featured ? '<div class="ad-card-featured-badge"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> متصدر</div>' : ''}
+            <button class="ad-card-fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${ad.id}, this)">
+                <svg class="icon"><use href="icons.svg#icon-heart"></use></svg>
+            </button>
             <div class="ad-card-content">
                 <div class="ad-card-category"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${ad.title}</div>
                 <div class="ad-card-provider">${ad.category} — ${ad.provider_name || 'مزوّد'}</div>
@@ -165,6 +170,51 @@ function renderAdCard(ad) {
             </div>
         </div>
     `;
+}
+
+// ══ مفضلة الإعلانات ══
+
+let favoriteAdIds = new Set();
+
+async function loadFavoriteIds() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) return;
+
+    try {
+        const res  = await fetch(`${API}/favorites/${phone}`);
+        const data = await res.json();
+        if (data.success) favoriteAdIds = new Set(data.favorites.filter(f => f.ad_exists).map(f => f.ad_id));
+    } catch (e) {}
+}
+
+async function toggleFavorite(adId, btnEl) {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) {
+        showAppAlert('⚠️ سجّل دخولك لإضافة المفضلة', () => window.location.href = 'login.html');
+        return;
+    }
+
+    const wasFav = favoriteAdIds.has(adId);
+    btnEl.classList.toggle('active', !wasFav);
+    btnEl.classList.remove('pulse');
+    void btnEl.offsetWidth;
+    btnEl.classList.add('pulse');
+    wasFav ? favoriteAdIds.delete(adId) : favoriteAdIds.add(adId);
+
+    try {
+        if (wasFav) {
+            await fetch(`${API}/favorites/${adId}/${phone}`, { method: 'DELETE' });
+        } else {
+            await fetch(`${API}/favorites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, adId }),
+            });
+        }
+    } catch (e) {
+        btnEl.classList.toggle('active', wasFav);
+        wasFav ? favoriteAdIds.add(adId) : favoriteAdIds.delete(adId);
+    }
 }
 
 // تشغيل عند فتح الصفحة

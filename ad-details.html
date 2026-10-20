@@ -24,7 +24,7 @@
     </div>
 
     <div class="order-container" style="max-width:700px">
-        <div class="order-card">
+        <div class="order-card" style="position:relative">
 
             <!-- معرض الصور -->
             <div class="ad-gallery" id="adGallery" style="display:none">
@@ -33,6 +33,11 @@
                 <button class="ad-gallery-nav ad-gallery-next" onclick="changeGalleryImage(1)">›</button>
                 <div class="ad-gallery-dots" id="adGalleryDots"></div>
             </div>
+
+            <!-- زر المفضلة -->
+            <button class="ad-card-fav-btn ad-detail-fav-btn" id="adFavBtn" onclick="toggleAdFavorite()">
+                <svg class="icon"><use href="icons.svg#icon-heart"></use></svg>
+            </button>
 
             <div class="order-service-header">
                 <div class="order-icon"><svg class="icon"><use href="icons.svg#icon-tow-truck" id="adCategoryIcon"></use></svg></div>

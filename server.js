@@ -1431,6 +1431,51 @@ app.post('/api/coins/expire-featured', (req, res) => {
     res.json({ success: true, expired });
 });
 
+// ========== API مفضلة الإعلانات ==========
+
+app.post('/api/favorites', (req, res) => {
+    const { phone, adId } = req.body;
+
+    if (!phone || !adId) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    db.prepare('INSERT OR IGNORE INTO favorites (phone, ad_id) VALUES (?, ?)').run(phone, adId);
+    res.json({ success: true });
+});
+
+app.delete('/api/favorites/:ad_id/:phone', (req, res) => {
+    db.prepare('DELETE FROM favorites WHERE ad_id = ? AND phone = ?').run(req.params.ad_id, req.params.phone);
+    res.json({ success: true });
+});
+
+// كل مفضلة مستخدم معيّن + تفاصيل الإعلان (LEFT JOIN — لو الإعلان الأصلي انحذف، ad_exists ترجع 0 وباقي حقول الإعلان فاضية)
+app.get('/api/favorites/:phone', (req, res) => {
+    const favorites = db.prepare(`
+        SELECT
+            favorites.id AS favorite_id,
+            favorites.ad_id,
+            favorites.created_at AS favorited_at,
+            (ads.id IS NOT NULL) AS ad_exists,
+            ads.id, ads.provider_phone, ads.provider_name, ads.category, ads.title, ads.description,
+            ads.price_from, ads.price_to, ads.city, ads.district, ads.whatsapp, ads.images,
+            ads.is_active, ads.views_count, ads.is_featured, ads.featured_until,
+            (SELECT ROUND(AVG(rating), 1) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS avg_rating,
+            (SELECT COUNT(*) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS reviews_count
+        FROM favorites
+        LEFT JOIN ads ON ads.id = favorites.ad_id
+        WHERE favorites.phone = ?
+        ORDER BY favorites.created_at DESC
+    `).all(req.params.phone);
+
+    res.json({ success: true, favorites });
+});
+
+app.get('/api/favorites/check/:ad_id/:phone', (req, res) => {
+    const row = db.prepare('SELECT id FROM favorites WHERE ad_id = ? AND phone = ?').get(req.params.ad_id, req.params.phone);
+    res.json({ success: true, isFavorited: !!row });
+});
+
 // ========== API الرسائل الداخلية (مرتبطة بالإعلانات) ==========
 
 // إنشاء محادثة جديدة — لو فيه محادثة موجودة أصلاً لنفس الإعلان بين نفس الطرفين (بأي اتجاه) يرجّعها بدل تكرارها

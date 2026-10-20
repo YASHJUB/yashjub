@@ -184,6 +184,7 @@ async function switchToAdsMode() {
         <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
         <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
         <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
+        <a class="sidebar-link" href="favorites.html"><span><svg class="icon"><use href="icons.svg#icon-heart"></use></svg></span> قائمة المفضلة</a>
         <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
         <a class="sidebar-link" href="fees.html"><span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع</a>
         <a class="sidebar-link" href="messages.html"><span><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> الرسائل <span class="sidebar-badge" id="messagesBadge" style="display:none">0</span></a>
@@ -205,6 +206,8 @@ async function switchToAdsMode() {
     if (badge) badge.style.display = 'none';
     if (btn) btn.innerHTML = 'انشر إعلانك الآن <svg class="icon"><use href="icons.svg#icon-worker"></use></svg>';
     if (visual && btn) visual.appendChild(btn); // نقل الزر لمكان دائرة "+500 مزود نشط" (يسار النص بوضع RTL)
+
+    await loadFavoriteIds();
 
     try {
         const res  = await fetch(`${API}/ads`);
@@ -251,11 +254,15 @@ function renderAdCard(ad) {
     try { images = JSON.parse(ad.images || '[]'); } catch (e) { images = []; }
     const hasImage = images.length > 0;
     const bgStyle = hasImage ? `background-image:url('${images[0]}')` : '';
+    const isFav = favoriteAdIds.has(ad.id);
 
     return `
         <div class="ad-card ${ad.is_featured ? 'featured' : ''}" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${ad.id}'">
             ${hasImage ? '<div class="ad-card-overlay"></div>' : ''}
             ${ad.is_featured ? '<div class="ad-card-featured-badge"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> متصدر</div>' : ''}
+            <button class="ad-card-fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${ad.id}, this)">
+                <svg class="icon"><use href="icons.svg#icon-heart"></use></svg>
+            </button>
             <div class="ad-card-content">
                 <div class="ad-card-category"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${ad.title}</div>
                 <div class="ad-card-provider">${ad.category} — ${ad.provider_name || 'مزوّد'}</div>
@@ -272,6 +279,53 @@ function renderAdCard(ad) {
             </div>
         </div>
     `;
+}
+
+// ══ مفضلة الإعلانات (مشتركة — تُحمَّل مرة وحدة قبل رسم أي بطاقات إعلان) ══
+
+let favoriteAdIds = new Set();
+
+async function loadFavoriteIds() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) return;
+
+    try {
+        const res  = await fetch(`${API}/favorites/${phone}`);
+        const data = await res.json();
+        if (data.success) favoriteAdIds = new Set(data.favorites.filter(f => f.ad_exists).map(f => f.ad_id));
+    } catch (e) {}
+}
+
+// إضافة/حذف إعلان من المفضلة — تحديث فوري بالواجهة (بدون إعادة تحميل الصفحة) ثم مزامنة مع السيرفر بالخلفية
+async function toggleFavorite(adId, btnEl) {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) {
+        showAppAlert('⚠️ سجّل دخولك لإضافة المفضلة', () => window.location.href = 'login.html');
+        return;
+    }
+
+    const wasFav = favoriteAdIds.has(adId);
+    btnEl.classList.toggle('active', !wasFav);
+    btnEl.classList.remove('pulse');
+    void btnEl.offsetWidth; // إعادة تشغيل الـ animation لو ضُغط أكثر من مرة بسرعة
+    btnEl.classList.add('pulse');
+    wasFav ? favoriteAdIds.delete(adId) : favoriteAdIds.add(adId);
+
+    try {
+        if (wasFav) {
+            await fetch(`${API}/favorites/${adId}/${phone}`, { method: 'DELETE' });
+        } else {
+            await fetch(`${API}/favorites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, adId }),
+            });
+        }
+    } catch (e) {
+        // فشل الاتصال — رجوع للحالة الأصلية
+        btnEl.classList.toggle('active', wasFav);
+        wasFav ? favoriteAdIds.add(adId) : favoriteAdIds.delete(adId);
+    }
 }
 
 // زر "انضم كمزود" / "انشر إعلانك" بأسفل الرئيسية — بوضع الإعلانات: يوديك لـ"إعلاناتي" مباشرة لو مسجّل دخولك (ماكو تسجيل مزوّد منفصل بعد الآن)، أو لتسجيل الدخول أولاً

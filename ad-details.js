@@ -42,8 +42,52 @@ async function loadAdDetails() {
         currentAd = data.ad;
         renderAdDetails(currentAd);
         loadAdReviews();
+        checkAdFavorited();
     } catch (e) {
         showAppAlert('❌ خطأ في الاتصال بالسيرفر', () => window.location.href = 'index.html');
+    }
+}
+
+// ══ مفضلة الإعلانات ══
+
+async function checkAdFavorited() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) return;
+
+    try {
+        const res  = await fetch(`${API}/favorites/check/${adId}/${phone}`);
+        const data = await res.json();
+        if (data.success) document.getElementById('adFavBtn').classList.toggle('active', data.isFavorited);
+    } catch (e) {}
+}
+
+async function toggleAdFavorite() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) {
+        showAppAlert('⚠️ سجّل دخولك لإضافة المفضلة', () => window.location.href = 'login.html');
+        return;
+    }
+
+    const btn    = document.getElementById('adFavBtn');
+    const wasFav = btn.classList.contains('active');
+
+    btn.classList.toggle('active', !wasFav);
+    btn.classList.remove('pulse');
+    void btn.offsetWidth;
+    btn.classList.add('pulse');
+
+    try {
+        if (wasFav) {
+            await fetch(`${API}/favorites/${adId}/${phone}`, { method: 'DELETE' });
+        } else {
+            await fetch(`${API}/favorites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, adId }),
+            });
+        }
+    } catch (e) {
+        btn.classList.toggle('active', wasFav);
     }
 }
 

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غَوْث - قائمة المفضلة</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-right">
+            <img src="images/logo.png" alt="غَوْث" class="logo-img">
+            <div class="tagline">قائمة المفضلة</div>
+        </div>
+        <div class="header-left">
+            <button class="btn-small" onclick="window.location.href='index.html'">→ الرئيسية</button>
+        </div>
+    </div>
+
+    <!-- عنوان القسم -->
+    <div class="order-container">
+        <div class="order-card">
+            <div class="order-service-header">
+                <div class="order-icon"><svg class="icon" style="color:#EF4444"><use href="icons.svg#icon-heart"></use></svg></div>
+                <div>
+                    <h2>قائمة المفضلة <svg class="icon" style="color:#EF4444;width:18px;height:18px"><use href="icons.svg#icon-heart"></use></svg></h2>
+                    <span class="service-type">الإعلانات التي أعجبتك</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نتائج المفضلة -->
+    <div class="services-new">
+        <div class="testimonials-grid" id="favoritesGrid" style="grid-template-columns:repeat(3,1fr)"></div>
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer">
+        <div class="footer-links">
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="contact.html">تواصل معنا</a>
+            <a href="terms.html">الشروط والأحكام</a>
+            <a href="privacy.html">سياسة الخصوصية</a>
+        </div>
+        <div class="footer-copy">
+            جميع الحقوق محفوظة © 2026 <span>غَوْث</span> — عـتـاد الـبـنـاء
+        </div>
+    </div>
+
+    <script src="alert.js"></script>
+    <script src="favorites.js"></script>
+</body>
+</html>
