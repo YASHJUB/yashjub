@@ -2464,6 +2464,45 @@ body.dark-mode .btn-outline:hover {
 
 .avatar-edit-btn .icon { width: 13px; height: 13px; color: #111111; }
 
+.avatar-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    z-index: 500;
+    overflow: hidden;
+    width: 200px;
+}
+
+.avatar-menu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 14px;
+    background: none;
+    border: none;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.avatar-menu button:hover { background: #FAFAFA; }
+.avatar-menu button .icon { width: 15px; height: 15px; }
+.avatar-menu-danger { color: #EF4444 !important; }
+
+body.dark-mode .avatar-menu { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .avatar-menu button { color: #ffffff; }
+body.dark-mode .avatar-menu button:hover { background: #262626; }
+
 .avatar-img {
     width: 100%;
     height: 100%;

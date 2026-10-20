@@ -228,6 +228,20 @@ app.put('/api/users/:phone/avatar', upload.single('avatar'), (req, res) => {
     res.json({ success: true, avatarPath });
 });
 
+// حذف الصورة الشخصية (رجوع للأيقونة الافتراضية) — لا يحذف الملف الفعلي من uploads، نفس فلسفة عدم-التنظيف المعتمدة بباقي رفع الملفات بالمشروع
+app.delete('/api/users/:phone/avatar', (req, res) => {
+    const { phone } = req.params;
+
+    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    db.prepare('UPDATE users SET avatar_path = NULL WHERE phone = ?').run(phone);
+
+    res.json({ success: true });
+});
+
 // تغيير رقم الجوال بعد التحقق من OTP المُرسَل للرقم الجديد (نفس POST /api/auth/send-otp)،
 // مع ترحيل كل البيانات المرتبطة بالرقم القديم (الطلبات، الإعلانات، الإشعارات، إلخ) للرقم الجديد
 app.put('/api/users/:phone/change-phone', (req, res) => {

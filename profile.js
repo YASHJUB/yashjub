@@ -165,6 +165,47 @@ async function uploadAvatar(event) {
     event.target.value = '';
 }
 
+// فتح/إغلاق قائمة "تغيير/حذف الصورة الشخصية"
+function toggleAvatarMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('avatarMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('avatarMenu');
+    const btn  = document.querySelector('.avatar-edit-btn');
+    if (menu && menu.style.display !== 'none' && !menu.contains(e.target) && e.target !== btn) {
+        menu.style.display = 'none';
+    }
+});
+
+function chooseNewAvatar() {
+    document.getElementById('avatarMenu').style.display = 'none';
+    document.getElementById('avatarInput').click();
+}
+
+async function deleteAvatar() {
+    document.getElementById('avatarMenu').style.display = 'none';
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) return;
+
+    try {
+        const res  = await fetch(`${API}/users/${phone}/avatar`, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (data.success) {
+            localStorage.removeItem('yashjub_avatar');
+            renderAvatar(null);
+            showAppAlert('✅ تم حذف الصورة الشخصية');
+        } else {
+            showAppAlert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        showAppAlert('❌ تعذّر حذف الصورة');
+    }
+}
+
 function toggleEmailForm() {
     const form = document.getElementById('emailForm');
     const isHidden = form.style.display === 'none';
