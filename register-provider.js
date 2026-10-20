@@ -1,13 +1,12 @@
 // كود تسجيل المزود في غَوْث
 
 // بوضع الإعلانات ماكو حاجة لتسجيل مزوّد منفصل — أي مستخدم مسجّل دخوله ينشر إعلاناته مباشرة من "إعلاناتي" (provider.html#adsSection)
+// تحويل فوري بدون أي رسالة (نفس نمط my-orders.js) — تفادياً لظهور فورم التسجيل كاملاً خلف نافذة التنبيه غير الحاجزة قبل التحويل
 (async function redirectAwayInAdsMode() {
     try {
         const res  = await fetch(window.location.origin + '/api/settings/active-system');
         const data = await res.json();
-        if (data.activeSystem === 'ads') {
-            showAppAlert('ℹ️ ما تحتاج تسجيل منفصل — سجّل دخولك وانشر إعلانك مباشرة', () => window.location.href = 'login.html');
-        }
+        if (data.activeSystem === 'ads') window.location.href = 'login.html';
     } catch (e) {}
 })();
 

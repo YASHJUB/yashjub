@@ -14,6 +14,10 @@ function switchAboutToAdsMode() {
     // الهيدر
     document.getElementById('aboutHeroDesc').textContent = 'منصة إعلانات متخصصة في خدمات ومعدات البناء';
 
+    // رابط "انضم كمزود" بالفوتر — ماكو تسجيل مزوّد منفصل بوضع الإعلانات
+    const footerJoinLink = document.getElementById('footerJoinProviderLink');
+    if (footerJoinLink) footerJoinLink.style.display = 'none';
+
     // المهمة والرؤية
     document.getElementById('missionText').textContent = 'نوفر سوقاً إلكترونياً متخصصاً في خدمات البناء يربط أصحاب المشاريع بمزودي الخدمات مباشرة، بدون وسيط وبدون عمولة، قائماً على مبدأ الأمانة والمعاهدة الشرعية';
     document.getElementById('visionText').textContent  = 'أن نكون السوق الإلكتروني الأول والأكبر لخدمات البناء في المملكة العربية السعودية، بمنظومة قائمة على الثقة والشفافية';

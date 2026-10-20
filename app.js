@@ -173,6 +173,10 @@ async function switchToAdsMode() {
     if (heroSection) heroSection.style.display = 'none';
     if (statsSection) statsSection.style.display = 'none';
 
+    // رابط "انضم كمزود" بالفوتر — ماكو تسجيل مزوّد منفصل بوضع الإعلانات
+    const footerJoinLink = document.getElementById('footerJoinProviderLink');
+    if (footerJoinLink) footerJoinLink.style.display = 'none';
+
     // سايد بار موحّد بوضع الإعلانات — نفس البنية المستخدمة بـ provider.html ("إعلاناتي") بالضبط
     const sidebarMenu = document.getElementById('sidebarMenu');
     if (sidebarMenu) sidebarMenu.innerHTML = `

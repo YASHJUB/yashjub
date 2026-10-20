@@ -2,6 +2,17 @@
 
 const API = window.location.origin + '/api';
 
+// رابط "انضم كمزود" بالفوتر — ماكو تسجيل مزوّد منفصل بوضع الإعلانات
+(async function hideFooterJoinLinkInAdsMode() {
+    try {
+        const res  = await fetch(`${API}/settings/active-system`);
+        const data = await res.json();
+        if (data.activeSystem !== 'ads') return;
+        const link = document.getElementById('footerJoinProviderLink');
+        if (link) link.style.display = 'none';
+    } catch (e) {}
+})();
+
 function loadProfile() {
     const phone = localStorage.getItem('yashjub_phone');
     const type  = localStorage.getItem('yashjub_type') || 'client';

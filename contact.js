@@ -14,6 +14,10 @@ function switchContactToAdsMode() {
     // الهيرو
     document.getElementById('contactHeroDesc').textContent = 'نحن هنا لمساعدتك في أي استفسار عن منصة غوث معاهدة';
 
+    // رابط "انضم كمزود" بالفوتر — ماكو تسجيل مزوّد منفصل بوضع الإعلانات
+    const footerJoinLink = document.getElementById('footerJoinProviderLink');
+    if (footerJoinLink) footerJoinLink.style.display = 'none';
+
     // موضوع الرسالة
     document.getElementById('contactSubject').innerHTML = `
         <option value="">اختر الموضوع</option>
