@@ -216,8 +216,6 @@ function renderAdDetails(ad) {
     document.getElementById('adDescription').textContent = ad.description || '';
 
     document.getElementById('adCallBtn').href = `tel:+966${ad.provider_phone}`;
-    const whatsappText = encodeURIComponent(`مرحباً، رأيت إعلانك على منصة غَوْث في قسم ${ad.category} وأود الاستفسار`);
-    document.getElementById('adWhatsappBtn').href = `https://wa.me/966${ad.whatsapp}?text=${whatsappText}`;
 
     try {
         galleryImages = JSON.parse(ad.images || '[]');

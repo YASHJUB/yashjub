@@ -5239,7 +5239,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 .btn-chat:hover,
 .btn-message:hover { background: #FFD740; }
 
-a.btn-call, a.btn-chat, button.btn-message {
+a.btn-call, a.btn-chat, button.btn-message, button.btn-chat {
     display: flex;
     align-items: center;
     justify-content: center;

@@ -85,9 +85,9 @@
                 <a class="btn-call" id="adCallBtn" href="tel:" style="font-size:15px;padding:14px">
                     <svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg> اتصال مباشر
                 </a>
-                <a class="btn-chat" id="adWhatsappBtn" href="#" target="_blank" rel="noopener" style="font-size:15px;padding:14px">
-                    <svg class="icon"><use href="icons.svg#icon-chat"></use></svg> واتساب
-                </a>
+                <button class="btn-chat" onclick="openAdRatingForm()" style="font-size:15px;padding:14px">
+                    <svg class="icon"><use href="icons.svg#icon-star"></use></svg> أضف تقييم
+                </button>
                 <button class="btn-message" id="adMessageBtn" onclick="startConversation()" style="font-size:15px;padding:14px">
                     <svg class="icon"><use href="icons.svg#icon-chat"></use></svg> مراسلة
                 </button>
@@ -117,9 +117,6 @@
     <div class="services-new">
         <h2>التقييمات</h2>
         <p class="services-subtitle" id="adReviewsSummary">لا توجد تقييمات بعد</p>
-        <div style="max-width:260px;margin:0 auto 20px">
-            <button class="btn" style="width:100%" onclick="openAdRatingForm()">أضف تقييم <svg class="icon"><use href="icons.svg#icon-star"></use></svg></button>
-        </div>
         <div id="adReviewsList" style="max-width:700px;margin:0 auto"></div>
     </div>
 
