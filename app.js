@@ -177,6 +177,12 @@ async function switchToAdsMode() {
     const footerJoinLink = document.getElementById('footerJoinProviderLink');
     if (footerJoinLink) footerJoinLink.style.display = 'none';
 
+    // عنوان قسم الخدمات يتحول لـ"الأقسام" بوضع الإعلانات (المحتوى تحته صار أقسام إعلانات، مو خدمات حقيقية)
+    const servicesTitle    = document.getElementById('servicesSectionTitle');
+    const servicesSubtitle = document.getElementById('servicesSectionSubtitle');
+    if (servicesTitle) servicesTitle.textContent = 'الأقسام';
+    if (servicesSubtitle) servicesSubtitle.textContent = 'اختر القسم المناسب لك';
+
     // سايد بار موحّد بوضع الإعلانات — نفس البنية المستخدمة بـ provider.html ("إعلاناتي") بالضبط
     const sidebarMenu = document.getElementById('sidebarMenu');
     if (sidebarMenu) sidebarMenu.innerHTML = `
