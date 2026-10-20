@@ -265,6 +265,39 @@ db.exec(`
         created_at      TEXT DEFAULT (datetime('now'))
     );
 
+    -- جدول باقات العملات الذهبية (تصدير الإعلانات)
+    CREATE TABLE IF NOT EXISTS coins_packages (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        name        TEXT NOT NULL,
+        coins       INTEGER NOT NULL,
+        bonus_coins INTEGER DEFAULT 0,
+        total_coins INTEGER NOT NULL,
+        price       REAL NOT NULL,
+        is_popular  INTEGER DEFAULT 0,
+        created_at  TEXT DEFAULT (datetime('now'))
+    );
+
+    -- جدول رصيد العملات الذهبية لكل مستخدم
+    CREATE TABLE IF NOT EXISTS user_coins (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        phone           TEXT UNIQUE NOT NULL,
+        balance         INTEGER DEFAULT 0,
+        total_purchased INTEGER DEFAULT 0,
+        total_spent     INTEGER DEFAULT 0,
+        updated_at      TEXT DEFAULT (datetime('now'))
+    );
+
+    -- جدول سجل معاملات العملات الذهبية
+    CREATE TABLE IF NOT EXISTS coins_transactions (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        phone       TEXT NOT NULL,
+        type        TEXT NOT NULL,
+        amount      INTEGER NOT NULL,
+        description TEXT,
+        ad_id       INTEGER,
+        created_at  TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
@@ -293,6 +326,20 @@ if (settingsCount === 0) {
     const insertSetting = db.prepare('INSERT INTO system_settings (key, value) VALUES (?, ?)');
     insertSetting.run('paid_system', 'true');
     insertSetting.run('ads_system', 'false');
+}
+
+// زرع باقات العملات الذهبية الافتراضية أول مرة بس (لو الجدول فاضي)
+const coinsPackageCount = db.prepare('SELECT COUNT(*) AS n FROM coins_packages').get().n;
+if (coinsPackageCount === 0) {
+    const insertPackage = db.prepare(`
+        INSERT INTO coins_packages (name, coins, bonus_coins, total_coins, price, is_popular)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    insertPackage.run('30 عملة',  30,  0,   30,   17.99,  0);
+    insertPackage.run('59 عملة',  59,  9,   68,   34.99,  0);
+    insertPackage.run('109 عملة', 109, 33,  142,  64.99,  1);
+    insertPackage.run('274 عملة', 274, 90,  364,  159.99, 0);
+    insertPackage.run('824 عملة', 824, 280, 1104, 479.99, 0);
 }
 
 // ترقية الجداول القديمة (migrations بسيطة — تتجاهل الخطأ لو العمود موجود مسبقاً)
@@ -338,6 +385,9 @@ const migrations = [
     'ALTER TABLE ads ADD COLUMN accepted_covenant INTEGER DEFAULT 0',
     'ALTER TABLE ads ADD COLUMN covenant_accepted_at TEXT',
     'ALTER TABLE users ADD COLUMN email TEXT',
+    'ALTER TABLE ads ADD COLUMN is_featured INTEGER DEFAULT 0',
+    'ALTER TABLE ads ADD COLUMN featured_until TEXT',
+    'ALTER TABLE ads ADD COLUMN featured_count INTEGER DEFAULT 0',
 ];
 
 for (const sql of migrations) {

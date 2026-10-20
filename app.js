@@ -249,8 +249,9 @@ function renderAdCard(ad) {
     const bgStyle = hasImage ? `background-image:url('${images[0]}')` : '';
 
     return `
-        <div class="ad-card" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${ad.id}'">
+        <div class="ad-card ${ad.is_featured ? 'featured' : ''}" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${ad.id}'">
             ${hasImage ? '<div class="ad-card-overlay"></div>' : ''}
+            ${ad.is_featured ? '<div class="ad-card-featured-badge"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> متصدر</div>' : ''}
             <div class="ad-card-content">
                 <div class="ad-card-category"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${ad.title}</div>
                 <div class="ad-card-provider">${ad.category} — ${ad.provider_name || 'مزوّد'}</div>
@@ -366,6 +367,7 @@ async function loadMessagesBadge() {
         badge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
     } catch (e) {}
 }
+
 
 // ══ جرس الإشعارات ══
 

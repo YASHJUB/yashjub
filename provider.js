@@ -735,7 +735,10 @@ function renderMyAds() {
         return;
     }
 
-    container.innerHTML = myAds.map(ad => `
+    container.innerHTML = myAds.map(ad => {
+        const isFeatured = !!ad.is_featured && ad.featured_until && new Date(ad.featured_until.replace(' ', 'T') + 'Z') > new Date();
+
+        return `
         <div class="product-item">
             <div class="product-item-top">
                 <div>
@@ -760,8 +763,97 @@ function renderMyAds() {
                 </button>
                 <button class="btn-small btn-delete-product" onclick="deleteAd(${ad.id})"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg> حذف</button>
             </div>
+            ${isFeatured
+                ? `<div class="featured-ad-badge" data-featured-until="${ad.featured_until}"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> متصدر — ينتهي بعد <span class="featured-countdown" id="featuredCountdown-${ad.id}">--:--:--</span></div>`
+                : `<button class="btn-small feature-ad-btn" style="margin-top:8px" onclick="openFeatureAdModal(${ad.id})"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> تصدر الإعلان (10 🪙)</button>`
+            }
         </div>
-    `).join('');
+    `;
+    }).join('');
+
+    startFeaturedCountdowns();
+}
+
+// ══ تصدير الإعلان مقابل عملات ذهبية ══
+
+let pendingFeatureAdId    = null;
+let featuredCountdownTimer = null;
+
+function startFeaturedCountdowns() {
+    if (featuredCountdownTimer) clearInterval(featuredCountdownTimer);
+    updateFeaturedCountdowns();
+    featuredCountdownTimer = setInterval(updateFeaturedCountdowns, 1000);
+}
+
+function updateFeaturedCountdowns() {
+    document.querySelectorAll('.featured-countdown').forEach(el => {
+        const until = el.closest('.featured-ad-badge').dataset.featuredUntil;
+        const diff  = new Date(until.replace(' ', 'T') + 'Z') - new Date();
+
+        if (diff <= 0) {
+            el.textContent = 'انتهى';
+            return;
+        }
+
+        const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+        el.textContent = `${h}:${m}:${s}`;
+    });
+}
+
+async function openFeatureAdModal(adId) {
+    const phone = localStorage.getItem('yashjub_phone');
+
+    try {
+        const res  = await fetch(`${API}/coins/balance/${phone}`);
+        const data = await res.json();
+
+        if (!data.success || data.balance < 10) {
+            document.getElementById('insufficientCoinsModal').style.display = 'flex';
+            return;
+        }
+
+        pendingFeatureAdId = adId;
+        document.getElementById('confirmFeatureModal').style.display = 'flex';
+    } catch (e) {
+        showAppAlert('❌ تعذّر الاتصال بالسيرفر');
+    }
+}
+
+function closeInsufficientCoinsModal() {
+    document.getElementById('insufficientCoinsModal').style.display = 'none';
+}
+
+function closeConfirmFeatureModal() {
+    document.getElementById('confirmFeatureModal').style.display = 'none';
+    pendingFeatureAdId = null;
+}
+
+async function confirmFeatureAd() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!pendingFeatureAdId) return;
+
+    try {
+        const res  = await fetch(`${API}/coins/feature-ad`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, adId: pendingFeatureAdId }),
+        });
+        const data = await res.json();
+
+        closeConfirmFeatureModal();
+
+        if (!data.success) {
+            showAppAlert(`❌ ${data.message}`);
+            return;
+        }
+
+        showAppAlert('⭐ تم تصدير إعلانك بنجاح لمدة 24 ساعة');
+        loadMyAds();
+    } catch (e) {
+        showAppAlert('❌ تعذّر الاتصال بالسيرفر');
+    }
 }
 
 // إظهار/إخفاء فورم الإعلان

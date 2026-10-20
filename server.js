@@ -1186,8 +1186,8 @@ app.get('/api/ads', (req, res) => {
     if (price_to)          { sql += ' AND ads.price_from <= ?'; params.push(Number(price_to)); }
     if (providerPhone)     { sql += ' AND ads.provider_phone = ?'; params.push(providerPhone); }
 
-    // الأعلى تقييماً أولاً، ثم الأحدث (الإعلانات بدون تقييم تُعامل كأقل أولوية من المقيَّمة، لكن تبقى مرتبة بالأحدث بينها)
-    sql += ' ORDER BY (avg_rating IS NULL) ASC, avg_rating DESC, ads.created_at DESC';
+    // المتصدرة (is_featured) أولاً دايماً، ثم الأعلى تقييماً، ثم الأحدث (الإعلانات بدون تقييم تُعامل كأقل أولوية من المقيَّمة، لكن تبقى مرتبة بالأحدث بينها)
+    sql += ' ORDER BY ads.is_featured DESC, (avg_rating IS NULL) ASC, avg_rating DESC, ads.created_at DESC';
 
     const ads = db.prepare(sql).all(...params);
     res.json({ success: true, ads });
@@ -1321,6 +1321,114 @@ app.post('/api/fees/pay', (req, res) => {
 app.get('/api/fees/:phone', (req, res) => {
     const payments = db.prepare('SELECT * FROM fee_payments WHERE provider_phone = ? ORDER BY created_at DESC').all(req.params.phone);
     res.json({ success: true, payments });
+});
+
+// ========== API العملات الذهبية (تصدير الإعلانات) ==========
+
+app.get('/api/coins/packages', (req, res) => {
+    const packages = db.prepare('SELECT * FROM coins_packages ORDER BY total_coins ASC').all();
+    res.json({ success: true, packages });
+});
+
+// رصيد مستخدم محدد — يرجّع أصفار لو ماكو صف له بعد (ما يُنشئ صف فاضي، نفس فلسفة القراءة البسيطة المعتمدة بباقي المشروع)
+app.get('/api/coins/balance/:phone', (req, res) => {
+    const row = db.prepare('SELECT * FROM user_coins WHERE phone = ?').get(req.params.phone);
+    res.json({
+        success: true,
+        balance: row ? row.balance : 0,
+        totalPurchased: row ? row.total_purchased : 0,
+        totalSpent: row ? row.total_spent : 0,
+    });
+});
+
+// شراء باقة عملات — يضيف للرصيد ويسجّل المعاملة (ينشئ صف user_coins أول مرة لو ماكو)
+app.post('/api/coins/purchase', (req, res) => {
+    const { phone, packageId } = req.body;
+
+    if (!phone || !packageId) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const pack = db.prepare('SELECT * FROM coins_packages WHERE id = ?').get(packageId);
+    if (!pack) return res.json({ success: false, message: 'الباقة غير موجودة' });
+
+    const existing = db.prepare('SELECT * FROM user_coins WHERE phone = ?').get(phone);
+    if (existing) {
+        db.prepare(`
+            UPDATE user_coins SET balance = balance + ?, total_purchased = total_purchased + ?, updated_at = datetime('now')
+            WHERE phone = ?
+        `).run(pack.total_coins, pack.total_coins, phone);
+    } else {
+        db.prepare(`
+            INSERT INTO user_coins (phone, balance, total_purchased) VALUES (?, ?, ?)
+        `).run(phone, pack.total_coins, pack.total_coins);
+    }
+
+    db.prepare(`
+        INSERT INTO coins_transactions (phone, type, amount, description)
+        VALUES (?, 'purchase', ?, ?)
+    `).run(phone, pack.total_coins, `شراء باقة ${pack.name}${pack.bonus_coins ? ` (+${pack.bonus_coins} مجاناً)` : ''}`);
+
+    const updated = db.prepare('SELECT * FROM user_coins WHERE phone = ?').get(phone);
+    res.json({ success: true, balance: updated.balance });
+});
+
+// تصدير إعلان مقابل 10 عملات لمدة 24 ساعة
+app.post('/api/coins/feature-ad', (req, res) => {
+    const { phone, adId } = req.body;
+    const FEATURE_COST = 10;
+
+    if (!phone || !adId) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(adId);
+    if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
+
+    const wallet = db.prepare('SELECT * FROM user_coins WHERE phone = ?').get(phone);
+    const balance = wallet ? wallet.balance : 0;
+
+    if (balance < FEATURE_COST) {
+        return res.json({ success: false, message: 'رصيدك غير كافٍ', balance });
+    }
+
+    db.prepare(`
+        UPDATE user_coins SET balance = balance - ?, total_spent = total_spent + ?, updated_at = datetime('now')
+        WHERE phone = ?
+    `).run(FEATURE_COST, FEATURE_COST, phone);
+
+    db.prepare(`
+        UPDATE ads SET is_featured = 1, featured_until = datetime('now', '+24 hours'), featured_count = featured_count + 1
+        WHERE id = ?
+    `).run(adId);
+
+    db.prepare(`
+        INSERT INTO coins_transactions (phone, type, amount, description, ad_id)
+        VALUES (?, 'spend', ?, ?, ?)
+    `).run(phone, FEATURE_COST, `تصدير إعلان: ${ad.title}`, adId);
+
+    const updatedWallet = db.prepare('SELECT * FROM user_coins WHERE phone = ?').get(phone);
+    const updatedAd      = db.prepare('SELECT * FROM ads WHERE id = ?').get(adId);
+    res.json({ success: true, balance: updatedWallet.balance, ad: updatedAd });
+});
+
+app.get('/api/coins/transactions/:phone', (req, res) => {
+    const transactions = db.prepare('SELECT * FROM coins_transactions WHERE phone = ? ORDER BY created_at DESC').all(req.params.phone);
+    res.json({ success: true, transactions });
+});
+
+// يبحث عن إعلانات انتهى تصدرها ويعيدها لوضعها الطبيعي (يشتغل تلقائياً كل ساعة + متاح للاستدعاء اليدوي)
+function expireFeaturedAds() {
+    const result = db.prepare(`
+        UPDATE ads SET is_featured = 0
+        WHERE is_featured = 1 AND featured_until IS NOT NULL AND featured_until <= datetime('now')
+    `).run();
+    return result.changes;
+}
+
+app.post('/api/coins/expire-featured', (req, res) => {
+    const expired = expireFeaturedAds();
+    res.json({ success: true, expired });
 });
 
 // ========== API الرسائل الداخلية (مرتبطة بالإعلانات) ==========
@@ -2397,6 +2505,9 @@ function autoReleaseOrders() {
 }
 
 setInterval(autoReleaseOrders, 60 * 60 * 1000);
+
+// ========== فحص دوري: انتهاء تصدّر الإعلانات (24 ساعة) ==========
+setInterval(expireFeaturedAds, 60 * 60 * 1000);
 
 // ========== تشغيل السيرفر ==========
 app.listen(PORT, () => {

@@ -3256,6 +3256,8 @@ body.dark-mode .btn-outline:hover {
     padding: 2px 7px;
     border-radius: 10px;
     font-family: 'Cairo', sans-serif;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .sidebar-divider {
@@ -6854,4 +6856,229 @@ body.dark-mode .completion-confirm-timer {
 
 body.dark-mode .dispute-notice-title { color: #ffffff; }
 body.dark-mode .dispute-notice-sub   { color: #aaaaaa; }
+
+/* ══ محفظة العملات الذهبية (تصدير الإعلانات — بوضع الإعلانات) ══ */
+
+.coins-balance-wrap {
+    background: #111111;
+    border-radius: 14px;
+    padding: 24px 20px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.coins-balance-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #F5C518;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+}
+.coins-balance-icon .icon { width: 26px; height: 26px; color: #111111; }
+
+.coins-balance-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: 6px;
+}
+
+.coins-balance-num {
+    font-size: 36px;
+    font-weight: 900;
+    color: #F5C518;
+    font-family: 'Cairo', sans-serif;
+}
+
+.coins-section-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #111111;
+    margin: 20px 0 12px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.coins-packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.coins-package-card {
+    position: relative;
+    border: 2px solid #EEEEEE;
+    border-radius: 14px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.coins-package-card:hover { border-color: #F5C51880; }
+
+.coins-package-card.selected {
+    border-color: #F5C518;
+    background: rgba(245,197,24,0.06);
+}
+
+.coins-package-popular-badge {
+    position: absolute;
+    top: -10px;
+    right: 50%;
+    transform: translateX(50%);
+    background: #F5C518;
+    color: #111111;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    font-family: 'Cairo', sans-serif;
+}
+
+.coins-package-icon { margin-bottom: 6px; }
+.coins-package-icon .icon { width: 24px; height: 24px; color: #F5C518; }
+
+.coins-package-coins {
+    font-size: 17px;
+    font-weight: 800;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.coins-package-bonus {
+    font-size: 11px;
+    font-weight: 700;
+    color: #10B981;
+    margin-top: 2px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.coins-package-price {
+    font-size: 13px;
+    color: #888888;
+    margin-top: 6px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.coins-charge-btn {
+    width: 100%;
+    margin-top: 16px;
+    background: #DDDDDD;
+    color: #999999;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    cursor: not-allowed;
+    transition: all 0.2s;
+}
+
+.coins-charge-btn.active {
+    background: #F5C518;
+    color: #111111;
+    cursor: pointer;
+}
+
+.coins-transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F0F0F0;
+}
+.coins-transaction-item:last-child { border-bottom: none; }
+
+.coins-transaction-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.coins-transaction-icon .icon { width: 17px; height: 17px; }
+
+.coins-transaction-desc {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+}
+
+.coins-transaction-date {
+    font-size: 11px;
+    color: #999999;
+    margin-top: 2px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.coins-transaction-amount {
+    font-size: 14px;
+    font-weight: 800;
+    font-family: 'Cairo', sans-serif;
+    white-space: nowrap;
+}
+
+body.dark-mode .coins-section-title { color: #ffffff; }
+body.dark-mode .coins-package-card { border-color: #333333; }
+body.dark-mode .coins-package-card:hover { border-color: #F5C51880; }
+body.dark-mode .coins-package-card.selected { background: rgba(245,197,24,0.1); }
+body.dark-mode .coins-package-coins { color: #ffffff; }
+body.dark-mode .coins-package-price { color: #888888; }
+body.dark-mode .coins-charge-btn { background: #333333; color: #777777; }
+body.dark-mode .coins-transaction-item { border-bottom-color: #2a2a2a; }
+body.dark-mode .coins-transaction-desc { color: #ffffff; }
+
+/* شارة "متصدر" على بطاقة الإعلان (ads.html/الرئيسية) — تصدير مقابل عملات ذهبية */
+.ad-card.featured { border: 2px solid #F5C518; }
+
+.ad-card-featured-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #F5C518;
+    color: #111111;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'Cairo', sans-serif;
+}
+.ad-card-featured-badge .icon { width: 11px; height: 11px; }
+
+/* زر وشارة تصدير الإعلان بقسم "إعلاناتي" (لوحة المزوّد) */
+.feature-ad-btn {
+    background: rgba(245,197,24,0.12);
+    color: #92700A;
+    border: 1px solid rgba(245,197,24,0.4);
+}
+
+.featured-ad-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(245,197,24,0.15);
+    color: #92700A;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    font-family: 'Cairo', sans-serif;
+}
+.featured-ad-badge .icon { width: 13px; height: 13px; }
+
+body.dark-mode .feature-ad-btn { background: rgba(245,197,24,0.1); color: #F5C518; border-color: rgba(245,197,24,0.3); }
+body.dark-mode .featured-ad-badge { background: rgba(245,197,24,0.1); color: #F5C518; }
 body.dark-mode .dispute-notice-box   { background: rgba(239,68,68,0.12); }

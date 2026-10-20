@@ -52,6 +52,7 @@ function renderAdDetails(ad) {
     document.getElementById('adCategoryIcon').setAttribute('href', `icons.svg#icon-${icon}`);
     document.getElementById('adTitle').textContent    = ad.title;
     document.getElementById('adCategory').textContent = ad.category;
+    document.getElementById('adFeaturedBadge').style.display = ad.is_featured ? 'inline-flex' : 'none';
 
     document.getElementById('adProviderName').textContent = ad.provider_name || 'مزوّد';
     document.getElementById('adRating').innerHTML = ad.avg_rating

@@ -345,6 +345,34 @@
         </div>
     </div>
 
+    <!-- رصيد غير كافٍ لتصدير إعلان -->
+    <div class="confirm-overlay" id="insufficientCoinsModal" style="display:none">
+        <div class="confirm-modal">
+            <div class="confirm-title"><svg class="icon"><use href="icons.svg#icon-coin"></use></svg> رصيدك غير كافٍ</div>
+            <p style="font-size:14px;color:#555555;line-height:1.8;margin-bottom:20px;font-family:'Cairo',sans-serif">
+                تحتاج 10 عملات لتصدر إعلانك
+            </p>
+            <div style="display:flex;gap:10px">
+                <button class="btn" style="flex:1" onclick="window.location.href='wallet.html'">اشترِ عملات <svg class="icon"><use href="icons.svg#icon-coin"></use></svg></button>
+                <button class="btn-gray-solid" style="flex:1" onclick="closeInsufficientCoinsModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- تأكيد تصدير إعلان -->
+    <div class="confirm-overlay" id="confirmFeatureModal" style="display:none">
+        <div class="confirm-modal">
+            <div class="confirm-title"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> تصدير الإعلان</div>
+            <p style="font-size:14px;color:#555555;line-height:1.8;margin-bottom:20px;font-family:'Cairo',sans-serif">
+                سيتم خصم 10 عملات من رصيدك وسيظهر إعلانك متصدراً لمدة 24 ساعة
+            </p>
+            <div style="display:flex;gap:10px">
+                <button class="btn" style="flex:1" onclick="confirmFeatureAd()">تأكيد <svg class="icon"><use href="icons.svg#icon-star"></use></svg></button>
+                <button class="btn-gray-solid" style="flex:1" onclick="closeConfirmFeatureModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <!-- معاهدة غوث (تظهر قبل نشر أي إعلان جديد) -->
     <div class="confirm-overlay" id="covenantOverlay" style="display:none">
         <div class="covenant-modal">
