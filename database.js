@@ -1,4 +1,4 @@
-// قاعدة بيانات غَوْث
+// قاعدة بيانات عتاد
 
 const Database = require('better-sqlite3');
 const db = new Database('yashjub.db');
@@ -197,7 +197,7 @@ db.exec(`
         updated_at TEXT DEFAULT (datetime('now'))
     );
 
-    -- جدول إعلانات "منصة غوث معاهدة" (نظام بديل مجاني — إعلان واحد فقط لكل مزود بكل قسم)
+    -- جدول إعلانات "منصة عتاد معاهدة" (نظام بديل مجاني — إعلان واحد فقط لكل مزود بكل قسم)
     CREATE TABLE IF NOT EXISTS ads (
         id             INTEGER PRIMARY KEY AUTOINCREMENT,
         provider_phone TEXT NOT NULL,
@@ -229,7 +229,7 @@ db.exec(`
         created_at     TEXT DEFAULT (datetime('now'))
     );
 
-    -- جدول دفعات رسوم معاهدة غوث (1% من قيمة الخدمة، تُدفع يدوياً من المزوّد عبر حاسبة الرسوم)
+    -- جدول دفعات رسوم معاهدة عتاد (1% من قيمة الخدمة، تُدفع يدوياً من المزوّد عبر حاسبة الرسوم)
     CREATE TABLE IF NOT EXISTS fee_payments (
         id             INTEGER PRIMARY KEY AUTOINCREMENT,
         provider_phone TEXT NOT NULL,

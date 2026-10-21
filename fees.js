@@ -1,11 +1,11 @@
-// كود صفحة حاسبة الرسوم والدفع (معاهدة غوث)
+// كود صفحة حاسبة الرسوم والدفع (معاهدة عتاد)
 
 const API = window.location.origin + '/api';
 
 const FEE_RATE = 0.01;
 let selectedPaymentMethod = null;
 
-// الصفحة خاصة بوضع الإعلانات فقط (رسوم معاهدة غوث ماكو مفهوم ينطبق على النظام المدفوع)
+// الصفحة خاصة بوضع الإعلانات فقط (رسوم معاهدة عتاد ماكو مفهوم ينطبق على النظام المدفوع)
 (async function redirectAwayIfPaidMode() {
     try {
         const res  = await fetch(`${API}/settings/active-system`);
@@ -24,7 +24,7 @@ function loadFeesPage() {
     }
 
     const savedName = localStorage.getItem('yashjub_name');
-    document.getElementById('sidebarUserName').textContent = savedName || 'مستخدم غَوْث';
+    document.getElementById('sidebarUserName').textContent = savedName || 'مستخدم عتاد';
     document.getElementById('sidebarPhone').textContent    = `+966${phone}`;
     renderSidebarAvatar();
 

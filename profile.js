@@ -39,7 +39,7 @@ function loadProfile() {
         document.getElementById('infoType').textContent    = 'مزود خدمة';
         document.getElementById('providerAction').style.display = 'flex';
     } else {
-        document.getElementById('profileName').textContent  = name || 'عميل غَوْث';
+        document.getElementById('profileName').textContent  = name || 'عميل عتاد';
         document.getElementById('infoType').textContent    = 'عميل';
     }
 }

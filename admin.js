@@ -2589,12 +2589,12 @@ async function submitAssignProvider() {
 
 const SYSTEM_SETTINGS_META = {
     paid_system: {
-        name: 'منصة غوث (مدفوع)',
+        name: 'منصة عتاد (مدفوع)',
         desc: 'نظام الطلبات المدفوعة — العميل يطلب ويدفع والمزود يخدمه، والمنصة تأخذ 5% عمولة',
         icon: 'cash',
     },
     ads_system: {
-        name: 'منصة غوث معاهدة - إعلانات',
+        name: 'منصة عتاد معاهدة - إعلانات',
         desc: 'نظام الإعلانات المجاني — المزود ينشر إعلانه والعميل يتواصل معه مباشرة عبر واتساب أو مكالمة',
         icon: 'broadcast',
     },
@@ -2658,7 +2658,7 @@ async function confirmToggleSetting(key, checkboxEl) {
     }
 }
 
-// ══ إدارة الإعلانات (منصة غوث معاهدة) ══
+// ══ إدارة الإعلانات (منصة عتاد معاهدة) ══
 
 let allAds = [];
 

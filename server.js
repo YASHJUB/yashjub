@@ -1,4 +1,4 @@
-// سيرفر غَوْث — مع قاعدة البيانات
+// سيرفر عتاد — مع قاعدة البيانات
 
 const express = require('express');
 const cors    = require('cors');
@@ -872,7 +872,7 @@ app.put('/api/providers/:id/approve', (req, res) => {
 
     createNotification(
         'تم قبول تسجيلك',
-        'تهانينا! تمت الموافقة على تسجيلك كمزوّد بمنصة غَوْث، يمكنك الآن استقبال الطلبات',
+        'تهانينا! تمت الموافقة على تسجيلك كمزوّد بمنصة عتاد، يمكنك الآن استقبال الطلبات',
         'update', 'specific', provider.phone, provider.phone,
     );
 
@@ -908,7 +908,7 @@ app.put('/api/providers/:id/reject', (req, res) => {
 
     createNotification(
         'تم رفض طلب التسجيل',
-        'للأسف تم رفض طلب تسجيلك كمزوّد بمنصة غَوْث — تواصل معنا لمزيد من التفاصيل',
+        'للأسف تم رفض طلب تسجيلك كمزوّد بمنصة عتاد — تواصل معنا لمزيد من التفاصيل',
         'alert', 'specific', provider.phone, provider.phone,
     );
 
@@ -1241,7 +1241,7 @@ app.get('/api/settings/active-system', (req, res) => {
     res.json({ success: true, activeSystem: adsActive ? 'ads' : 'paid' });
 });
 
-// ========== API إعلانات "منصة غوث معاهدة" ==========
+// ========== API إعلانات "منصة عتاد معاهدة" ==========
 
 const AD_JOIN_SQL = `
     SELECT ads.*,
@@ -1269,9 +1269,9 @@ app.post('/api/ads', (req, res) => {
         });
     }
 
-    // لازم يوافق على معاهدة غوث قبل نشر أي إعلان جديد (راجع "معاهدة غوث" بالتوثيق)
+    // لازم يوافق على معاهدة عتاد قبل نشر أي إعلان جديد (راجع "معاهدة عتاد" بالتوثيق)
     if (!acceptedCovenant) {
-        return res.json({ success: false, message: 'يجب الموافقة على معاهدة غوث قبل نشر الإعلان' });
+        return res.json({ success: false, message: 'يجب الموافقة على معاهدة عتاد قبل نشر الإعلان' });
     }
 
     const result = db.prepare(`
@@ -1420,7 +1420,7 @@ app.post('/api/ads/:id/images', upload.array('images', 5), (req, res) => {
     res.json({ success: true, images: allImages });
 });
 
-// ========== API رسوم معاهدة غوث (حاسبة الرسوم والدفع) ==========
+// ========== API رسوم معاهدة عتاد (حاسبة الرسوم والدفع) ==========
 
 app.post('/api/fees/pay', (req, res) => {
     const { providerPhone, serviceAmount, feeAmount, paymentMethod } = req.body;
@@ -2113,7 +2113,7 @@ app.put('/api/complaints/:id/action', (req, res) => {
         }
         logEntry = `تم إرسال تحذير${note ? ' — ' + note : ''}`;
         createNotification(
-            'تنبيه من إدارة غَوْث',
+            'تنبيه من إدارة عتاد',
             note || 'تم استلام بلاغ بخصوص سلوكك على المنصة، يرجى الالتزام بسياسات الاستخدام',
             'urgent', 'specific', complaint.reported_phone, complaint.reported_phone,
         );
@@ -2731,7 +2731,7 @@ setInterval(expireFeaturedAds, 60 * 60 * 1000);
 // ========== تشغيل السيرفر ==========
 app.listen(PORT, () => {
     console.log(`
-🚀 سيرفر غَوْث شغال!
+🚀 سيرفر عتاد شغال!
 🌐 افتح المتصفح على: http://localhost:${PORT}
 📡 API جاهز على: http://localhost:${PORT}/api
     `);

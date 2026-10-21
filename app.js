@@ -1,4 +1,4 @@
-// غَوْث - كود التفاعل الكامل
+// عتاد - كود التفاعل الكامل
 
 const API = window.location.origin + '/api';
 
@@ -127,7 +127,7 @@ async function loadServices() {
     }
 }
 
-// ══ التبديل بين نظام الطلبات المدفوعة ونظام الإعلانات (منصة غوث معاهدة) ══
+// ══ التبديل بين نظام الطلبات المدفوعة ونظام الإعلانات (منصة عتاد معاهدة) ══
 
 let currentActiveSystem = 'paid';
 
@@ -162,7 +162,7 @@ async function checkActiveSystem() {
     }
 }
 
-// تحويل الصفحة الرئيسية لواجهة الإعلانات (أقسام الإعلانات بدل الخدمات، إخفاء كيف يعمل/لماذا غوث، أحدث الإعلانات)
+// تحويل الصفحة الرئيسية لواجهة الإعلانات (أقسام الإعلانات بدل الخدمات، إخفاء كيف يعمل/لماذا عتاد، أحدث الإعلانات)
 async function switchToAdsMode() {
     const howSection   = document.querySelector('.how-section');
     const whySection   = document.querySelector('.why-section');

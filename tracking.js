@@ -1,4 +1,4 @@
-// كود تتبع الطلب في غَوْث
+// كود تتبع الطلب في عتاد
 
 const API = window.location.origin + '/api';
 

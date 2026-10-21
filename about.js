@@ -1,4 +1,4 @@
-// كود صفحة "من نحن" — محتوى مختلف بوضع الإعلانات (منصة غوث معاهدة)، بدون أي تغيير بوضع النظام المدفوع
+// كود صفحة "من نحن" — محتوى مختلف بوضع الإعلانات (منصة عتاد معاهدة)، بدون أي تغيير بوضع النظام المدفوع
 
 const API = window.location.origin + '/api';
 
@@ -36,7 +36,7 @@ function switchAboutToAdsMode() {
         document.getElementById(`value${n}Desc`).textContent  = v.desc;
     });
 
-    // لماذا غوث
+    // لماذا عتاد
     const whyCards = [
         { icon: 'flag',      title: 'سعودي 100%',         desc: 'منصة سعودية تفهم احتياجات السوق المحلي' },
         { icon: 'clipboard', title: 'قائم على المعاهدة',   desc: 'نظام فريد قائم على الالتزام الشرعي والأمانة' },
@@ -50,7 +50,7 @@ function switchAboutToAdsMode() {
     });
 
     // CTA
-    document.getElementById('ctaDesc').textContent = 'انضم لمنصة غوث وانشر إعلانك اليوم';
+    document.getElementById('ctaDesc').textContent = 'انضم لمنصة عتاد وانشر إعلانك اليوم';
 
     const btn1 = document.getElementById('ctaBtn1');
     btn1.innerHTML = 'انشر إعلانك الآن <svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg>';

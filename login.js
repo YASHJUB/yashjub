@@ -1,4 +1,4 @@
-// كود تسجيل الدخول في غَوْث
+// كود تسجيل الدخول في عتاد
 
 const API = window.location.origin + '/api';
 
@@ -34,7 +34,7 @@ function switchLoginToAdsMode() {
     const stats     = document.querySelector('.login-stats');
 
     if (tabs) tabs.style.display = 'none';
-    if (leftTitle) leftTitle.textContent = 'منصة غوث';
+    if (leftTitle) leftTitle.textContent = 'منصة عتاد';
     if (leftDesc) leftDesc.textContent = 'تصفح الإعلانات أو انشر إعلانك وتواصل مباشرة مع العملاء';
     if (features) features.style.display = 'none';
     if (stats) stats.style.display = 'none';
@@ -98,7 +98,7 @@ async function verifyOTP() {
             if (data.name) {
                 // عنده اسم محفوظ مسبقاً
                 localStorage.setItem('yashjub_name', data.name);
-                showAppAlert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في غَوْث 👷", redirectAfterLogin);
+                showAppAlert("✅ تم تسجيل الدخول بنجاح!\nأهلاً بك في عتاد 👷", redirectAfterLogin);
             } else {
                 // أول مرة يدخل — لازم يحدد اسمه قبل ما يكمل
                 document.getElementById('namePopupOverlay').style.display = 'flex';

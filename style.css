@@ -1,5 +1,5 @@
 /* ===========================
-   غَوْث — التصميم الاحترافي
+   عتاد — التصميم الاحترافي
    أبيض + أصفر + أسود
 =========================== */
 
@@ -1426,7 +1426,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     font-weight: 700;
 }
 
-/* ══ لماذا غَوْث ══ */
+/* ══ لماذا عتاد ══ */
 
 .why-section {
     background-color: #FAFAFA;
@@ -4163,7 +4163,7 @@ body.dark-mode .empty-sub { color: #888888; }
     .how-desc { font-size: 10px; }
     .how-arrow { display: none !important; }
 
-    /* لماذا غَوْث */
+    /* لماذا عتاد */
     .why-section { padding: 30px 16px; }
     .why-section h2 { font-size: 22px !important; }
     .why-grid { grid-template-columns: 1fr !important; gap: 10px; }
@@ -5342,7 +5342,7 @@ a.btn-call, a.btn-chat, button.btn-message, button.btn-chat {
     width: 100%;
 }
 
-/* ══ بطاقة إعلان (منصة غوث معاهدة) ══ */
+/* ══ بطاقة إعلان (منصة عتاد معاهدة) ══ */
 .ad-card {
     position: relative;
     height: 280px;
@@ -5924,7 +5924,7 @@ body.dark-mode .ad-filter-clear-btn:hover { background: #3d3d3d; }
     gap: 10px;
 }
 
-/* ══ معاهدة غوث (popup قبل نشر إعلان جديد — provider.html) ══ */
+/* ══ معاهدة عتاد (popup قبل نشر إعلان جديد — provider.html) ══ */
 .covenant-modal {
     background: #FFFFFF;
     border: 2px solid #F5C518;

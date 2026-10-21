@@ -53,7 +53,7 @@ function switchWalletToAdsMode(phone) {
     document.getElementById('coinsWalletSection').style.display = 'block';
 
     const savedName = localStorage.getItem('yashjub_name');
-    document.getElementById('providerNameSidebar').textContent  = savedName || 'مستخدم غَوْث';
+    document.getElementById('providerNameSidebar').textContent  = savedName || 'مستخدم عتاد';
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
     renderSidebarAvatar();
     const badge = document.getElementById('sidebarProviderBadge');

@@ -640,7 +640,7 @@ async function deleteProduct(id) {
     }
 }
 
-// ══ إعلاناتي (منصة غوث معاهدة) ══
+// ══ إعلاناتي (منصة عتاد معاهدة) ══
 
 let myAds       = [];
 let editingAdId = null;
@@ -985,7 +985,7 @@ document.addEventListener('change', (e) => {
     }
 });
 
-// يتحقق من الحقول الأساسية (كل حقل برسالته وتمييزه الخاص)، وإذا كان إعلاناً جديداً (مو تعديل) يفتح معاهدة غوث أولاً بدل النشر المباشر
+// يتحقق من الحقول الأساسية (كل حقل برسالته وتمييزه الخاص)، وإذا كان إعلاناً جديداً (مو تعديل) يفتح معاهدة عتاد أولاً بدل النشر المباشر
 function handlePublishClick() {
     const category  = document.getElementById('adCategorySelect').value;
     const title     = document.getElementById('adTitleInput').value.trim();
@@ -1009,7 +1009,7 @@ function handlePublishClick() {
     }
 }
 
-// ══ معاهدة غوث (popup إلزامي قبل نشر أي إعلان جديد) ══
+// ══ معاهدة عتاد (popup إلزامي قبل نشر أي إعلان جديد) ══
 
 function openCovenantModal() {
     document.getElementById('covenantCheckbox').checked = false;

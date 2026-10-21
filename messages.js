@@ -17,7 +17,7 @@ function loadMessagesPage() {
     }
 
     const savedName = localStorage.getItem('yashjub_name');
-    document.getElementById('sidebarUserName').textContent = savedName || 'مستخدم غَوْث';
+    document.getElementById('sidebarUserName').textContent = savedName || 'مستخدم عتاد';
     document.getElementById('sidebarPhone').textContent    = `+966${myPhone}`;
     renderSidebarAvatar();
 

@@ -54,12 +54,12 @@ function renderInvoice(inv) {
     document.getElementById('invoiceLoading').style.display = 'none';
     document.getElementById('invoiceContent').style.display = 'block';
 
-    document.title = `فاتورة ${inv.invoice_number} - غَوْث`;
+    document.title = `فاتورة ${inv.invoice_number} - عتاد`;
 
     document.getElementById('invNumber').textContent = inv.invoice_number;
     document.getElementById('invDate').textContent   = new Date(inv.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('ar-SA');
 
-    document.getElementById('invClientName').textContent  = inv.client_name || 'عميل غَوْث';
+    document.getElementById('invClientName').textContent  = inv.client_name || 'عميل عتاد';
     document.getElementById('invClientPhone').textContent = `+966${inv.client_phone}`;
 
     document.getElementById('invService').textContent = inv.service;
