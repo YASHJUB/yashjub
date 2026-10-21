@@ -59,6 +59,7 @@ body {
     width: auto;
     margin-bottom: 2px;
     filter: brightness(1);
+    mix-blend-mode: screen;
 }
 
 .tagline {
@@ -3894,6 +3895,7 @@ body.dark-mode .empty-sub { color: #888888; }
 .login-logo {
     height: 80px;
     margin-bottom: 30px;
+    mix-blend-mode: screen;
 }
 
 .login-left h2 {
