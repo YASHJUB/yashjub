@@ -31,6 +31,8 @@ function loadProfile() {
     loadMyEmail(phone);
     renderAvatar(localStorage.getItem('yashjub_avatar'));
     loadMyAvatar(phone);
+    renderUsername(localStorage.getItem('yashjub_username'));
+    loadMyUsername(phone);
 
     if (type === 'provider') {
         document.getElementById('profileName').textContent  = name || 'مزود خدمة';
@@ -93,6 +95,7 @@ function logoutProfile() {
         localStorage.removeItem('yashjub_type');
         localStorage.removeItem('yashjub_name');
         localStorage.removeItem('yashjub_avatar');
+        localStorage.removeItem('yashjub_username');
         window.location.href = 'index.html';
     }
 }
@@ -110,6 +113,141 @@ async function loadMyEmail(phone) {
             document.getElementById('infoEmail').textContent = me.email;
         }
     } catch (e) {}
+}
+
+// ══ اسم العضوية (@username) ══
+
+async function loadMyUsername(phone) {
+    try {
+        const res  = await fetch(`${API}/users`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const me = data.users.find(u => u.phone === phone);
+        if (me && me.username) {
+            localStorage.setItem('yashjub_username', me.username);
+            renderUsername(me.username);
+        }
+    } catch (e) {}
+}
+
+function renderUsername(username) {
+    const el = document.getElementById('profileUsername');
+    if (!el) return;
+    el.innerHTML = username ? `<span class="at-sign">@</span>${username}` : '—';
+}
+
+function openUsernameModal() {
+    document.getElementById('usernameModalInput').value = '';
+    const status = document.getElementById('usernameCheckStatus');
+    status.textContent = '';
+    status.className   = 'username-check-status';
+    document.getElementById('saveUsernameBtn').disabled = true;
+    usernameCheckValue = null;
+    document.getElementById('usernameModalOverlay').style.display = 'flex';
+    document.getElementById('usernameModalInput').focus();
+}
+
+function closeUsernameModal() {
+    document.getElementById('usernameModalOverlay').style.display = 'none';
+    clearTimeout(usernameCheckTimer);
+}
+
+let usernameCheckTimer = null;
+let usernameCheckValue = null;
+
+// تحقق فوري أثناء الكتابة: طول/أحرف مسموحة محلياً فوراً، ثم توفر الاسم من السيرفر بعد توقف الكتابة (debounce)
+function onUsernameInputChange() {
+    const input   = document.getElementById('usernameModalInput');
+    const status  = document.getElementById('usernameCheckStatus');
+    const saveBtn = document.getElementById('saveUsernameBtn');
+    const value   = input.value.trim();
+
+    clearTimeout(usernameCheckTimer);
+    usernameCheckValue = null;
+    saveBtn.disabled = true;
+
+    if (!value) {
+        status.textContent = '';
+        status.className   = 'username-check-status';
+        return;
+    }
+    if (value.length < 3) {
+        status.textContent = 'قصير جداً';
+        status.className   = 'username-check-status status-taken';
+        return;
+    }
+    if (value.length > 20) {
+        status.textContent = 'طويل جداً';
+        status.className   = 'username-check-status status-taken';
+        return;
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+        status.textContent = 'أحرف غير مسموحة';
+        status.className   = 'username-check-status status-taken';
+        return;
+    }
+
+    status.textContent = '⏳ جاري التحقق...';
+    status.className   = 'username-check-status status-checking';
+
+    usernameCheckTimer = setTimeout(() => checkUsernameAvailability(value), 500);
+}
+
+async function checkUsernameAvailability(value) {
+    const input   = document.getElementById('usernameModalInput');
+    const status  = document.getElementById('usernameCheckStatus');
+    const saveBtn = document.getElementById('saveUsernameBtn');
+
+    if (input.value.trim() !== value) return; // المستخدم كمل يكتب أثناء انتظار الرد
+
+    try {
+        const res  = await fetch(`${API}/users/check-username/${encodeURIComponent(value)}`);
+        const data = await res.json();
+
+        if (input.value.trim() !== value) return;
+
+        if (data.available) {
+            status.textContent = '✅ متاح';
+            status.className   = 'username-check-status status-available';
+            usernameCheckValue = value;
+            saveBtn.disabled    = false;
+        } else {
+            status.textContent = '❌ مستخدم من قبل';
+            status.className   = 'username-check-status status-taken';
+            usernameCheckValue = null;
+            saveBtn.disabled    = true;
+        }
+    } catch (e) {
+        status.textContent = 'تعذّر التحقق';
+        status.className   = 'username-check-status status-taken';
+    }
+}
+
+async function saveUsername() {
+    const phone = localStorage.getItem('yashjub_phone');
+    const value = usernameCheckValue;
+    if (!value) return;
+
+    try {
+        const res  = await fetch(`${API}/users/${phone}/username`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ username: value }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            localStorage.setItem('yashjub_username', data.username);
+            renderUsername(data.username);
+            closeUsernameModal();
+            showAppAlert('✅ تم تحديث اسم العضوية');
+        } else {
+            showAppAlert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        showAppAlert('❌ خطأ في الاتصال بالسيرفر');
+    }
 }
 
 // ══ الصورة الشخصية (أفاتار) — موحّدة بين العميل والمزوّد، JPG أو PDF فقط ≤5MB ══
@@ -351,6 +489,7 @@ async function confirmDeleteAccount() {
             localStorage.removeItem('yashjub_type');
             localStorage.removeItem('yashjub_name');
             localStorage.removeItem('yashjub_avatar');
+            localStorage.removeItem('yashjub_username');
             showAppAlert('✅ تم حذف حسابك نهائياً', () => window.location.href = 'index.html');
         } else {
             alert(`❌ ${data.message}`);

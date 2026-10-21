@@ -70,6 +70,22 @@
 ### اسم المستخدم (عميل ومزوّد)
 `users.name` — أول مرة يتحقق فيها أي مستخدم (عميل أو مزوّد) من OTP بـ `login.html` وما عنده اسم محفوظ بالسيرفر، تظهر نافذة ترحيب إلزامية (بدون زر إغلاق) تطلب اسمه قبل ما يكمل — تُحفظ عبر `PUT /api/users/:phone/name` وبـ `localStorage` كـ `yashjub_name`. الاسم يظهر بدل "عميل غَوْث"/"مزود خدمة" بصفحة `profile.html` (مع زر "تعديل الاسم")، وبسايد بار `index.html` (`app.js`) — **لوحة المزود (`provider.js`) ما تعدّلت لنفس الشي**، لسه تعرض "مزود خدمة" ثابت بسايد بارها الخاص، لأن الطلب الأصلي حصر التعديل بـ `app.js`. `yashjub_name` يُمسح من localStorage مع باقي بيانات الجلسة عند تسجيل الخروج (بكل نقاط الخروج الثلاث: `app.js`, `profile.js`, `provider.js`).
 
+### اسم العضوية (@username — `users.username`/`username_changed_at`)
+كل مستخدم (عميل أو مزوّد) له اسم عضوية فريد على شكل `@username` — يُنشأ تلقائياً **أول تسجيل دخول ناجح** (أول `POST /api/auth/verify-otp` ناجح، لا عند مجرد إرسال OTP) بصيغة `user` + آخر 6 أرقام من الجوال (مثال: `501234567` → `user234567`) — مع تفادي تصادم نادر (رقمين مختلفين بنفس آخر 6 أرقام) عبر إضافة `_2`/`_3`... للاسم الأساسي لحد ما يصير فريد. **مستخدمو ما قبل هالتحديث** يحصلون اسم عضوية بنفس الصيغة تلقائياً عبر migration تُنفَّذ مرة وحدة بـ`database.js` (كل صف `username IS NULL`، بنفس منطق توليد التصادم).
+
+**التحقق والتغيير:**
+- `GET /api/users/check-username/:username` — يتحقق من التوفر فقط (بدون أي تعديل)، يرجّع `{ available: true/false }` — يرفض صراحة (available:false) لو الصيغة غير صالحة أو الاسم محجوز، بدون تمييز السبب بالاستجابة نفسها (التمييز يصير بالواجهة محلياً قبل حتى استدعاء الـ API — راجع تحت).
+- `PUT /api/users/:phone/username` — body: `{ username }` — التغيير الفعلي، بالشروط: 3-20 حرف إنجليزي/رقم/`_` فقط (regex `^[a-zA-Z0-9_]{3,20}$`، مافيه مسافات أصلاً لأن الصيغة ما تسمح بيها)، غير محجوز (`admin`/`ghawth`/`support` — قائمة ثابتة `RESERVED_USERNAMES` بـ`server.js`، مقارنة case-insensitive)، غير مستخدم من قبل أي حساب آخر، وما مضت أقل من 30 يوم منذ آخر تغيير (`username_changed_at`، نفس أسلوب مقارنة التواريخ المستخدم أصلاً لـ`suspended_until` بالمشروع). عند النجاح يُحدَّث `username` و`username_changed_at = datetime('now')` معاً.
+- **أعمدة `ads.provider_username`/`comments.commenter_username`/`ad_reviews.reviewer_username` غير موجودة فعلياً** — تُحسب حيّة بـ`subquery` على جدول `users` وقت القراءة (`AD_JOIN_SQL`، `GET /api/comments/:ad_id`، `GET /api/ads/:id/reviews`) بدل تخزينها كنسخة ثابتة وقت الإنشاء (خلافاً لـ`commenter_name`/`reviewer_name` اللي تُخزَّن كنص وقت الإرسال) — يعني لو المستخدم غيّر اسم عضويته لاحقاً، كل تعليقاته/تقييماته القديمة تعرض اسمه **الحالي** تلقائياً بدل الاسم وقت الإرسال.
+
+**الواجهة (`profile.html`)**: يظهر `@username` (بلون رمادي `#888888`، الـ`@` نفسها بالذهبي `#F5C518`) تحت الاسم مباشرة بالبطاقة العلوية **كنص للعرض فقط، بدون أي زر تعديل بجانبه** — التعديل انتقل لصف مستقل "تغيير اسم العضوية" (أيقونة `icon-id-card`) **أول عنصر** بقائمة "إجراءات" ببطاقة "معلوماتي" (قبل "تغيير البريد الإلكتروني" مباشرة)، بنفس نمط `.profile-action` المستخدم أصلاً لبقية الصفوف (سهم ← يسار، onclick على الصف كامل). الضغط عليه يفتح نافذة `#usernameModalOverlay` (نفس مكوّن `.confirm-overlay`/`.confirm-modal` العام) فيها حقل إدخال بادئته `@` ثابتة (`.username-input-wrap`)، وتحقق فوري أثناء الكتابة (`onUsernameInputChange()`): طول/أحرف غير صالحة تُكتشف **محلياً فوراً بدون أي استدعاء سيرفر** (رسائل "قصير جداً"/"طويل جداً"/"أحرف غير مسموحة")، وبعدها فقط (الصيغة سليمة) يبدأ عدّ تنازلي 500ms (`debounce`) يعرض "⏳ جاري التحقق..." ثم يستدعي `GET /api/users/check-username/:username` ويعرض النتيجة (✅ أخضر متاح / ❌ أحمر مستخدم). زر "حفظ" يبقى `disabled` طول الوقت إلا لحظة وصول رد ✅ متاح فعلي لنفس القيمة الحالية بالحقل بالضبط (`usernameCheckValue`، يُصفَّر عند أي تغيير جديد بالحقل أو فتح النافذة من جديد — يمنع حفظ قيمة قديمة لو المستخدم عدّل الحقل بعد التحقق بدون انتظار تحقق جديد).
+
+**الظهور بباقي الصفحات:** `ad-details.html` يعرض `@username` المعلن جنب اسمه ببطاقة التفاصيل (`.detail-value#adProviderName`)، وتحت كل معلّق بقسم التعليقات (`.comment-header`) وكل مُقيِّم بقسم التقييمات (`.my-review-item`) — الثلاثة بكلاس مشترك `.username-inline` (رمادي، LTR، حجم أصغر من النص الأساسي) يُبنى بـ`innerHTML` بـ`ad-details.js` فقط لو `_username` المقابل موجود بالاستجابة (بعض الحسابات القديمة جداً نظرياً ممكن تكون بدون username لو لسه ما سجّلت دخول بعد هالتحديث إطلاقاً — حالة نادرة جداً بما إن التوليد التلقائي + الـmigration يغطّيان كل الحالات العملية).
+
+**`localStorage.yashjub_username`** يُحفظ وقت تسجيل الدخول (`login.js` يقرأه من استجابة `verify-otp`) ويُمسح مع باقي بيانات الجلسة بكل نقاط تسجيل الخروج السبع (`app.js`, `fees.js`, `messages.js`, `profile.js` ×2 — تسجيل الخروج وحذف الحساب، `provider-orders.js`, `provider.js`, `wallet.js`) وعند حذف الحساب — نفس الثمانية أماكن اللي تمسح `yashjub_avatar`.
+
+**قيود معروفة ومتعمّدة:** فهرس `UNIQUE` حقيقي بقاعدة البيانات (`idx_users_username`) يمنع أي تصادم فعلي حتى لو تحايل الطلب على تحقق الواجهة، لكن **سباق نادر جداً** ممكن نظرياً (طلبين `PUT /username` لنفس الاسم بنفس اللحظة بالضبط يمران من فحص `SELECT` قبل أي منهما ينفّذ `UPDATE`) — القيد الفعلي بقاعدة البيانات يرفض الثاني فعلياً برمي استثناء لو صار، بس الكود الحالي ما يلتقط هذا الاستثناء بشكل خاص (نفس مستوى القبول بباقي أجزاء المشروع للسباقات النادرة جداً، لا يوجد قفل صريح). ماكو badge أو عداد خاص باسم العضوية بأي مكان.
+
 ### الصورة الشخصية (أفاتار — `users.avatar_path`، موحّدة بين العميل والمزوّد)
 كانت دائرة السايد بار ثابتة الأيقونة دايماً (`icon-user` للعميل، `icon-worker` للمزوّد — شكلين مختلفين حسب `yashjub_type`) — توحّدت الآن لنفس الشكل بالضبط لكل المستخدمين (`icon-user` افتراضياً للجميع)، مع إمكانية حقيقية لأي مستخدم (عميل أو مزوّد) يرفع صورته الشخصية الخاصة بدل الأيقونة الافتراضية — **نفس قيود الملفات المستخدمة أصلاً لمستندات تسجيل المزودين بالضبط** (JPG أو PDF فقط، ≤5MB، نفس `multer` instance المُعاد استخدامها حرفياً بدون أي تعديل بالقيود) — **تنبيه معروف ومقبول:** رفع PDF كصورة شخصية تقنياً مسموح (نفس قيد الملفات العام بالمشروع)، بس عملياً راح يظهر كصورة مكسورة بكل مكان تُعرض فيه الأفاتار (`<img>` ما يقدر يعرض محتوى PDF) — قيد مقصود مقبول حسب الطلب الأصلي حرفياً، بدون أي تحقق إضافي من جهة الواجهة يمنع رفع PDF تحديداً للأفاتار.
 
@@ -450,7 +466,7 @@ yashjub/
 
 **قاعدة البيانات (SQLite):**
 ```sql
-users       -- phone, otp, verified, name, email, avatar_path (راجع "الصورة الشخصية")، suspended_until
+users       -- phone, otp, verified, name, email, avatar_path (راجع "الصورة الشخصية")، username, username_changed_at (راجع "اسم العضوية")، suspended_until
 orders      -- phone, service, address, price, commission, status (pending/accepted/arrived/awaiting_confirmation/disputed/completed/cancelled)، provider_id, provider_name, provider_phone, product_id, lat, lng, coupon_code, discount, accepted_at, arrived_at, completed_at (راجع "نظام تتبع الطلب الحقيقي")، provider_lat, provider_lng (موقع المزوّد الحي أثناء التنفيذ — راجع "تتبع المزوّد على الخريطة")، completion_requested_at, client_confirmed, client_confirmed_at, dispute_reason, auto_released (راجع "تأكيد اكتمال الخدمة من العميل")
 providers   -- phone, name, service_type, level, rating, id_document_path, certificate_path, driving_license_path/vehicle_registration_path/transport_permit_path (إلزامية لمزودي السطحة فقط)، suspended_until, status (pending/approved/rejected — راجع قسم "موافقة الإدارة على تسجيل المزودين")، work_lat/work_lng/work_radius/work_city (نطاق عمل اختياري — راجع قسم "نطاق عمل المزوّد")، city*, price_small*, price_medium*, price_large*  (*deprecated، غير مستخدمة)
 products    -- provider_id, name, description, size, price, min_days, city, neighborhood, is_available, lat, lng
@@ -595,9 +611,11 @@ comments    -- ad_id، commenter_phone، commenter_name، comment، is_visible،
 **API Endpoints:**
 ```
 POST /api/auth/send-otp
-POST /api/auth/verify-otp                     الاستجابة تتضمن name (فاضي لو المستخدم ما حدد اسمه بعد)، avatarPath (فاضي لو ماعنده صورة)، وisProvider (مزوّد معتمد فعلياً أم لا — يستخدمها login.html بوضع الإعلانات فقط)
+POST /api/auth/verify-otp                     الاستجابة تتضمن name (فاضي لو المستخدم ما حدد اسمه بعد)، avatarPath (فاضي لو ماعنده صورة)، username (يُولَّد تلقائياً أول مرة لو ماعنده)، وisProvider (مزوّد معتمد فعلياً أم لا — يستخدمها login.html بوضع الإعلانات فقط)
 PUT  /api/users/:phone/name                    body: { name } — حفظ/تعديل اسم المستخدم (عميل أو مزوّد)
 PUT  /api/users/:phone/email                   body: { email } — تغيير البريد الإلكتروني (profile.html)، يتحقق من صيغة البريد
+GET  /api/users/check-username/:username       فحص توفر اسم عضوية فقط (بدون تعديل) — { available: true/false }
+PUT  /api/users/:phone/username                 body: { username } — تغيير اسم العضوية، مرة كل 30 يوم فقط (راجع "اسم العضوية")
 PUT  /api/users/:phone/avatar                  multipart، حقل avatar — رفع/تغيير الصورة الشخصية (JPG أو PDF فقط ≤5MB)، يرجّع avatarPath
 DELETE /api/users/:phone/avatar                يصفّر avatar_path لـNULL (بدون حذف الملف الفعلي من uploads)
 PUT  /api/users/:phone/change-phone            body: { newPhone, otp } — تغيير رقم الجوال بعد تحقق OTP (المُرسَل لـnewPhone عبر POST /api/auth/send-otp)، يرحّل كل البيانات المرتبطة بالرقم القديم لكل الجداول (orders/providers/ads/chats/notifications/complaints/reviews/testimonials/invoices/ad_reviews)
@@ -759,7 +777,7 @@ PUT  /api/comments/:id/hide                    body اختياري: { isVisible 
 3. كلمة مرور الإدارة: `yashjub2025`
 4. OTP الحالي محاكاة فقط — يظهر في alert (لم يُربط بمزود SMS حقيقي بعد)
 5. العمولة 5% تُضاف تلقائياً فوق سعر الخدمة وتُحصَّل من العميل (ما تُخصم من المزوّد — راجع "نظام المالية")
-6. localStorage يحفظ `yashjub_phone`، `yashjub_type`، `yashjub_name`، و`yashjub_avatar` (راجع "الصورة الشخصية")
+6. localStorage يحفظ `yashjub_phone`، `yashjub_type`، `yashjub_name`، `yashjub_avatar` (راجع "الصورة الشخصية")، و`yashjub_username` (راجع "اسم العضوية")
 7. `.gitignore` يستثني: `node_modules/`, `yashjub.db`, `.env`, `.claude/`, `uploads/`
 8. API URLs تستخدم `window.location.origin` لتعمل محلياً وعلى الإنترنت بدون تعديل
 9. الجوال يحتاج الرابط الحقيقي (Render) — localhost لا يعمل على الجوال مباشرة

@@ -126,6 +126,7 @@ function renderComments(comments) {
                 <div class="comment-body">
                     <div class="comment-header">
                         <span class="comment-name">${c.commenter_name || 'مستخدم'}</span>
+                        ${c.commenter_username ? `<span class="username-inline">@${c.commenter_username}</span>` : ''}
                         <span class="comment-time">${timeAgo(c.created_at)}</span>
                     </div>
                     <div class="comment-text">${c.comment}</div>
@@ -241,7 +242,8 @@ function renderAdDetails(ad) {
     document.getElementById('adCategory').textContent = ad.category;
     document.getElementById('adFeaturedBadge').style.display = ad.is_featured ? 'inline-flex' : 'none';
 
-    document.getElementById('adProviderName').textContent = ad.provider_name || 'مزوّد';
+    document.getElementById('adProviderName').innerHTML = (ad.provider_name || 'مزوّد') +
+        (ad.provider_username ? ` <span class="username-inline">@${ad.provider_username}</span>` : '');
     document.getElementById('adRating').innerHTML = ad.avg_rating
         ? `<svg class="icon" style="color:#F5C518;width:13px;height:13px"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating} (${ad.reviews_count} تقييم)`
         : 'بدون تقييم بعد';
@@ -311,7 +313,7 @@ async function loadAdReviews() {
                 <div class="my-review-stars">${Array.from({ length: 5 }, (_, i) =>
                     `<svg class="icon" style="opacity:${i < r.rating ? 1 : 0.25}"><use href="icons.svg#icon-star"></use></svg>`
                 ).join('')}</div>
-                <div style="font-size:13px;font-weight:700;margin-top:4px">${r.reviewer_name || 'مستخدم'}</div>
+                <div style="font-size:13px;font-weight:700;margin-top:4px">${r.reviewer_name || 'مستخدم'} ${r.reviewer_username ? `<span class="username-inline">@${r.reviewer_username}</span>` : ''}</div>
                 ${r.comment ? `<div class="my-review-comment">${r.comment}</div>` : ''}
                 <div class="my-review-date">${new Date(r.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('ar-SA')}</div>
             </div>

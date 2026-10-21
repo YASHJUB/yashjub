@@ -306,6 +306,7 @@ function logout() {
     localStorage.removeItem('yashjub_type');
     localStorage.removeItem('yashjub_name');
     localStorage.removeItem('yashjub_avatar');
+    localStorage.removeItem('yashjub_username');
     window.location.href = 'index.html';
 }
 

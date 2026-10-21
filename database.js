@@ -409,6 +409,8 @@ const migrations = [
     'ALTER TABLE ads ADD COLUMN is_featured INTEGER DEFAULT 0',
     'ALTER TABLE ads ADD COLUMN featured_until TEXT',
     'ALTER TABLE ads ADD COLUMN featured_count INTEGER DEFAULT 0',
+    'ALTER TABLE users ADD COLUMN username TEXT',
+    'ALTER TABLE users ADD COLUMN username_changed_at TEXT',
 ];
 
 for (const sql of migrations) {
@@ -416,6 +418,29 @@ for (const sql of migrations) {
         db.exec(sql);
     } catch (err) {
         // العمود موجود مسبقاً — تجاهل
+    }
+}
+
+// فهرس فريد لاسم العضوية (يمنع التكرار) — بعد إضافة العمود بالـmigrations فوق مباشرة
+try {
+    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)');
+} catch (err) {
+    // موجود مسبقاً — تجاهل
+}
+
+// توليد اسم عضوية تلقائي (user + آخر 6 أرقام من الجوال) لأي مستخدم قديم ماله اسم عضوية بعد (قبل إضافة هذي الميزة)
+const usersWithoutUsername = db.prepare('SELECT phone FROM users WHERE username IS NULL').all();
+if (usersWithoutUsername.length) {
+    const setUsername = db.prepare('UPDATE users SET username = ? WHERE phone = ?');
+    for (const { phone } of usersWithoutUsername) {
+        const base = 'user' + phone.slice(-6);
+        let candidate = base;
+        let counter = 2;
+        while (db.prepare('SELECT 1 FROM users WHERE username = ?').get(candidate)) {
+            candidate = `${base}_${counter}`;
+            counter++;
+        }
+        setUsername.run(candidate, phone);
     }
 }
 

@@ -122,6 +122,26 @@ function recalculateProviderRating(phone) {
     }
 }
 
+// ══ اسم العضوية (@username) ══
+
+const RESERVED_USERNAMES = ['admin', 'ghawth', 'support'];
+
+function isValidUsernameFormat(username) {
+    return typeof username === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(username);
+}
+
+// توليد اسم مستخدم تلقائي أول تسجيل دخول ناجح: user + آخر 6 أرقام من الجوال — مع تفادي أي تصادم نادر (أرقام مختلفة بنفس آخر 6 أرقام)
+function generateUsernameFromPhone(phone) {
+    const base = 'user' + phone.slice(-6);
+    let candidate = base;
+    let counter = 2;
+    while (db.prepare('SELECT 1 FROM users WHERE username = ?').get(candidate)) {
+        candidate = `${base}_${counter}`;
+        counter++;
+    }
+    return candidate;
+}
+
 // ========== API المستخدمين ==========
 
 app.post('/api/auth/send-otp', (req, res) => {
@@ -166,9 +186,16 @@ app.post('/api/auth/verify-otp', (req, res) => {
 
     db.prepare('UPDATE users SET verified = 1 WHERE phone = ?').run(phone);
 
+    // أول تسجيل دخول ناجح لمستخدم ماله اسم عضوية بعد — يُنشأ تلقائياً (user + آخر 6 أرقام من الجوال)
+    let username = user.username;
+    if (!username) {
+        username = generateUsernameFromPhone(phone);
+        db.prepare('UPDATE users SET username = ? WHERE phone = ?').run(username, phone);
+    }
+
     // isProvider: يستخدمها login.html بوضع الإعلانات (دخول موحّد بدون تبويبي عميل/مزود) لتحديد النوع تلقائياً بدل اختيار المستخدم اليدوي
     const isProvider = !!(provider && provider.status === 'approved');
-    res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone, name: user.name, avatarPath: user.avatar_path, isProvider });
+    res.json({ success: true, message: 'تم تسجيل الدخول بنجاح', phone, name: user.name, avatarPath: user.avatar_path, username, isProvider });
 });
 
 app.put('/api/users/:phone/name', (req, res) => {
@@ -207,6 +234,58 @@ app.put('/api/users/:phone/email', (req, res) => {
     db.prepare('UPDATE users SET email = ? WHERE phone = ?').run(email.trim(), phone);
 
     res.json({ success: true, email: email.trim() });
+});
+
+// التحقق من توفر اسم مستخدم معيّن (فحص فوري أثناء الكتابة بـ profile.html) — بدون أي تعديل فعلي
+app.get('/api/users/check-username/:username', (req, res) => {
+    const { username } = req.params;
+
+    if (!isValidUsernameFormat(username) || RESERVED_USERNAMES.includes(username.toLowerCase())) {
+        return res.json({ available: false });
+    }
+
+    const existing = db.prepare('SELECT phone FROM users WHERE username = ?').get(username);
+    res.json({ available: !existing });
+});
+
+// تغيير اسم العضوية (@username) — مرة كل 30 يوم بالضبط
+app.put('/api/users/:phone/username', (req, res) => {
+    const { phone }    = req.params;
+    const { username } = req.body;
+
+    if (!isValidUsernameFormat(username)) {
+        return res.json({ success: false, message: 'اسم المستخدم لازم يكون 3-20 حرف إنجليزي أو رقم أو _ فقط، بدون مسافات' });
+    }
+
+    if (RESERVED_USERNAMES.includes(username.toLowerCase())) {
+        return res.json({ success: false, message: 'اسم المستخدم هذا محجوز' });
+    }
+
+    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    if (user.username === username) {
+        return res.json({ success: false, message: 'هذا اسم المستخدم الحالي أصلاً' });
+    }
+
+    if (user.username_changed_at) {
+        const nextAllowed = new Date(user.username_changed_at.replace(' ', 'T') + 'Z');
+        nextAllowed.setDate(nextAllowed.getDate() + 30);
+        if (nextAllowed > new Date()) {
+            return res.json({ success: false, message: `يمكنك تغيير اسم العضوية مرة كل 30 يوم — حاول بعد ${nextAllowed.toLocaleDateString('ar-SA')}` });
+        }
+    }
+
+    const existing = db.prepare('SELECT phone FROM users WHERE username = ?').get(username);
+    if (existing) {
+        return res.json({ success: false, message: 'اسم المستخدم مستخدم من قبل' });
+    }
+
+    db.prepare("UPDATE users SET username = ?, username_changed_at = datetime('now') WHERE phone = ?").run(username, phone);
+
+    res.json({ success: true, username });
 });
 
 // رفع صورة شخصية (أفاتار) — نفس قيود الملفات المستخدمة لمستندات المزودين (JPG أو PDF فقط، ≤5MB)، موحّدة لكل المستخدمين (عميل/مزوّد)
@@ -657,7 +736,7 @@ app.put('/api/orders/:id/assign-provider', (req, res) => {
 });
 
 app.get('/api/users', (req, res) => {
-    const users = db.prepare('SELECT id, phone, name, email, avatar_path, verified, created_at FROM users').all();
+    const users = db.prepare('SELECT id, phone, name, email, avatar_path, username, verified, created_at FROM users').all();
     res.json({ success: true, users });
 });
 
@@ -1168,7 +1247,8 @@ const AD_JOIN_SQL = `
     SELECT ads.*,
         (SELECT ROUND(AVG(rating), 1) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS avg_rating,
         (SELECT COUNT(*) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS reviews_count,
-        (SELECT COUNT(*) FROM comments WHERE comments.ad_id = ads.id) AS comments_count
+        (SELECT COUNT(*) FROM comments WHERE comments.ad_id = ads.id) AS comments_count,
+        (SELECT username FROM users WHERE users.phone = ads.provider_phone) AS provider_username
     FROM ads
 `;
 
@@ -1311,7 +1391,10 @@ app.post('/api/ads/:id/reviews', (req, res) => {
 });
 
 app.get('/api/ads/:id/reviews', (req, res) => {
-    const reviews = db.prepare('SELECT * FROM ad_reviews WHERE ad_id = ? ORDER BY created_at DESC').all(req.params.id);
+    const reviews = db.prepare(`
+        SELECT ad_reviews.*, (SELECT username FROM users WHERE users.phone = ad_reviews.reviewer_phone) AS reviewer_username
+        FROM ad_reviews WHERE ad_id = ? ORDER BY created_at DESC
+    `).all(req.params.id);
     res.json({ success: true, reviews });
 });
 
@@ -1546,9 +1629,10 @@ app.post('/api/comments', (req, res) => {
 
 // تعليقات إعلان معيّن — الظاهرة فقط افتراضياً، أو الكل لو includeHidden=1 (لوحة الإدارة)
 app.get('/api/comments/:ad_id', (req, res) => {
+    const usernameSelect = '(SELECT username FROM users WHERE users.phone = comments.commenter_phone) AS commenter_username';
     const sql = req.query.includeHidden
-        ? 'SELECT * FROM comments WHERE ad_id = ? ORDER BY created_at ASC'
-        : 'SELECT * FROM comments WHERE ad_id = ? AND is_visible = 1 ORDER BY created_at ASC';
+        ? `SELECT comments.*, ${usernameSelect} FROM comments WHERE ad_id = ? ORDER BY created_at ASC`
+        : `SELECT comments.*, ${usernameSelect} FROM comments WHERE ad_id = ? AND is_visible = 1 ORDER BY created_at ASC`;
 
     const comments = db.prepare(sql).all(req.params.ad_id);
     res.json({ success: true, comments });
