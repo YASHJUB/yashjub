@@ -643,6 +643,7 @@ async function deleteProduct(id) {
 
 let myAds       = [];
 let editingAdId = null;
+let editingAdImages = [];
 
 // يظهر قسم "إعلاناتي" فقط لو نظام الإعلانات هو النشط حالياً
 async function checkActiveSystemForAds(phone) {
@@ -881,7 +882,8 @@ function resetAdForm() {
     document.getElementById('adDistrictInput').value       = '';
     document.getElementById('adWhatsappInput').value       = localStorage.getItem('yashjub_phone') || '';
     document.getElementById('adImagesInput').value         = '';
-    document.getElementById('adExistingImagesPreview').innerHTML = '';
+    editingAdImages = [];
+    renderAdImagesPreview();
     document.getElementById('saveAdBtn').textContent       = 'نشر الإعلان';
     document.querySelectorAll('#adForm .field-error').forEach(el => el.classList.remove('field-error'));
 }
@@ -922,8 +924,41 @@ function editAd(id) {
 
     let images = [];
     try { images = JSON.parse(ad.images || '[]'); } catch (e) {}
-    document.getElementById('adExistingImagesPreview').innerHTML = images
-        .map(src => `<img src="${src}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">`).join('');
+    editingAdImages = images;
+    renderAdImagesPreview();
+}
+
+// يعيد رسم معاينة الصور الحالية بزر حذف (X) وزرّي تحريك بزاوية كل صورة — تدعم الحذف وإعادة الترتيب قبل الحفظ
+function renderAdImagesPreview() {
+    const wrap = document.getElementById('adExistingImagesPreview');
+    wrap.innerHTML = editingAdImages.map((src, i) => `
+        <div class="ad-img-thumb-wrap">
+            <img src="${src}">
+            <button class="ad-img-remove-btn" onclick="removeAdImage(${i})" title="حذف الصورة">
+                <svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg>
+            </button>
+            <div class="ad-img-move-buttons">
+                <button onclick="moveAdImage(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="تحريك للخلف">
+                    <svg class="icon"><use href="icons.svg#icon-arrow-left"></use></svg>
+                </button>
+                <button class="move-next" onclick="moveAdImage(${i}, 1)" ${i === editingAdImages.length - 1 ? 'disabled' : ''} title="تحريك للأمام">
+                    <svg class="icon"><use href="icons.svg#icon-arrow-left"></use></svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function removeAdImage(index) {
+    editingAdImages.splice(index, 1);
+    renderAdImagesPreview();
+}
+
+function moveAdImage(index, dir) {
+    const newIndex = index + dir;
+    if (newIndex < 0 || newIndex >= editingAdImages.length) return;
+    [editingAdImages[index], editingAdImages[newIndex]] = [editingAdImages[newIndex], editingAdImages[index]];
+    renderAdImagesPreview();
 }
 
 // تمييز الحقل الناقص بحد أحمر والتمرير إليه (نفس آلية register-provider.js)
@@ -1017,7 +1052,7 @@ async function saveAd(acceptedCovenant) {
             const res  = await fetch(`${API}/ads/${editingAdId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category, title, description, priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone }),
+                body: JSON.stringify({ category, title, description, priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone, images: editingAdImages }),
             });
             const data = await res.json();
             if (!data.success) { alert(`❌ ${data.message}`); return; }
