@@ -278,10 +278,6 @@ function renderAdCard(ad) {
                 </div>
                 <div class="ad-card-location"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${ad.city}${ad.district ? ' — ' + ad.district : ''}</div>
                 <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</div>
-                <div class="ad-card-actions" onclick="event.stopPropagation()">
-                    <a class="btn-call" href="tel:+966${ad.provider_phone}"><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg> اتصال</a>
-                    <a class="btn-chat" href="https://wa.me/966${ad.whatsapp}" target="_blank" rel="noopener"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg> واتساب</a>
-                </div>
             </div>
         </div>
     `;
