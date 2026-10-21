@@ -29,10 +29,19 @@
 
             <!-- معرض الصور -->
             <div class="ad-gallery" id="adGallery" style="display:none">
-                <img id="adGalleryImg" src="" alt="صورة الإعلان" class="ad-gallery-img">
+                <img id="adGalleryImg" src="" alt="صورة الإعلان" class="ad-gallery-img" onclick="openLightbox()">
                 <button class="ad-gallery-nav ad-gallery-prev" onclick="changeGalleryImage(-1)">‹</button>
                 <button class="ad-gallery-nav ad-gallery-next" onclick="changeGalleryImage(1)">›</button>
                 <div class="ad-gallery-dots" id="adGalleryDots"></div>
+            </div>
+
+            <!-- عارض الصور بملء الشاشة -->
+            <div class="lightbox-overlay" id="lightboxOverlay" style="display:none" onclick="closeLightboxOnBackdrop(event)">
+                <button class="lightbox-close" onclick="closeLightbox()"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg></button>
+                <button class="lightbox-nav lightbox-prev" onclick="event.stopPropagation(); changeGalleryImage(-1)">‹</button>
+                <img id="lightboxImg" src="" alt="صورة الإعلان" class="lightbox-img" onclick="event.stopPropagation()">
+                <button class="lightbox-nav lightbox-next" onclick="event.stopPropagation(); changeGalleryImage(1)">›</button>
+                <div class="lightbox-dots" id="lightboxDots"></div>
             </div>
 
             <!-- زر المفضلة -->

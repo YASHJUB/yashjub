@@ -274,6 +274,13 @@ function renderGalleryImage() {
     dotsWrap.innerHTML = galleryImages.length > 1
         ? galleryImages.map((_, i) => `<span class="ad-gallery-dot ${i === galleryIndex ? 'active' : ''}" onclick="goToGalleryImage(${i})"></span>`).join('')
         : '';
+
+    if (lightboxOpen) {
+        document.getElementById('lightboxImg').src = galleryImages[galleryIndex];
+        document.getElementById('lightboxDots').innerHTML = galleryImages.length > 1
+            ? galleryImages.map((_, i) => `<span class="ad-gallery-dot ${i === galleryIndex ? 'active' : ''}" onclick="event.stopPropagation(); goToGalleryImage(${i})"></span>`).join('')
+            : '';
+    }
 }
 
 function changeGalleryImage(delta) {
@@ -285,6 +292,35 @@ function goToGalleryImage(i) {
     galleryIndex = i;
     renderGalleryImage();
 }
+
+// ══ عارض الصور بملء الشاشة (لايتبوكس) ══
+
+let lightboxOpen = false;
+
+function openLightbox() {
+    if (!galleryImages.length) return;
+    lightboxOpen = true;
+    document.getElementById('lightboxOverlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    renderGalleryImage();
+}
+
+function closeLightbox() {
+    lightboxOpen = false;
+    document.getElementById('lightboxOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function closeLightboxOnBackdrop(event) {
+    if (event.target.id === 'lightboxOverlay') closeLightbox();
+}
+
+document.addEventListener('keydown', (e) => {
+    if (!lightboxOpen) return;
+    if (e.key === 'Escape')    closeLightbox();
+    if (e.key === 'ArrowLeft')  changeGalleryImage(1);
+    if (e.key === 'ArrowRight') changeGalleryImage(-1);
+});
 
 // ══ التقييمات ══
 

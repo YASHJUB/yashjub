@@ -5,6 +5,7 @@ const cors    = require('cors');
 const path    = require('path');
 const fs      = require('fs');
 const multer  = require('multer');
+const sharp   = require('sharp');
 const bcrypt  = require('bcryptjs');
 const db      = require('./database');
 
@@ -37,6 +38,54 @@ const upload = multer({
         cb(allowed ? null : new Error('نوع ملف غير مسموح — يُقبل PDF أو JPG فقط'), allowed);
     },
 });
+
+// ══ علامة مائية (لوقو المنصة) على صور الإعلانات المرفوعة ══
+
+let transparentLogoBuffer = null;
+
+// يحوّل اللوقو الأصلي (خلفيته سوداء تقريباً نقية، بدون قناة شفافية) إلى PNG بخلفية شفافة فعلياً —
+// عبر معالجة البكسلات مباشرة (أي بكسل قريب من الأسود يصير شفاف بالكامل) — نتيجة محسوبة مرة وحدة ومُعاد استخدامها
+async function getTransparentLogo() {
+    if (transparentLogoBuffer) return transparentLogoBuffer;
+
+    const { data, info } = await sharp(path.join(__dirname, 'images', 'logo.jpg'))
+        .ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+
+    for (let i = 0; i < data.length; i += 4) {
+        if (data[i] < 35 && data[i + 1] < 35 && data[i + 2] < 35) data[i + 3] = 0;
+    }
+
+    transparentLogoBuffer = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } })
+        .png().toBuffer();
+    return transparentLogoBuffer;
+}
+
+// يركّب اللوقو الشفاف مباشرة (بدون أي خلفية أو إطار) بزاوية الصورة اليسرى السفلى، قريب من الحافة فعلياً،
+// ويعدّل الملف بمكانه مباشرة — يتجاهل أي خطأ بصمت (الصورة الأصلية بدون علامة مائية أفضل من فشل الرفع بالكامل)
+async function addWatermark(filePath) {
+    try {
+        const transparentLogo = await getTransparentLogo();
+        // نقرأ الملف الأصلي بالذاكرة أولاً (بدل تمرير المسار مباشرة لـ sharp) — تمرير نفس المسار كمدخل ومخرج بنفس الوقت
+        // يسبّب قفل ملف (EBUSY/UNKNOWN error) على ويندوز لأن libvips يبقي الملف مفتوحاً للقراءة أثناء محاولة الكتابة عليه
+        const inputBuffer = fs.readFileSync(filePath);
+        const image = sharp(inputBuffer).rotate(); // تصحيح الدوران حسب EXIF قبل أي حساب مواضع (صور الجوال)
+        const meta  = await image.metadata();
+
+        const logoWidth   = Math.round(Math.max(120, Math.min(meta.width * 0.22, 260)));
+        const resizedLogo = await sharp(transparentLogo).resize({ width: logoWidth }).toBuffer();
+        const logoMeta    = await sharp(resizedLogo).metadata();
+
+        const margin = Math.round(meta.width * 0.012);
+        const output = await image
+            .composite([{ input: resizedLogo, left: margin, top: meta.height - logoMeta.height - margin }])
+            .jpeg({ quality: 88 })
+            .toBuffer();
+
+        fs.writeFileSync(filePath, output);
+    } catch (e) {
+        console.error('تعذّر إضافة العلامة المائية لصورة إعلان:', e.message);
+    }
+}
 
 // التحقق من صلاحية كوبون خصم وحساب قيمة الخصم (بدون احتساب استخدام)
 function checkCoupon(code, amount) {
@@ -1398,7 +1447,7 @@ app.get('/api/ads/:id/reviews', (req, res) => {
     res.json({ success: true, reviews });
 });
 
-app.post('/api/ads/:id/images', upload.array('images', 5), (req, res) => {
+app.post('/api/ads/:id/images', upload.array('images', 5), async (req, res) => {
     const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(req.params.id);
     if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
 
@@ -1410,6 +1459,11 @@ app.post('/api/ads/:id/images', upload.array('images', 5), (req, res) => {
 
     if (currentImages.length + files.length > 5) {
         return res.json({ success: false, message: `يمكن رفع 5 صور كحد أقصى — عندك ${currentImages.length} صورة بالفعل` });
+    }
+
+    // علامة مائية (شعار المنصة) لكل صورة JPG مرفوعة حديثاً — بدون أي تأثير على ملفات PDF (fileFilter يسمح بالاثنين لنفس multer instance)
+    for (const f of files) {
+        if (f.mimetype === 'image/jpeg') await addWatermark(f.path);
     }
 
     const newPaths  = files.map(f => `/uploads/${f.filename}`);
