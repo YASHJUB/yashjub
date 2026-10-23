@@ -138,6 +138,17 @@ const AD_CATEGORIES      = [
 ];
 const AD_CATEGORY_ICONS = { 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane' };
 
+// أنواع العدة بقسم "معدات ثقيلة" (وضع الإعلانات) — نفس الستة أنواع وأيقوناتها الموجودة بلوحة "قريباً" وضع النظام المدفوع، لكن هنا فعلية تودّي لإعلانات حقيقية
+const AD_EQUIPMENT_TYPES = [
+    { name: 'بوكلين',  icon: 'tractor'      },
+    { name: 'شيول',    icon: 'construction' },
+    { name: 'قلابي',   icon: 'truck'        },
+    { name: 'بوبكات',  icon: 'tractor'      },
+    { name: 'خرسانة',  icon: 'building'     },
+    { name: 'رافعة',   icon: 'crane'        },
+];
+let adsEquipmentCounts = {};
+
 // يحدد أي نظام نشط حالياً ويبني الصفحة الرئيسية على أساسه — يُستدعى بدل loadServices() مباشرة
 async function checkActiveSystem() {
     try {
@@ -227,6 +238,12 @@ async function switchToAdsMode() {
         data.ads.forEach(ad => { counts[ad.category] = (counts[ad.category] || 0) + 1; });
         renderAdCategoryRows(counts);
 
+        // عدد الإعلانات لكل نوع عدة بقسم "معدات ثقيلة" تحديداً — تُعرض بلوحة "اختر نوع العدة"
+        adsEquipmentCounts = {};
+        data.ads.filter(ad => ad.category === 'معدات ثقيلة' && ad.equipment_type).forEach(ad => {
+            adsEquipmentCounts[ad.equipment_type] = (adsEquipmentCounts[ad.equipment_type] || 0) + 1;
+        });
+
         const latest = [...data.ads].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
         if (latest.length) {
             document.getElementById('latestAdsGrid').innerHTML = latest.map(renderAdCard).join('');
@@ -240,8 +257,12 @@ function renderAdCategoryRows(counts) {
     const container = document.getElementById('servicesList');
     if (!container) return;
 
-    container.innerHTML = AD_CATEGORIES.map(c => `
-        <div class="service-row" onclick="window.location.href='ads.html?category=${encodeURIComponent(c.name)}'">
+    container.innerHTML = AD_CATEGORIES.map(c => {
+        const onclick = c.name === 'معدات ثقيلة'
+            ? 'openAdsEquipmentPanel()'
+            : `window.location.href='ads.html?category=${encodeURIComponent(c.name)}'`;
+        return `
+        <div class="service-row" onclick="${onclick}">
             <div class="service-row-right">
                 <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-${c.icon}"></use></svg></div>
                 <div class="service-row-info">
@@ -253,7 +274,31 @@ function renderAdCategoryRows(counts) {
                 <span class="service-row-arrow">←</span>
             </div>
         </div>
+    `;
+    }).join('');
+}
+
+// لوحة "اختر نوع العدة" — تظهر عند الضغط على قسم "معدات ثقيلة" بوضع الإعلانات، كل نوع يودّي لإعلاناته الفعلية
+function openAdsEquipmentPanel() {
+    const panel = document.getElementById('adsEquipmentPanel');
+    const grid  = document.getElementById('adsEquipmentGrid');
+    const isOpen = panel.style.display === 'block';
+
+    if (isOpen) {
+        panel.style.display = 'none';
+        return;
+    }
+
+    grid.innerHTML = AD_EQUIPMENT_TYPES.map(e => `
+        <div class="heavy-item" onclick="window.location.href='ads.html?category=${encodeURIComponent('معدات ثقيلة')}&equipment=${encodeURIComponent(e.name)}'">
+            <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-${e.icon}"></use></svg></div>
+            <div class="heavy-name">${e.name}</div>
+            <div class="heavy-badge heavy-badge-count">${adsEquipmentCounts[e.name] || 0} إعلان</div>
+        </div>
     `).join('');
+
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // بطاقة إعلان مشتركة (تُستخدم بالرئيسية وبصفحة ads.html) — صورة الإعلان الأولى خلفية البطاقة مع تظليل داكن، أو خلفية سوداء لو بدون صور

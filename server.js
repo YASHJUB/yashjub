@@ -1337,10 +1337,15 @@ const AD_JOIN_SQL = `
 `;
 
 app.post('/api/ads', (req, res) => {
-    const { providerPhone, providerName, category, title, description, priceFrom, priceTo, city, district, whatsapp, acceptedCovenant } = req.body;
+    const { providerPhone, providerName, category, title, description, priceFrom, priceTo, city, district, whatsapp, acceptedCovenant, equipmentType } = req.body;
 
     if (!providerPhone || !category || !title || !priceFrom || !city) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    // قسم "معدات ثقيلة" يتطلب تحديد نوع العدة (يُستخدم لفلترة "اختر العدة" بالصفحة الرئيسية)
+    if (category === 'معدات ثقيلة' && !equipmentType) {
+        return res.json({ success: false, message: 'يرجى اختيار نوع العدة' });
     }
 
     // كل مزوّد إعلان واحد فقط لكل قسم
@@ -1359,11 +1364,11 @@ app.post('/api/ads', (req, res) => {
     }
 
     const result = db.prepare(`
-        INSERT INTO ads (provider_phone, provider_name, category, title, description, price_from, price_to, city, district, whatsapp, accepted_covenant, covenant_accepted_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now'))
+        INSERT INTO ads (provider_phone, provider_name, category, title, description, price_from, price_to, city, district, whatsapp, equipment_type, accepted_covenant, covenant_accepted_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now'))
     `).run(
         providerPhone, providerName || null, category, title, description || '',
-        priceFrom, priceTo || null, city, district || null, whatsapp || providerPhone,
+        priceFrom, priceTo || null, city, district || null, whatsapp || providerPhone, equipmentType || null,
     );
 
     const ad = db.prepare(`${AD_JOIN_SQL} WHERE ads.id = ?`).get(result.lastInsertRowid);
@@ -1371,13 +1376,14 @@ app.post('/api/ads', (req, res) => {
 });
 
 app.get('/api/ads', (req, res) => {
-    const { category, city, district, price_from, price_to, includeInactive, providerPhone, exclude, limit } = req.query;
+    const { category, city, district, price_from, price_to, includeInactive, providerPhone, exclude, limit, equipment_type } = req.query;
 
     let sql = `${AD_JOIN_SQL} WHERE 1=1`;
     const params = [];
 
     if (!includeInactive) { sql += ' AND ads.is_active = 1'; }
     if (category)          { sql += ' AND ads.category = ?'; params.push(category); }
+    if (equipment_type)    { sql += ' AND ads.equipment_type = ?'; params.push(equipment_type); }
     if (city)              { sql += ' AND ads.city = ?'; params.push(city); }
     if (district)          { sql += ' AND ads.district LIKE ?'; params.push(`%${district}%`); }
     if (price_from)        { sql += ' AND ads.price_from >= ?'; params.push(Number(price_from)); }
@@ -1419,12 +1425,12 @@ app.put('/api/ads/:id', (req, res) => {
     const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(req.params.id);
     if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
 
-    const { title, description, priceFrom, priceTo, city, district, whatsapp, category, isActive, images } = req.body;
+    const { title, description, priceFrom, priceTo, city, district, whatsapp, category, isActive, images, equipmentType } = req.body;
 
     db.prepare(`
         UPDATE ads SET
             title = ?, description = ?, price_from = ?, price_to = ?,
-            city = ?, district = ?, whatsapp = ?, category = ?, is_active = ?, images = ?,
+            city = ?, district = ?, whatsapp = ?, category = ?, is_active = ?, images = ?, equipment_type = ?,
             updated_at = datetime('now')
         WHERE id = ?
     `).run(
@@ -1438,6 +1444,7 @@ app.put('/api/ads/:id', (req, res) => {
         category ?? ad.category,
         isActive !== undefined ? (isActive ? 1 : 0) : ad.is_active,
         images !== undefined ? JSON.stringify(images) : ad.images,
+        equipmentType !== undefined ? equipmentType : ad.equipment_type,
         ad.id,
     );
 

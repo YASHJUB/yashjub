@@ -414,6 +414,7 @@ const migrations = [
     'ALTER TABLE users ADD COLUMN is_verified INTEGER DEFAULT 0',
     'ALTER TABLE users ADD COLUMN verified_at TEXT',
     'ALTER TABLE users ADD COLUMN verified_by TEXT',
+    'ALTER TABLE ads ADD COLUMN equipment_type TEXT',
 ];
 
 for (const sql of migrations) {

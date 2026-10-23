@@ -18,13 +18,16 @@ const API = window.location.origin + '/api';
 const AD_CATEGORY_ICONS = { 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane' };
 
 const params       = new URLSearchParams(window.location.search);
-const currentCategory = params.get('category') || '';
+const currentCategory  = params.get('category') || '';
+const currentEquipment = params.get('equipment') || ''; // نوع العدة — قسم "معدات ثقيلة" فقط (راجع "اختر نوع العدة" بالرئيسية)
 
 // تحميل عنوان القسم + المدن + أول بحث
 async function loadAdsPage() {
     const icon = AD_CATEGORY_ICONS[currentCategory] || 'wrench';
     document.getElementById('categoryIconUse').setAttribute('href', `icons.svg#icon-${icon}`);
-    document.getElementById('categoryTitle').textContent = currentCategory || 'كل الإعلانات';
+    document.getElementById('categoryTitle').textContent = currentEquipment
+        ? `${currentCategory} — ${currentEquipment}`
+        : (currentCategory || 'كل الإعلانات');
 
     loadCities();
     await loadFavoriteIds();
@@ -56,7 +59,8 @@ async function searchAds() {
     const keyword    = document.getElementById('searchKeyword').value.trim().toLowerCase();
 
     const query = new URLSearchParams();
-    if (currentCategory) query.set('category', currentCategory);
+    if (currentCategory)  query.set('category', currentCategory);
+    if (currentEquipment) query.set('equipment_type', currentEquipment);
     if (city)             query.set('city', city);
     if (district)         query.set('district', district);
     if (priceFrom)        query.set('price_from', priceFrom);

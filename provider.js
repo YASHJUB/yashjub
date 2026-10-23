@@ -883,6 +883,8 @@ function resetAdForm() {
     document.getElementById('adDistrictInput').value       = '';
     document.getElementById('adWhatsappInput').value       = localStorage.getItem('yashjub_phone') || '';
     document.getElementById('adImagesInput').value         = '';
+    document.getElementById('adEquipmentTypeSelect').value = '';
+    document.getElementById('adEquipmentTypeField').style.display = 'none';
     editingAdImages = [];
     renderAdImagesPreview();
     document.getElementById('saveAdBtn').textContent       = 'نشر الإعلان';
@@ -891,6 +893,8 @@ function resetAdForm() {
 
 // لو عنده إعلان بنفس القسم أصلاً، يعرض عليه يعدّله بدل إنشاء وحدة جديدة
 function checkExistingAdInCategory() {
+    toggleEquipmentTypeField();
+
     if (editingAdId) return;
 
     const category = document.getElementById('adCategorySelect').value;
@@ -901,8 +905,17 @@ function checkExistingAdInCategory() {
             editAd(existing.id);
         } else {
             document.getElementById('adCategorySelect').value = '';
+            toggleEquipmentTypeField();
         }
     }
+}
+
+// حقل "نوع العدة" يظهر فقط لقسم "معدات ثقيلة" — يُستخدم لفلترة "اختر العدة" بالصفحة الرئيسية
+function toggleEquipmentTypeField() {
+    const category = document.getElementById('adCategorySelect').value;
+    const field     = document.getElementById('adEquipmentTypeField');
+    field.style.display = category === 'معدات ثقيلة' ? 'block' : 'none';
+    if (category !== 'معدات ثقيلة') document.getElementById('adEquipmentTypeSelect').value = '';
 }
 
 function editAd(id) {
@@ -919,6 +932,8 @@ function editAd(id) {
     document.getElementById('adDistrictInput').value       = ad.district || '';
     document.getElementById('adWhatsappInput').value       = ad.whatsapp;
     document.getElementById('saveAdBtn').textContent       = 'تحديث الإعلان';
+    toggleEquipmentTypeField();
+    document.getElementById('adEquipmentTypeSelect').value = ad.equipment_type || '';
 
     document.getElementById('adForm').style.display = 'block';
     document.getElementById('adForm').scrollIntoView({ behavior: 'smooth' });
@@ -987,12 +1002,14 @@ document.addEventListener('change', (e) => {
 
 // يتحقق من الحقول الأساسية (كل حقل برسالته وتمييزه الخاص)، وإذا كان إعلاناً جديداً (مو تعديل) يفتح معاهدة عتاد أولاً بدل النشر المباشر
 function handlePublishClick() {
-    const category  = document.getElementById('adCategorySelect').value;
-    const title     = document.getElementById('adTitleInput').value.trim();
-    const priceFrom = document.getElementById('adPriceFromInput').value;
-    const city      = document.getElementById('adCityInput').value;
+    const category      = document.getElementById('adCategorySelect').value;
+    const title         = document.getElementById('adTitleInput').value.trim();
+    const priceFrom     = document.getElementById('adPriceFromInput').value;
+    const city          = document.getElementById('adCityInput').value;
+    const equipmentType = document.getElementById('adEquipmentTypeSelect').value;
 
     if (!category)  { highlightAdFieldError('adCategorySelect');  alert('❌ يرجى اختيار القسم'); return; }
+    if (category === 'معدات ثقيلة' && !equipmentType) { highlightAdFieldError('adEquipmentTypeSelect'); alert('❌ يرجى اختيار نوع العدة'); return; }
     if (!title)      { highlightAdFieldError('adTitleInput');      alert('❌ يرجى إدخال عنوان الإعلان'); return; }
     if (!priceFrom)  { highlightAdFieldError('adPriceFromInput');  alert('❌ يرجى إدخال السعر'); return; }
     if (!city)        { highlightAdFieldError('adCityInput');       alert('❌ يرجى اختيار المدينة'); return; }
@@ -1044,6 +1061,7 @@ async function saveAd(acceptedCovenant) {
     const city          = document.getElementById('adCityInput').value;
     const district       = document.getElementById('adDistrictInput').value.trim();
     const whatsapp       = document.getElementById('adWhatsappInput').value.trim();
+    const equipmentType  = document.getElementById('adEquipmentTypeSelect').value;
     const phone         = localStorage.getItem('yashjub_phone');
 
     try {
@@ -1053,7 +1071,7 @@ async function saveAd(acceptedCovenant) {
             const res  = await fetch(`${API}/ads/${editingAdId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category, title, description, priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone, images: editingAdImages }),
+                body: JSON.stringify({ category, title, description, priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone, images: editingAdImages, equipmentType: equipmentType || null }),
             });
             const data = await res.json();
             if (!data.success) { alert(`❌ ${data.message}`); return; }
@@ -1065,6 +1083,7 @@ async function saveAd(acceptedCovenant) {
                 body: JSON.stringify({
                     providerPhone: phone, providerName: currentProviderName, category, title, description,
                     priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone,
+                    equipmentType: equipmentType || null,
                     acceptedCovenant: !!acceptedCovenant,
                 }),
             });

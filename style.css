@@ -3157,7 +3157,7 @@ body.dark-mode .ad-img-move-buttons button { background: #333333; }
 
 .heavy-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     margin-bottom: 14px;
 }
@@ -3200,6 +3200,12 @@ body.dark-mode .ad-img-move-buttons button { background: #333333; }
     color: #6D28D9;
     display: inline-block;
     font-family: 'Cairo', sans-serif;
+}
+
+/* شارة عدد الإعلانات بلوحة "اختر نوع العدة" الفعلية (وضع الإعلانات) — نفس لون شارة "X إعلان" بصفوف الأقسام (.service-row-count) بدل البنفسجي الخاص بـ"قريباً" */
+.heavy-badge-count {
+    background: rgba(245,197,24,0.12);
+    color: #92700A;
 }
 
 .heavy-note {
@@ -3600,6 +3606,10 @@ body.dark-mode .heavy-equipment-panel {
 body.dark-mode .heavy-item {
     background-color: #222222;
     border-color: #333333;
+}
+
+body.dark-mode .heavy-name {
+    color: #ffffff;
 }
 
 body.dark-mode .heavy-panel-title {
