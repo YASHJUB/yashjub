@@ -81,7 +81,7 @@ function renderConversationsList(filter) {
         <div class="conversation-item ${activeConversation && activeConversation.id === c.id ? 'active' : ''}" onclick="openConversation(${c.id})">
             <div class="conversation-avatar"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
             <div class="conversation-info">
-                <div class="conversation-name">${escapeHtml(c.other_name || ('+966' + c.other_phone))}</div>
+                <div class="conversation-name">${escapeHtml(c.other_name || ('+966' + c.other_phone))} ${c.other_is_verified ? '<span class="verified-badge" title="حساب موثق">✅</span>' : ''}</div>
                 <div class="conversation-ad-title">${escapeHtml(c.ad_title || '')}</div>
                 <div class="conversation-last-msg">${escapeHtml(c.last_message || 'ابدأ المحادثة الآن')}</div>
             </div>
@@ -122,7 +122,8 @@ async function openConversation(id, draftText) {
 
     document.getElementById('chatEmptyState').style.display = 'none';
     document.getElementById('chatActiveArea').style.display = 'block';
-    document.getElementById('chatHeaderName').textContent = conv.other_name || ('+966' + conv.other_phone);
+    document.getElementById('chatHeaderName').innerHTML = escapeHtml(conv.other_name || ('+966' + conv.other_phone)) +
+        (conv.other_is_verified ? ' <span class="verified-badge" title="حساب موثق">✅</span>' : '');
     document.getElementById('chatHeaderAd').textContent    = conv.ad_title || '';
     document.getElementById('chatGotoAdBtn').href = `ad-details.html?id=${conv.ad_id}`;
 

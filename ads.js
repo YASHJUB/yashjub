@@ -156,7 +156,7 @@ function renderAdCard(ad) {
             </button>
             <div class="ad-card-content">
                 <div class="ad-card-category"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${ad.title}</div>
-                <div class="ad-card-provider">${ad.category} — ${ad.provider_name || 'مزوّد'}</div>
+                <div class="ad-card-provider">${ad.category} — ${ad.provider_name || 'مزوّد'} ${ad.provider_is_verified ? '<span class="verified-badge" title="حساب موثق">✅</span>' : ''}</div>
                 <div class="ad-card-meta">
                     <span class="ad-card-rating"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating || '—'} (${ad.reviews_count || 0} تقييم)</span>
                     <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>

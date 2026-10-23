@@ -613,23 +613,71 @@ async function refreshProvidersEverywhere() {
 }
 
 // صفحة العملاء
+let allClientsCache = [];
+
 async function loadClientsPage() {
     try {
         const res  = await fetch(`${API}/users`);
         const data = await res.json();
         if (!data.success) return;
 
-        document.getElementById('allUsersTable').innerHTML = data.users.map(u => `
-            <tr>
-                <td>#${u.id}</td>
-                <td dir="ltr">+966${u.phone}</td>
-                <td>٠</td>
-                <td style="color:var(--gold)">٠ ر</td>
-                <td>${u.verified ? '<svg class="icon"><use href="icons.svg#icon-check"></use></svg> موثق' : '<svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> غير موثق'}</td>
-                <td>${new Date(u.created_at).toLocaleDateString('ar-SA')}</td>
-            </tr>
-        `).join('');
+        allClientsCache = data.users;
+        renderClientsTable();
     } catch(e) {}
+}
+
+// إعادة رسم الجدول محلياً حسب فلتر التوثيق المختار (بدون أي طلب إضافي للسيرفر)
+function renderClientsTable() {
+    const filter = document.getElementById('clientsVerifyFilter').value;
+
+    let users = allClientsCache;
+    if (filter === 'verified')   users = users.filter(u => u.is_verified);
+    if (filter === 'unverified') users = users.filter(u => !u.is_verified);
+
+    document.getElementById('allUsersTable').innerHTML = users.map(u => `
+        <tr>
+            <td>#${u.id}</td>
+            <td dir="ltr">+966${u.phone}</td>
+            <td>٠</td>
+            <td style="color:var(--gold)">٠ ر</td>
+            <td>${u.is_verified
+                ? '<span style="color:#10B981;font-weight:700">✅ موثق</span>'
+                : '<span style="color:var(--text3)">غير موثق</span>'}</td>
+            <td>${new Date(u.created_at).toLocaleDateString('ar-SA')}</td>
+            <td>${u.is_verified
+                ? `<button class="btn-detail" style="background:#9CA3AF;color:#fff;border-color:#9CA3AF" onclick="unverifyUser('${u.phone}')">إلغاء التوثيق</button>`
+                : `<button class="btn-detail" style="background:#10B981;color:#fff;border-color:#10B981" onclick="verifyUser('${u.phone}')">توثيق ✅</button>`}</td>
+        </tr>
+    `).join('');
+}
+
+async function verifyUser(phone) {
+    if (!confirm('توثيق هذا الحساب؟ ستظهر علامة ✅ بجانب اسمه بكل أنحاء المنصة.')) return;
+    try {
+        const adminUsername = sessionStorage.getItem('yashjub_admin_name') || 'admin';
+        const res  = await fetch(`${API}/users/${phone}/verify`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ adminUsername }),
+        });
+        const data = await res.json();
+        if (data.success) loadClientsPage();
+        else alert(`❌ ${data.message}`);
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+async function unverifyUser(phone) {
+    if (!confirm('إلغاء توثيق هذا الحساب؟')) return;
+    try {
+        const res  = await fetch(`${API}/users/${phone}/unverify`, { method: 'PUT' });
+        const data = await res.json();
+        if (data.success) loadClientsPage();
+        else alert(`❌ ${data.message}`);
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
 }
 
 // صفحة الموظفين

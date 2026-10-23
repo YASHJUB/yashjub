@@ -411,6 +411,9 @@ const migrations = [
     'ALTER TABLE ads ADD COLUMN featured_count INTEGER DEFAULT 0',
     'ALTER TABLE users ADD COLUMN username TEXT',
     'ALTER TABLE users ADD COLUMN username_changed_at TEXT',
+    'ALTER TABLE users ADD COLUMN is_verified INTEGER DEFAULT 0',
+    'ALTER TABLE users ADD COLUMN verified_at TEXT',
+    'ALTER TABLE users ADD COLUMN verified_by TEXT',
 ];
 
 for (const sql of migrations) {

@@ -33,15 +33,35 @@ function loadProfile() {
     loadMyAvatar(phone);
     renderUsername(localStorage.getItem('yashjub_username'));
     loadMyUsername(phone);
+    renderVerificationStatus(false);
+    loadMyVerification(phone);
 
     if (type === 'provider') {
         document.getElementById('profileName').textContent  = name || 'مزود خدمة';
-        document.getElementById('infoType').textContent    = 'مزود خدمة';
         document.getElementById('providerAction').style.display = 'flex';
     } else {
         document.getElementById('profileName').textContent  = name || 'عميل عتاد';
-        document.getElementById('infoType').textContent    = 'عميل';
     }
+}
+
+// ══ توثيق الحساب (✅) — صف "نوع الحساب" يعرض حالة التوثيق بدل عميل/مزوّد ══
+
+async function loadMyVerification(phone) {
+    try {
+        const res  = await fetch(`${API}/users`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const me = data.users.find(u => u.phone === phone);
+        renderVerificationStatus(!!(me && me.is_verified));
+    } catch (e) {}
+}
+
+function renderVerificationStatus(isVerified) {
+    const el = document.getElementById('infoType');
+    el.innerHTML = isVerified
+        ? '<span class="verified-badge" title="حساب موثق">✅ موثق</span>'
+        : 'عضو';
 }
 
 // إظهار/إخفاء فورم تعديل الاسم

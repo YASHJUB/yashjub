@@ -82,7 +82,7 @@ function renderFavoriteCard(fav) {
             </button>
             <div class="ad-card-content">
                 <div class="ad-card-category"><svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${fav.title}</div>
-                <div class="ad-card-provider">${fav.category} — ${fav.provider_name || 'مزوّد'}</div>
+                <div class="ad-card-provider">${fav.category} — ${fav.provider_name || 'مزوّد'} ${fav.provider_is_verified ? '<span class="verified-badge" title="حساب موثق">✅</span>' : ''}</div>
                 <div class="ad-card-meta">
                     <span class="ad-card-rating"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${fav.avg_rating || '—'} (${fav.reviews_count || 0} تقييم)</span>
                     <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${fav.views_count} مشاهدة</span>

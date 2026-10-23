@@ -1569,6 +1569,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     padding: 60px 20px;
 }
 
+body.dark-mode .provider-section { background-color: #0a0a0a; }
+
 .provider-content {
     max-width: 800px;
     margin: 0 auto;
@@ -7281,6 +7283,24 @@ body.dark-mode .coins-transaction-desc { color: #ffffff; }
     font-family: 'Cairo', sans-serif;
 }
 .ad-card-featured-badge .icon { width: 11px; height: 11px; }
+
+/* علامة توثيق الحساب (✅) — بجانب اسم المعلن/المعلّق/المرسل بكل أنحاء الموقع، وبصف "نوع الحساب" بـprofile.html */
+.verified-badge {
+    color: #10B981;
+    font-size: 14px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    cursor: default;
+}
+
+/* نص "غير موثق" الصريح — بطاقة المعلن بـad-details.html فقط */
+.unverified-badge {
+    color: #999999;
+    font-size: 13px;
+    font-weight: 400;
+}
 
 /* زر وشارة تصدير الإعلان بقسم "إعلاناتي" (لوحة المزوّد) */
 .feature-ad-btn {

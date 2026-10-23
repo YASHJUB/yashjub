@@ -1446,6 +1446,13 @@
                     <div class="page-sub">إدارة جميع عملاء المنصة</div>
                 </div>
                 <div class="card">
+                    <div style="margin-bottom:14px">
+                        <select id="clientsVerifyFilter" onchange="renderClientsTable()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px">
+                            <option value="all">الكل</option>
+                            <option value="verified">موثق</option>
+                            <option value="unverified">غير موثق</option>
+                        </select>
+                    </div>
                     <div class="table-wrap">
                         <table>
                             <thead>
@@ -1454,8 +1461,9 @@
                                     <th>الجوال</th>
                                     <th>الطلبات</th>
                                     <th>إجمالي الإنفاق</th>
-                                    <th>موثق</th>
+                                    <th>التوثيق</th>
                                     <th>تاريخ الانضمام</th>
+                                    <th>إجراء</th>
                                 </tr>
                             </thead>
                             <tbody id="allUsersTable"></tbody>

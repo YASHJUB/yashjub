@@ -337,6 +337,40 @@ app.put('/api/users/:phone/username', (req, res) => {
     res.json({ success: true, username });
 });
 
+// ══ توثيق الحسابات (علامة ✅ — للإدارة فقط) ══
+
+// توثيق حساب — body اختياري: { adminUsername } لتسجيل اسم الموظف/المدير اللي نفّذ التوثيق
+app.put('/api/users/:phone/verify', (req, res) => {
+    const { phone } = req.params;
+    const { adminUsername } = req.body || {};
+
+    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    db.prepare("UPDATE users SET is_verified = 1, verified_at = datetime('now'), verified_by = ? WHERE phone = ?")
+        .run(adminUsername || 'admin', phone);
+
+    createNotification('تم توثيق حسابك ✅', 'تهانينا! حسابك موثق الآن بمنصة عتاد', 'update', 'specific', phone, phone);
+
+    res.json({ success: true });
+});
+
+// إلغاء توثيق حساب
+app.put('/api/users/:phone/unverify', (req, res) => {
+    const { phone } = req.params;
+
+    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    if (!user) {
+        return res.json({ success: false, message: 'المستخدم غير موجود' });
+    }
+
+    db.prepare("UPDATE users SET is_verified = 0, verified_at = NULL, verified_by = NULL WHERE phone = ?").run(phone);
+
+    res.json({ success: true });
+});
+
 // رفع صورة شخصية (أفاتار) — نفس قيود الملفات المستخدمة لمستندات المزودين (JPG أو PDF فقط، ≤5MB)، موحّدة لكل المستخدمين (عميل/مزوّد)
 app.put('/api/users/:phone/avatar', upload.single('avatar'), (req, res) => {
     const { phone } = req.params;
@@ -785,7 +819,7 @@ app.put('/api/orders/:id/assign-provider', (req, res) => {
 });
 
 app.get('/api/users', (req, res) => {
-    const users = db.prepare('SELECT id, phone, name, email, avatar_path, username, verified, created_at FROM users').all();
+    const users = db.prepare('SELECT id, phone, name, email, avatar_path, username, verified, is_verified, verified_at, verified_by, created_at FROM users').all();
     res.json({ success: true, users });
 });
 
@@ -1297,7 +1331,8 @@ const AD_JOIN_SQL = `
         (SELECT ROUND(AVG(rating), 1) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS avg_rating,
         (SELECT COUNT(*) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS reviews_count,
         (SELECT COUNT(*) FROM comments WHERE comments.ad_id = ads.id) AS comments_count,
-        (SELECT username FROM users WHERE users.phone = ads.provider_phone) AS provider_username
+        (SELECT username FROM users WHERE users.phone = ads.provider_phone) AS provider_username,
+        (SELECT is_verified FROM users WHERE users.phone = ads.provider_phone) AS provider_is_verified
     FROM ads
 `;
 
@@ -1635,7 +1670,8 @@ app.get('/api/favorites/:phone', (req, res) => {
             ads.price_from, ads.price_to, ads.city, ads.district, ads.whatsapp, ads.images,
             ads.is_active, ads.views_count, ads.is_featured, ads.featured_until,
             (SELECT ROUND(AVG(rating), 1) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS avg_rating,
-            (SELECT COUNT(*) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS reviews_count
+            (SELECT COUNT(*) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS reviews_count,
+            (SELECT is_verified FROM users WHERE users.phone = ads.provider_phone) AS provider_is_verified
         FROM favorites
         LEFT JOIN ads ON ads.id = favorites.ad_id
         WHERE favorites.phone = ?
@@ -1683,10 +1719,13 @@ app.post('/api/comments', (req, res) => {
 
 // تعليقات إعلان معيّن — الظاهرة فقط افتراضياً، أو الكل لو includeHidden=1 (لوحة الإدارة)
 app.get('/api/comments/:ad_id', (req, res) => {
-    const usernameSelect = '(SELECT username FROM users WHERE users.phone = comments.commenter_phone) AS commenter_username';
+    const extraSelect = `
+        (SELECT username FROM users WHERE users.phone = comments.commenter_phone) AS commenter_username,
+        (SELECT is_verified FROM users WHERE users.phone = comments.commenter_phone) AS commenter_is_verified
+    `;
     const sql = req.query.includeHidden
-        ? `SELECT comments.*, ${usernameSelect} FROM comments WHERE ad_id = ? ORDER BY created_at ASC`
-        : `SELECT comments.*, ${usernameSelect} FROM comments WHERE ad_id = ? AND is_visible = 1 ORDER BY created_at ASC`;
+        ? `SELECT comments.*, ${extraSelect} FROM comments WHERE ad_id = ? ORDER BY created_at ASC`
+        : `SELECT comments.*, ${extraSelect} FROM comments WHERE ad_id = ? AND is_visible = 1 ORDER BY created_at ASC`;
 
     const comments = db.prepare(sql).all(req.params.ad_id);
     res.json({ success: true, comments });
@@ -1750,11 +1789,12 @@ app.get('/api/conversations/:phone', (req, res) => {
         SELECT c.*,
             CASE WHEN c.user1_phone = ? THEN c.user2_phone ELSE c.user1_phone END AS other_phone,
             (SELECT name FROM users WHERE phone = CASE WHEN c.user1_phone = ? THEN c.user2_phone ELSE c.user1_phone END) AS other_name,
+            (SELECT is_verified FROM users WHERE phone = CASE WHEN c.user1_phone = ? THEN c.user2_phone ELSE c.user1_phone END) AS other_is_verified,
             (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND receiver_phone = ? AND is_read = 0) AS my_unread_count
         FROM conversations c
         WHERE c.user1_phone = ? OR c.user2_phone = ?
         ORDER BY c.last_message_at DESC, c.created_at DESC
-    `).all(phone, phone, phone, phone, phone);
+    `).all(phone, phone, phone, phone, phone, phone);
 
     res.json({ success: true, conversations });
 });
