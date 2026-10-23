@@ -28,6 +28,16 @@ body {
     flex-shrink: 0;
 }
 
+/* أيقونات الأعلام (مبدّل اللغة) — ألوان ثابتة خاصة فيها (مو fill:currentColor زي .icon العامة)، عرضها 20px حسب الطلب */
+.flag-icon {
+    width: 20px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
 /* ===== الهيدر ===== */
 
 .header {
@@ -3394,6 +3404,60 @@ body.dark-mode .ad-img-move-buttons button { background: #333333; }
 .theme-btn:hover {
     background: rgba(255,255,255,0.1);
 }
+
+/* ══ مبدّل اللغة (الهيدر، جنب جرس الإشعارات) ══ */
+.lang-switcher { position: relative; }
+
+.lang-switcher-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.lang-switcher-btn:hover { background: rgba(255,255,255,0.1); }
+
+.lang-dropdown {
+    position: absolute;
+    top: 44px;
+    left: 0;
+    width: 170px;
+    background: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 500;
+    overflow: hidden;
+    animation: slideDown 0.2s ease;
+}
+
+.lang-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111111;
+    font-family: 'Cairo', sans-serif;
+    transition: background 0.15s;
+}
+
+.lang-option:hover { background: #FAFAFA; }
+.lang-option.active { background: rgba(245,197,24,0.18); }
+.lang-option-flag { font-size: 20px; line-height: 1; }
+.lang-option-check { margin-left: auto; color: #10B981; font-size: 14px; display: none; }
+.lang-option.active .lang-option-check { display: inline; }
+
+body.dark-mode .lang-dropdown { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .lang-option { color: #ffffff; }
+body.dark-mode .lang-option:hover { background: #262626; }
+body.dark-mode .lang-option.active { background: rgba(245,197,24,0.18); }
 
 /* ══ جرس الإشعارات ══ */
 .notif-bell-badge {

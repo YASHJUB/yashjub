@@ -22,8 +22,30 @@
             <div class="tagline">مـوقـع عـتـاد</div>
         </div>
         <div class="header-left">
+            <div class="lang-switcher" id="langSwitcherWrap">
+                <button class="lang-switcher-btn" onclick="toggleLanguageDropdown(event)" id="langSwitcherBtn" title="تغيير اللغة">
+                    <svg class="flag-icon"><use href="icons.svg#icon-flag-sa" id="langSwitcherFlagUse"></use></svg>
+                </button>
+                <div class="lang-dropdown" id="langDropdown" style="display:none">
+                    <div class="lang-option" data-lang="ar" onclick="selectLanguage('ar')">
+                        <svg class="flag-icon"><use href="icons.svg#icon-flag-sa"></use></svg>
+                        <span>العربية</span>
+                        <span class="lang-option-check">✓</span>
+                    </div>
+                    <div class="lang-option" data-lang="en" onclick="selectLanguage('en')">
+                        <svg class="flag-icon"><use href="icons.svg#icon-flag-gb"></use></svg>
+                        <span>English</span>
+                        <span class="lang-option-check">✓</span>
+                    </div>
+                    <div class="lang-option" data-lang="ur" onclick="selectLanguage('ur')">
+                        <svg class="flag-icon"><use href="icons.svg#icon-flag-pk"></use></svg>
+                        <span>اردو</span>
+                        <span class="lang-option-check">✓</span>
+                    </div>
+                </div>
+            </div>
             <div id="userNotLogged">
-                <button class="btn-small" onclick="goToLogin()">دخول</button>
+                <button class="btn-small" onclick="goToLogin()" data-i18n="دخول">دخول</button>
             </div>
             <div id="notifBellWrap" style="display:none;position:relative">
                 <button class="theme-btn" onclick="toggleNotifDropdown()" id="notifBellBtn" style="position:relative">
@@ -140,7 +162,7 @@
         <div class="hero-content">
             <h1>اطلب خدمتك <span>الآن</span></h1>
             <p>خدمات فورية وجدولة مسبقة بضغطة واحدة</p>
-            <button class="btn hero-btn" onclick="document.getElementById('servicesSection').scrollIntoView({behavior:'smooth'})">ابدأ الآن</button>
+            <button class="btn hero-btn" onclick="document.getElementById('servicesSection').scrollIntoView({behavior:'smooth'})" data-i18n="ابدأ الآن">ابدأ الآن</button>
         </div>
         <div class="hero-gold-corner"></div>
     </div>
@@ -172,8 +194,8 @@
 
     <!-- قسم الخدمات -->
     <div class="services-new" id="servicesSection">
-        <h2 id="servicesSectionTitle">الخدمات</h2>
-        <p class="services-subtitle" id="servicesSectionSubtitle">اختر الخدمة المناسبة لك</p>
+        <h2 id="servicesSectionTitle" data-i18n="الخدمات">الخدمات</h2>
+        <p class="services-subtitle" id="servicesSectionSubtitle" data-i18n="اختر الخدمة المناسبة لك">اختر الخدمة المناسبة لك</p>
 
         <div class="services-list" id="servicesList">
 
@@ -286,7 +308,7 @@
 
     <!-- أحدث الإعلانات (تظهر فقط بوضع نظام الإعلانات) -->
     <div class="services-new" id="latestAdsSection" style="display:none">
-        <h2>أحدث الإعلانات</h2>
+        <h2 data-i18n="أحدث الإعلانات">أحدث الإعلانات</h2>
         <p class="services-subtitle">آخر الإعلانات المنشورة على المنصة</p>
         <div class="testimonials-grid" id="latestAdsGrid"></div>
         <div style="text-align:center; margin-top:24px">
@@ -409,6 +431,7 @@
     </div>
 
     <script src="alert.js"></script>
+    <script src="i18n.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

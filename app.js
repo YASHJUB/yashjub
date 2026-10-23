@@ -111,7 +111,7 @@ async function loadServices() {
                     <div class="service-row-right">
                         <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-${s.icon}"></use></svg></div>
                         <div class="service-row-info">
-                            <div class="service-row-name">${s.name}</div>
+                            <div class="service-row-name">${t(s.name)}</div>
                             <div class="service-row-desc">${s.description || ''}</div>
                         </div>
                     </div>
@@ -148,6 +148,7 @@ const AD_EQUIPMENT_TYPES = [
     { name: 'رافعة',   icon: 'crane'        },
 ];
 let adsEquipmentCounts = {};
+let adsCategoryCounts  = {};
 
 // يحدد أي نظام نشط حالياً ويبني الصفحة الرئيسية على أساسه — يُستدعى بدل loadServices() مباشرة
 async function checkActiveSystem() {
@@ -190,10 +191,11 @@ async function switchToAdsMode() {
     if (footerJoinLink) footerJoinLink.style.display = 'none';
 
     // عنوان قسم الخدمات يتحول لـ"الأقسام" بوضع الإعلانات (المحتوى تحته صار أقسام إعلانات، مو خدمات حقيقية)
+    // نشيل data-i18n الثابت (قيمته "الخدمات"/الوصف الأصلي) عشان ما يتضارب مع النص الجديد عند أي تبديل لغة لاحق — t() تتكفّل بترجمته مباشرة بدل الاعتماد على محرك data-i18n العام
     const servicesTitle    = document.getElementById('servicesSectionTitle');
     const servicesSubtitle = document.getElementById('servicesSectionSubtitle');
-    if (servicesTitle) servicesTitle.textContent = 'الأقسام';
-    if (servicesSubtitle) servicesSubtitle.textContent = 'اختر القسم المناسب لك';
+    if (servicesTitle)    { servicesTitle.removeAttribute('data-i18n');    servicesTitle.textContent    = t('الأقسام'); }
+    if (servicesSubtitle) { servicesSubtitle.removeAttribute('data-i18n'); servicesSubtitle.textContent = t('اختر القسم المناسب لك'); }
 
     // سايد بار موحّد بوضع الإعلانات — نفس البنية المستخدمة بـ provider.html ("إعلاناتي") بالضبط
     const sidebarMenu = document.getElementById('sidebarMenu');
@@ -224,7 +226,7 @@ async function switchToAdsMode() {
     if (desc) desc.textContent = 'انشر إعلانك الآن وابدأ باستقبال العملاء';
     if (bens) bens.style.display = 'none';
     if (badge) badge.style.display = 'none';
-    if (btn) btn.textContent = 'انشر إعلانك الآن';
+    if (btn) btn.textContent = t('انشر إعلانك الآن');
     if (visual && btn) visual.appendChild(btn); // نقل الزر لمكان دائرة "+500 مزود نشط" (يسار النص بوضع RTL)
 
     await loadFavoriteIds();
@@ -234,9 +236,9 @@ async function switchToAdsMode() {
         const data = await res.json();
         if (!data.success) return;
 
-        const counts = {};
-        data.ads.forEach(ad => { counts[ad.category] = (counts[ad.category] || 0) + 1; });
-        renderAdCategoryRows(counts);
+        adsCategoryCounts = {};
+        data.ads.forEach(ad => { adsCategoryCounts[ad.category] = (adsCategoryCounts[ad.category] || 0) + 1; });
+        renderAdCategoryRows(adsCategoryCounts);
 
         // عدد الإعلانات لكل نوع عدة بقسم "معدات ثقيلة" تحديداً — تُعرض بلوحة "اختر نوع العدة"
         adsEquipmentCounts = {};
@@ -250,6 +252,19 @@ async function switchToAdsMode() {
             document.getElementById('latestAdsSection').style.display = 'block';
         }
     } catch (e) {}
+}
+
+// يُستدعى تلقائياً من i18n.js's applyLanguage() بعد كل تبديل لغة — يعيد رسم النصوص الديناميكية اللي ما تغطّيها [data-i18n] الثابتة
+// (عنوان/وصف قسم الخدمات حسب الوضع النشط، وصفوف الأقسام بوضع الإعلانات لو كانت ظاهرة أصلاً)
+function onLanguageChange() {
+    if (currentActiveSystem === 'ads') {
+        renderAdCategoryRows(adsCategoryCounts);
+        const title    = document.getElementById('servicesSectionTitle');
+        const subtitle = document.getElementById('servicesSectionSubtitle');
+        if (title)    title.textContent    = t('الأقسام');
+        if (subtitle) subtitle.textContent = t('اختر القسم المناسب لك');
+    }
+    // وضع النظام المدفوع: العنوان/الوصف الافتراضي معلَّم بـ[data-i18n] أصلاً بالـHTML، فـapplyLanguage() يترجمهما تلقائياً بدون أي كود إضافي هنا
 }
 
 // صفوف أقسام الإعلانات (تحل محل قائمة الخدمات بالصفحة الرئيسية بوضع الإعلانات)
@@ -266,11 +281,11 @@ function renderAdCategoryRows(counts) {
             <div class="service-row-right">
                 <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-${c.icon}"></use></svg></div>
                 <div class="service-row-info">
-                    <div class="service-row-name">${c.name}</div>
+                    <div class="service-row-name">${t(c.name)}</div>
                 </div>
             </div>
             <div class="service-row-left">
-                <span class="service-row-count">${counts[c.name] || 0} إعلان</span>
+                <span class="service-row-count">${counts[c.name] || 0} ${t('إعلان')}</span>
                 <span class="service-row-arrow">←</span>
             </div>
         </div>
@@ -292,8 +307,8 @@ function openAdsEquipmentPanel() {
     grid.innerHTML = AD_EQUIPMENT_TYPES.map(e => `
         <div class="heavy-item" onclick="window.location.href='ads.html?category=${encodeURIComponent('معدات ثقيلة')}&equipment=${encodeURIComponent(e.name)}'">
             <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-${e.icon}"></use></svg></div>
-            <div class="heavy-name">${e.name}</div>
-            <div class="heavy-badge heavy-badge-count">${adsEquipmentCounts[e.name] || 0} إعلان</div>
+            <div class="heavy-name">${t(e.name)}</div>
+            <div class="heavy-badge heavy-badge-count">${adsEquipmentCounts[e.name] || 0} ${t('إعلان')}</div>
         </div>
     `).join('');
 
