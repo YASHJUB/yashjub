@@ -73,6 +73,7 @@ function switchWalletToAdsMode(phone) {
         <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
         <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
         <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
+            <a class="sidebar-link" href="privacy.html"><span><svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></span> سياسة الخصوصية</a>
     `;
     loadMessagesBadge();
     setInterval(loadMessagesBadge, 30000);
