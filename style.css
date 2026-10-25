@@ -7624,7 +7624,30 @@ body.dark-mode .terms-section-block h2 { color: #ffffff; }
 body.dark-mode .terms-section-block p { color: #aaaaaa; }
 body.dark-mode .terms-contact-box { background: rgba(245,197,24,0.1); color: #cccccc; }
 
-.ad-description-text { color: #444444; }
+/* ══ وضع داكن — تواصل معنا (contact.html) ══ */
+body.dark-mode .contact-section { background: #0a0a0a; }
+body.dark-mode .contact-info h2 { color: #ffffff; }
+body.dark-mode .contact-method { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .contact-method-title { color: #888888; }
+body.dark-mode .contact-method-value { color: #ffffff; }
+body.dark-mode .social-title { color: #ffffff; }
+body.dark-mode .social-btn { background: #1a1a1a; border-color: #333333; color: #cccccc; }
+body.dark-mode .contact-form-card { background: #1a1a1a; border-color: #333333; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+body.dark-mode .contact-form-card h2 { color: #ffffff; }
+body.dark-mode .contact-form-sub { color: #888888; }
+body.dark-mode .contact-form-card textarea { background: #111111; border-color: #333333; color: #ffffff; }
+body.dark-mode .faq-section { background: #111111; }
+body.dark-mode .faq-section h2 { color: #ffffff; }
+body.dark-mode .faq-item { background: #1a1a1a; border-color: #333333; }
+body.dark-mode .faq-question { color: #ffffff; }
+body.dark-mode .faq-answer { color: #aaaaaa; border-top-color: #333333; }
+
+/* ══ وضع داكن — .form-group (مشترك بـ contact.html/register-provider.html) ══ */
+body.dark-mode .form-group label { color: #ffffff; }
+body.dark-mode .form-group input,
+body.dark-mode .form-group select { background: #111111; border-color: #333333; color: #ffffff; }
+
+.ad-description-text { color: #444444; white-space: pre-line; }
 
 /* ══ إعلانات ذات صلة (ad-details.html) ══ */
 .related-ads-grid {
