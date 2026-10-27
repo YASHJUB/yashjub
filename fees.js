@@ -2,7 +2,8 @@
 
 const API = window.location.origin + '/api';
 
-const FEE_RATE = 0.01;
+// نسبة الرسوم الافتراضية (1%) — تُستبدل بقيمة "إعدادات المعاهدة" الحقيقية من لوحة الإدارة لو نجح الطلب، راجع loadFeeConfig()
+let FEE_RATE = 0.01;
 let selectedPaymentMethod = null;
 
 // الصفحة خاصة بوضع الإعلانات فقط (رسوم معاهدة عتاد ماكو مفهوم ينطبق على النظام المدفوع)
@@ -13,6 +14,26 @@ let selectedPaymentMethod = null;
         if (data.activeSystem !== 'ads') window.location.href = 'index.html';
     } catch (e) {}
 })();
+
+// نسبة الرسوم ومهلة الدفع الحقيقيتان من "إعدادات المعاهدة" بلوحة الإدارة — النص/الحساب الافتراضي (1%/10 أيام) يبقى لو تعذّر الاتصال
+async function loadFeeConfig() {
+    try {
+        const res  = await fetch(`${API}/config`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        if (data.config.covenant_fee_percent) {
+            FEE_RATE = Number(data.config.covenant_fee_percent) / 100;
+            const label = `${data.config.covenant_fee_percent}%`;
+            document.getElementById('feeRateLabel1').textContent = label;
+            document.getElementById('feeRateLabel2').textContent = label;
+            calculateFee();
+        }
+        if (data.config.covenant_payment_days) {
+            document.getElementById('feePaymentDaysLabel').textContent = `${data.config.covenant_payment_days} أيام`;
+        }
+    } catch (e) {}
+}
 
 // تحميل بيانات المستخدم بالسايد بار + سجل مدفوعاته
 function loadFeesPage() {
@@ -33,6 +54,7 @@ function loadFeesPage() {
     loadMessagesBadge();
     setInterval(loadMessagesBadge, 30000);
     loadFeePayments(phone);
+    loadFeeConfig();
 }
 
 // badge "الرسائل" بالسايد بار — مجموع غير المقروء بكل محادثات المستخدم (راجع نظام الرسائل الداخلية)

@@ -49,6 +49,11 @@
                 <svg class="icon"><use href="icons.svg#icon-heart"></use></svg>
             </button>
 
+            <!-- زر الإبلاغ عن الإعلان -->
+            <button class="ad-card-fav-btn ad-detail-report-btn" onclick="openReportAdForm()" title="الإبلاغ عن هذا الإعلان">
+                <svg class="icon"><use href="icons.svg#icon-siren"></use></svg>
+            </button>
+
             <div class="order-service-header">
                 <div class="order-icon"><svg class="icon"><use href="icons.svg#icon-tow-truck" id="adCategoryIcon"></use></svg></div>
                 <div>
@@ -165,6 +170,26 @@
             <div class="complaint-form-actions">
                 <button class="btn" style="flex:1" onclick="submitAdRating()">إرسال التقييم</button>
                 <button class="btn-small" onclick="closeAdRatingForm()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الإبلاغ عن الإعلان -->
+    <div class="confirm-overlay" id="reportAdOverlay" style="display:none">
+        <div class="complaint-form-modal">
+            <h3><svg class="icon"><use href="icons.svg#icon-siren"></use></svg> الإبلاغ عن هذا الإعلان</h3>
+            <label>سبب البلاغ</label>
+            <select id="reportAdType">
+                <option value="محتوى مخالف">محتوى مخالف</option>
+                <option value="سعر مضلل">سعر مضلل</option>
+                <option value="معلومات كاذبة">معلومات كاذبة</option>
+                <option value="أخرى">أخرى</option>
+            </select>
+            <label>تفاصيل إضافية (اختياري)</label>
+            <textarea id="reportAdDesc" placeholder="اشرح لنا سبب البلاغ..."></textarea>
+            <div class="complaint-form-actions">
+                <button class="btn" style="flex:1" onclick="submitAdReport()">إرسال البلاغ</button>
+                <button class="btn-small" onclick="closeReportAdForm()">إلغاء</button>
             </div>
         </div>
     </div>

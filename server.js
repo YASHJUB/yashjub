@@ -483,6 +483,22 @@ app.delete('/api/users/:phone', (req, res) => {
     res.json({ success: true });
 });
 
+// إيقاف/تفعيل حساب مستخدم مباشرة (لوحة الإدارة — إدارة الأعضاء بوضع الإعلانات)، نفس خريطة المدد المستخدمة بإجراء الشكاوى "suspend"
+app.put('/api/users/:phone/suspend', (req, res) => {
+    const { duration } = req.body;
+    const days = { day: 1, week: 7, month: 30 }[duration];
+    if (!days) return res.json({ success: false, message: 'مدة غير صحيحة' });
+
+    const suspendedUntil = new Date(Date.now() + days * 86400000).toISOString().slice(0, 19).replace('T', ' ');
+    db.prepare('UPDATE users SET suspended_until = ? WHERE phone = ?').run(suspendedUntil, req.params.phone);
+    res.json({ success: true, suspendedUntil });
+});
+
+app.put('/api/users/:phone/unsuspend', (req, res) => {
+    db.prepare('UPDATE users SET suspended_until = NULL WHERE phone = ?').run(req.params.phone);
+    res.json({ success: true });
+});
+
 // ========== API الطلبات ==========
 
 app.post('/api/orders', (req, res) => {
@@ -819,7 +835,12 @@ app.put('/api/orders/:id/assign-provider', (req, res) => {
 });
 
 app.get('/api/users', (req, res) => {
-    const users = db.prepare('SELECT id, phone, name, email, avatar_path, username, verified, is_verified, verified_at, verified_by, created_at FROM users').all();
+    const users = db.prepare(`
+        SELECT id, phone, name, email, avatar_path, username, verified, is_verified, verified_at, verified_by, suspended_until, created_at,
+            (SELECT balance FROM user_coins WHERE user_coins.phone = users.phone) AS coins_balance,
+            (SELECT COUNT(*) FROM ads WHERE ads.provider_phone = users.phone) AS ads_count
+        FROM users
+    `).all();
     res.json({ success: true, users });
 });
 
@@ -1294,6 +1315,66 @@ app.delete('/api/services/:id', (req, res) => {
     res.json({ success: true });
 });
 
+// ========== API أقسام الإعلانات (جدول ديناميكي — لوحة الإدارة "إعدادات الأقسام" بوضع الإعلانات) ==========
+
+app.get('/api/ad-categories', (req, res) => {
+    const categories = db.prepare('SELECT * FROM ad_categories ORDER BY sort_order ASC, id ASC').all();
+    res.json({ success: true, categories });
+});
+
+app.get('/api/ad-categories/active', (req, res) => {
+    const categories = db.prepare('SELECT * FROM ad_categories WHERE is_active = 1 ORDER BY sort_order ASC, id ASC').all();
+    res.json({ success: true, categories });
+});
+
+app.post('/api/ad-categories', (req, res) => {
+    const { name, nameEn, nameUr, icon, minPrice, sortOrder } = req.body;
+    if (!name || !icon) return res.json({ success: false, message: 'بيانات ناقصة' });
+
+    const existing = db.prepare('SELECT id FROM ad_categories WHERE name = ?').get(name);
+    if (existing) return res.json({ success: false, message: 'يوجد قسم بنفس الاسم مسبقاً' });
+
+    const result = db.prepare(`
+        INSERT INTO ad_categories (name, name_en, name_ur, icon, min_price, sort_order)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(name, nameEn || null, nameUr || null, icon, minPrice || null, sortOrder || 0);
+
+    const category = db.prepare('SELECT * FROM ad_categories WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, category });
+});
+
+app.put('/api/ad-categories/:id', (req, res) => {
+    const cat = db.prepare('SELECT * FROM ad_categories WHERE id = ?').get(req.params.id);
+    if (!cat) return res.json({ success: false, message: 'القسم غير موجود' });
+
+    if (req.body.name && req.body.name !== cat.name) {
+        const dup = db.prepare('SELECT id FROM ad_categories WHERE name = ? AND id != ?').get(req.body.name, req.params.id);
+        if (dup) return res.json({ success: false, message: 'يوجد قسم بنفس الاسم مسبقاً' });
+    }
+
+    db.prepare(`
+        UPDATE ad_categories SET name = ?, name_en = ?, name_ur = ?, icon = ?, min_price = ?, sort_order = ?, is_active = ?
+        WHERE id = ?
+    `).run(
+        req.body.name ?? cat.name,
+        req.body.nameEn !== undefined ? req.body.nameEn : cat.name_en,
+        req.body.nameUr !== undefined ? req.body.nameUr : cat.name_ur,
+        req.body.icon ?? cat.icon,
+        req.body.minPrice !== undefined ? req.body.minPrice : cat.min_price,
+        req.body.sortOrder !== undefined ? req.body.sortOrder : cat.sort_order,
+        req.body.isActive !== undefined ? (req.body.isActive ? 1 : 0) : cat.is_active,
+        req.params.id,
+    );
+
+    const updated = db.prepare('SELECT * FROM ad_categories WHERE id = ?').get(req.params.id);
+    res.json({ success: true, category: updated });
+});
+
+app.delete('/api/ad-categories/:id', (req, res) => {
+    db.prepare('DELETE FROM ad_categories WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
 // ========== API إعدادات النظام (قسم "النظام والسياسات" بلوحة الإدارة) ==========
 
 app.get('/api/settings', (req, res) => {
@@ -1322,6 +1403,80 @@ app.get('/api/settings/active-system', (req, res) => {
     const row = db.prepare("SELECT value FROM system_settings WHERE key = 'ads_system'").get();
     const adsActive = !!row && row.value === 'true';
     res.json({ success: true, activeSystem: adsActive ? 'ads' : 'paid' });
+});
+
+// ========== API الإعدادات الرقمية العامة (app_config — تكلفة/مدة تصدير الإعلان، نسبة/مهلة رسوم المعاهدة) ==========
+// جدول منفصل عمداً عن system_settings البوليني أعلاه — تفادي أي خطر على مفتاحَي ads_system/paid_system الحرجَين
+
+app.get('/api/config', (req, res) => {
+    const rows = db.prepare('SELECT key, value FROM app_config').all();
+    const config = {};
+    rows.forEach(r => { config[r.key] = r.value; });
+    res.json({ success: true, config });
+});
+
+app.put('/api/config/:key', (req, res) => {
+    const { value } = req.body;
+    const existing = db.prepare('SELECT * FROM app_config WHERE key = ?').get(req.params.key);
+    if (!existing) return res.json({ success: false, message: 'الإعداد غير موجود' });
+
+    db.prepare("UPDATE app_config SET value = ?, updated_at = datetime('now') WHERE key = ?").run(String(value), req.params.key);
+    res.json({ success: true, key: req.params.key, value: String(value) });
+});
+
+// ========== API ترجمات نظام تغيير اللغة (لوحة الإدارة — إعدادات اللغات) ==========
+
+app.get('/api/translations', (req, res) => {
+    const translations = db.prepare('SELECT * FROM translations ORDER BY id ASC').all();
+    res.json({ success: true, translations });
+});
+
+app.put('/api/translations/:key', (req, res) => {
+    const { en, ur } = req.body;
+    const existing = db.prepare('SELECT * FROM translations WHERE ar_key = ?').get(req.params.key);
+    if (!existing) return res.json({ success: false, message: 'المفتاح غير موجود' });
+
+    db.prepare("UPDATE translations SET en = ?, ur = ?, updated_at = datetime('now') WHERE ar_key = ?")
+        .run(en ?? existing.en, ur ?? existing.ur, req.params.key);
+
+    const updated = db.prepare('SELECT * FROM translations WHERE ar_key = ?').get(req.params.key);
+    res.json({ success: true, translation: updated });
+});
+
+// ========== API الكلمات المحظورة (فلتر محتوى اختياري — عناوين/أوصاف الإعلانات والتعليقات) ==========
+
+// true لو النص يحتوي كلمة محظورة واحدة على الأقل (تطابق جزئي، غير حساس لحالة الأحرف) — ما يشتغل إلا لو مفتاح banned_words_filter مفعّل
+function containsBannedWord(text) {
+    if (!text) return false;
+    const filterEnabled = db.prepare("SELECT value FROM system_settings WHERE key = 'banned_words_filter'").get();
+    if (!filterEnabled || filterEnabled.value !== 'true') return false;
+
+    const words = db.prepare('SELECT word FROM banned_words').all().map(w => w.word.toLowerCase());
+    if (!words.length) return false;
+
+    const lowerText = text.toLowerCase();
+    return words.some(w => lowerText.includes(w));
+}
+
+app.get('/api/banned-words', (req, res) => {
+    const words = db.prepare('SELECT * FROM banned_words ORDER BY word ASC').all();
+    res.json({ success: true, words });
+});
+
+app.post('/api/banned-words', (req, res) => {
+    const { word } = req.body;
+    if (!word || !word.trim()) return res.json({ success: false, message: 'بيانات ناقصة' });
+
+    const existing = db.prepare('SELECT id FROM banned_words WHERE word = ?').get(word.trim().toLowerCase());
+    if (existing) return res.json({ success: false, message: 'الكلمة موجودة مسبقاً' });
+
+    db.prepare('INSERT INTO banned_words (word) VALUES (?)').run(word.trim().toLowerCase());
+    res.json({ success: true });
+});
+
+app.delete('/api/banned-words/:id', (req, res) => {
+    db.prepare('DELETE FROM banned_words WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
 });
 
 // ========== API إعلانات "منصة عتاد معاهدة" ==========
@@ -1361,6 +1516,11 @@ app.post('/api/ads', (req, res) => {
     // لازم يوافق على معاهدة عتاد قبل نشر أي إعلان جديد (راجع "معاهدة عتاد" بالتوثيق)
     if (!acceptedCovenant) {
         return res.json({ success: false, message: 'يجب الموافقة على معاهدة عتاد قبل نشر الإعلان' });
+    }
+
+    // فلتر الكلمات المحظورة (اختياري — يشتغل فقط لو banned_words_filter مفعّل من لوحة الإدارة)
+    if (containsBannedWord(title) || containsBannedWord(description)) {
+        return res.json({ success: false, message: 'يحتوي الإعلان على كلمات غير مسموح بها، يرجى تعديل المحتوى' });
     }
 
     const result = db.prepare(`
@@ -1426,6 +1586,11 @@ app.put('/api/ads/:id', (req, res) => {
     if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
 
     const { title, description, priceFrom, priceTo, city, district, whatsapp, category, isActive, images, equipmentType } = req.body;
+
+    // فلتر الكلمات المحظورة (اختياري) — يفحص بس لو العنوان/الوصف تغيّروا فعلياً بهذا التعديل
+    if ((title !== undefined && containsBannedWord(title)) || (description !== undefined && containsBannedWord(description))) {
+        return res.json({ success: false, message: 'يحتوي التعديل على كلمات غير مسموح بها، يرجى تعديل المحتوى' });
+    }
 
     db.prepare(`
         UPDATE ads SET
@@ -1539,11 +1704,65 @@ app.get('/api/fees/:phone', (req, res) => {
     res.json({ success: true, payments });
 });
 
+// كل دفعات رسوم المعاهدة من كل المعلنين (لوحة الإدارة — رسوم المعاهدة بوضع الإعلانات) — سجل ذاتي كما سجّله كل معلن بنفسه، بدون أي مفهوم "مستحق/متأخر" (المنصة ما عندها رؤية حقيقية على صفقات الإعلانات، تصير بره المنصة)
+app.get('/api/fees', (req, res) => {
+    const payments = db.prepare(`
+        SELECT fee_payments.*,
+            (SELECT name FROM users WHERE users.phone = fee_payments.provider_phone) AS provider_name,
+            (SELECT username FROM users WHERE users.phone = fee_payments.provider_phone) AS provider_username
+        FROM fee_payments
+        ORDER BY fee_payments.created_at DESC
+    `).all();
+    res.json({ success: true, payments });
+});
+
 // ========== API العملات الذهبية (تصدير الإعلانات) ==========
 
+// النشطة فقط افتراضياً (للواجهة — wallet.html)، أو الكل بـ ?includeInactive=1 (لوحة الإدارة — إدارة العملات)
 app.get('/api/coins/packages', (req, res) => {
-    const packages = db.prepare('SELECT * FROM coins_packages ORDER BY total_coins ASC').all();
+    const sql = req.query.includeInactive
+        ? 'SELECT * FROM coins_packages ORDER BY total_coins ASC'
+        : 'SELECT * FROM coins_packages WHERE is_active = 1 ORDER BY total_coins ASC';
+    const packages = db.prepare(sql).all();
     res.json({ success: true, packages });
+});
+
+// إضافة باقة عملات جديدة (لوحة الإدارة)
+app.post('/api/coins/packages', (req, res) => {
+    const { name, coins, bonusCoins, price, isPopular } = req.body;
+    if (!name || !coins || !price) return res.json({ success: false, message: 'بيانات ناقصة' });
+
+    const bonus = parseInt(bonusCoins, 10) || 0;
+    const total = parseInt(coins, 10) + bonus;
+
+    const result = db.prepare(`
+        INSERT INTO coins_packages (name, coins, bonus_coins, total_coins, price, is_popular)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(name, parseInt(coins, 10), bonus, total, parseFloat(price), isPopular ? 1 : 0);
+
+    const pack = db.prepare('SELECT * FROM coins_packages WHERE id = ?').get(result.lastInsertRowid);
+    res.json({ success: true, package: pack });
+});
+
+// تعديل باقة عملات موجودة (السعر/العدد/البونص/مميزة/نشطة) — لوحة الإدارة
+app.put('/api/coins/packages/:id', (req, res) => {
+    const pack = db.prepare('SELECT * FROM coins_packages WHERE id = ?').get(req.params.id);
+    if (!pack) return res.json({ success: false, message: 'الباقة غير موجودة' });
+
+    const name       = req.body.name ?? pack.name;
+    const coins      = req.body.coins !== undefined ? parseInt(req.body.coins, 10) : pack.coins;
+    const bonusCoins = req.body.bonusCoins !== undefined ? parseInt(req.body.bonusCoins, 10) : pack.bonus_coins;
+    const price      = req.body.price !== undefined ? parseFloat(req.body.price) : pack.price;
+    const isPopular  = req.body.isPopular !== undefined ? (req.body.isPopular ? 1 : 0) : pack.is_popular;
+    const isActive   = req.body.isActive !== undefined ? (req.body.isActive ? 1 : 0) : pack.is_active;
+
+    db.prepare(`
+        UPDATE coins_packages SET name = ?, coins = ?, bonus_coins = ?, total_coins = ?, price = ?, is_popular = ?, is_active = ?
+        WHERE id = ?
+    `).run(name, coins, bonusCoins, coins + bonusCoins, price, isPopular, isActive, req.params.id);
+
+    const updated = db.prepare('SELECT * FROM coins_packages WHERE id = ?').get(req.params.id);
+    res.json({ success: true, package: updated });
 });
 
 // رصيد مستخدم محدد — يرجّع أصفار لو ماكو صف له بعد (ما يُنشئ صف فاضي، نفس فلسفة القراءة البسيطة المعتمدة بباقي المشروع)
@@ -1592,7 +1811,9 @@ app.post('/api/coins/purchase', (req, res) => {
 // تصدير إعلان مقابل 10 عملات لمدة 24 ساعة
 app.post('/api/coins/feature-ad', (req, res) => {
     const { phone, adId } = req.body;
-    const FEATURE_COST = 10;
+    // تكلفة ومدة التصدير صارت قابلة للتعديل من لوحة الإدارة (إعدادات العملات) — جدول app_config، نفس القيم الافتراضية القديمة (10 عملات/24 ساعة) لو ماكو إعداد محفوظ لأي سبب
+    const FEATURE_COST = Number(db.prepare("SELECT value FROM app_config WHERE key = 'feature_ad_coin_cost'").get()?.value) || 10;
+    const FEATURE_HOURS = Number(db.prepare("SELECT value FROM app_config WHERE key = 'feature_ad_duration_hours'").get()?.value) || 24;
 
     if (!phone || !adId) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
@@ -1614,9 +1835,9 @@ app.post('/api/coins/feature-ad', (req, res) => {
     `).run(FEATURE_COST, FEATURE_COST, phone);
 
     db.prepare(`
-        UPDATE ads SET is_featured = 1, featured_until = datetime('now', '+24 hours'), featured_count = featured_count + 1
+        UPDATE ads SET is_featured = 1, featured_until = datetime('now', ?), featured_count = featured_count + 1
         WHERE id = ?
-    `).run(adId);
+    `).run(`+${FEATURE_HOURS} hours`, adId);
 
     db.prepare(`
         INSERT INTO coins_transactions (phone, type, amount, description, ad_id)
@@ -1631,6 +1852,43 @@ app.post('/api/coins/feature-ad', (req, res) => {
 app.get('/api/coins/transactions/:phone', (req, res) => {
     const transactions = db.prepare('SELECT * FROM coins_transactions WHERE phone = ? ORDER BY created_at DESC').all(req.params.phone);
     res.json({ success: true, transactions });
+});
+
+// كل معاملات العملات لكل المستخدمين (لوحة الإدارة — إدارة العملات/التقارير المالية بوضع الإعلانات)
+app.get('/api/coins/transactions', (req, res) => {
+    const transactions = db.prepare(`
+        SELECT coins_transactions.*,
+            (SELECT name FROM users WHERE users.phone = coins_transactions.phone) AS user_name,
+            (SELECT username FROM users WHERE users.phone = coins_transactions.phone) AS user_username
+        FROM coins_transactions
+        ORDER BY coins_transactions.created_at DESC
+    `).all();
+    res.json({ success: true, transactions });
+});
+
+// إضافة عملات هدية من الإدارة (لوحة الإدارة — إدارة الأعضاء بوضع الإعلانات) — نفس upsert pattern لـ POST /api/coins/purchase، بس نوع المعاملة bonus
+app.post('/api/coins/gift', (req, res) => {
+    const { phone, amount, reason } = req.body;
+    const giftAmount = parseInt(amount, 10);
+
+    if (!phone || !giftAmount || giftAmount <= 0) {
+        return res.json({ success: false, message: 'بيانات ناقصة' });
+    }
+
+    const existing = db.prepare('SELECT * FROM user_coins WHERE phone = ?').get(phone);
+    if (existing) {
+        db.prepare(`UPDATE user_coins SET balance = balance + ?, updated_at = datetime('now') WHERE phone = ?`).run(giftAmount, phone);
+    } else {
+        db.prepare('INSERT INTO user_coins (phone, balance) VALUES (?, ?)').run(phone, giftAmount);
+    }
+
+    db.prepare(`
+        INSERT INTO coins_transactions (phone, type, amount, description)
+        VALUES (?, 'bonus', ?, ?)
+    `).run(phone, giftAmount, reason && reason.trim() ? reason.trim() : 'هدية من الإدارة');
+
+    const updated = db.prepare('SELECT * FROM user_coins WHERE phone = ?').get(phone);
+    res.json({ success: true, balance: updated.balance });
 });
 
 // يبحث عن إعلانات انتهى تصدرها ويعيدها لوضعها الطبيعي (يشتغل تلقائياً كل ساعة + متاح للاستدعاء اليدوي)
@@ -1705,6 +1963,11 @@ app.post('/api/comments', (req, res) => {
     const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(adId);
     if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
 
+    // فلتر الكلمات المحظورة (اختياري)
+    if (containsBannedWord(comment)) {
+        return res.json({ success: false, message: 'يحتوي تعليقك على كلمات غير مسموح بها' });
+    }
+
     const result = db.prepare(`
         INSERT INTO comments (ad_id, commenter_phone, commenter_name, comment)
         VALUES (?, ?, ?, ?)
@@ -1722,6 +1985,20 @@ app.post('/api/comments', (req, res) => {
 
     const newComment = db.prepare('SELECT * FROM comments WHERE id = ?').get(result.lastInsertRowid);
     res.json({ success: true, comment: newComment });
+});
+
+// كل التعليقات على كل الإعلانات (لوحة الإدارة — إدارة التعليقات بوضع الإعلانات) — نفس اصطلاح includeHidden
+app.get('/api/comments', (req, res) => {
+    const extraSelect = `
+        (SELECT username FROM users WHERE users.phone = comments.commenter_phone) AS commenter_username,
+        ads.title AS ad_title, ads.category AS ad_category
+    `;
+    const sql = req.query.includeHidden
+        ? `SELECT comments.*, ${extraSelect} FROM comments LEFT JOIN ads ON ads.id = comments.ad_id ORDER BY comments.created_at DESC`
+        : `SELECT comments.*, ${extraSelect} FROM comments LEFT JOIN ads ON ads.id = comments.ad_id WHERE comments.is_visible = 1 ORDER BY comments.created_at DESC`;
+
+    const comments = db.prepare(sql).all();
+    res.json({ success: true, comments });
 });
 
 // تعليقات إعلان معيّن — الظاهرة فقط افتراضياً، أو الكل لو includeHidden=1 (لوحة الإدارة)
@@ -2091,6 +2368,7 @@ app.get('/api/notifications/admin/all', (req, res) => {
 
 const COMPLAINT_JOIN_SQL = `
     SELECT complaints.*, orders.service AS order_service, orders.address AS order_address, orders.price AS order_price,
+        ads.title AS ad_title, ads.category AS ad_category,
         COALESCE(
             (SELECT name FROM users WHERE phone = complaints.reporter_phone),
             (SELECT name FROM providers WHERE phone = complaints.reporter_phone)
@@ -2101,19 +2379,20 @@ const COMPLAINT_JOIN_SQL = `
         ) AS reported_name
     FROM complaints
     LEFT JOIN orders ON orders.id = complaints.order_id
+    LEFT JOIN ads ON ads.id = complaints.ad_id
 `;
 
 app.post('/api/complaints', (req, res) => {
-    const { orderId, reporterPhone, reporterType, reportedPhone, reportedType, type, description } = req.body;
+    const { orderId, adId, reporterPhone, reporterType, reportedPhone, reportedType, type, description } = req.body;
 
     if (!reporterPhone || !reporterType || !type) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
     }
 
     const result = db.prepare(`
-        INSERT INTO complaints (order_id, reporter_phone, reporter_type, reported_phone, reported_type, type, description)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(orderId || null, reporterPhone, reporterType, reportedPhone || null, reportedType || null, type, description || '');
+        INSERT INTO complaints (order_id, ad_id, reporter_phone, reporter_type, reported_phone, reported_type, type, description)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(orderId || null, adId || null, reporterPhone, reporterType, reportedPhone || null, reportedType || null, type, description || '');
 
     const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(result.lastInsertRowid);
 

@@ -74,7 +74,7 @@
                 <div class="order-icon"><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></div>
                 <div>
                     <h2>حاسبة الرسوم</h2>
-                    <span class="service-type">احسب الرسوم المستحقة بناءً على قيمة الخدمة المقدمة (1%)</span>
+                    <span class="service-type">احسب الرسوم المستحقة بناءً على قيمة الخدمة المقدمة (<span id="feeRateLabel1">1%</span>)</span>
                 </div>
             </div>
 
@@ -86,13 +86,13 @@
             </div>
 
             <div class="order-field fee-result-box">
-                <label><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg> الرسوم المستحقة (1%)</label>
+                <label><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg> الرسوم المستحقة (<span id="feeRateLabel2">1%</span>)</label>
                 <input type="text" id="feeResultInput" value="0" readonly>
             </div>
 
             <div class="fee-note">
                 <svg class="icon"><use href="icons.svg#icon-info"></use></svg>
-                بموجب معاهدة عتاد، يُستحق دفع هذا المبلغ خلال 10 أيام من استلام قيمة الخدمة.
+                بموجب معاهدة عتاد، يُستحق دفع هذا المبلغ خلال <span id="feePaymentDaysLabel">10 أيام</span> من استلام قيمة الخدمة.
             </div>
 
             <button class="fee-pay-btn" id="payNowBtn" onclick="openPaymentModal()" disabled>

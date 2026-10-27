@@ -34,12 +34,31 @@ function getLanguage() {
     return localStorage.getItem('atad_language') || 'ar';
 }
 
+// تعديلات لوحة الإدارة (إعدادات اللغات) — تُطبَّق فوق القاموس الثابت أعلاه لو نجح تحميلها، بدون أي تعديل على ATAD_TRANSLATIONS نفسها (يبقى احتياطي آمن)
+let ATAD_TRANSLATIONS_OVERRIDE = {};
+
 // ترجمة نص عربي للغة الحالية — يرجّع نفس النص الأصلي لو ماكو ترجمة متوفرة له (passthrough آمن، ما يكسر أي نص غير مُترجَم بعد)
 function t(arabicText) {
     const lang = getLanguage();
     if (lang === 'ar') return arabicText;
-    const entry = ATAD_TRANSLATIONS[arabicText];
+    const entry = ATAD_TRANSLATIONS_OVERRIDE[arabicText] || ATAD_TRANSLATIONS[arabicText];
     return (entry && entry[lang]) || arabicText;
+}
+
+// تحميل تعديلات الترجمة الحقيقية من لوحة الإدارة مرة وحدة عند فتح الصفحة — فشل الطلب = يبقى القاموس الثابت كما هو بدون أي تغيير
+async function loadServerTranslations() {
+    try {
+        const res  = await fetch(window.location.origin + '/api/translations');
+        const data = await res.json();
+        if (!data.success) return;
+
+        data.translations.forEach(row => {
+            if (row.en || row.ur) ATAD_TRANSLATIONS_OVERRIDE[row.ar_key] = { en: row.en, ur: row.ur };
+        });
+
+        // لو فيه تعديلات فعلية، أعِد تطبيق اللغة الحالية عشان تنعكس فوراً بدون انتظار تبديل لغة يدوي
+        if (Object.keys(ATAD_TRANSLATIONS_OVERRIDE).length) applyLanguage(getLanguage());
+    } catch (e) {}
 }
 
 // يطبّق لغة معيّنة: يحفظها، يبدّل اتجاه/لغة الصفحة، يترجم كل عناصر [data-i18n] الثابتة، ويحدّث شكل زر التبديل والقائمة
@@ -87,3 +106,6 @@ document.addEventListener('click', (e) => {
 
 // يُطبَّق فوراً وقت تحميل الصفحة (قبل أي سكربت خاص بالصفحة) — يغطّي عناصر [data-i18n] الثابتة بالـHTML مباشرة
 applyLanguage(getLanguage());
+
+// تحميل تعديلات لوحة الإدارة بالخلفية (غير حاجز — الصفحة تُعرض فوراً بالقاموس الثابت، وتُحدَّث لو وصلت تعديلات حقيقية)
+loadServerTranslations();

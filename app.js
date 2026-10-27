@@ -131,12 +131,28 @@ async function loadServices() {
 
 let currentActiveSystem = 'paid';
 
-const AD_CATEGORIES      = [
+// نسختان ثابتتان احتياطيتان (لو تعذّر الاتصال بالسيرفر) — تصيران ديناميكيتين عبر loadAdCategories() بوضع الإعلانات، راجع "إعدادات الأقسام" بالتوثيق
+let AD_CATEGORIES      = [
     { name: 'سطحة',       icon: 'tow-truck' },
     { name: 'حاوية',      icon: 'box'       },
     { name: 'معدات ثقيلة', icon: 'crane'     },
 ];
-const AD_CATEGORY_ICONS = { 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane' };
+let AD_CATEGORY_ICONS = { 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane' };
+
+// تُحمَّل أول ما يتفعّل وضع الإعلانات — تستبدل المصفوفة الثابتة أعلاه بقائمة "إعدادات الأقسام" الحقيقية من لوحة الإدارة لو نجح الطلب
+async function loadAdCategories() {
+    try {
+        const res  = await fetch(`${API}/ad-categories/active`);
+        const data = await res.json();
+        if (data.success && data.categories.length) {
+            AD_CATEGORIES = data.categories.map(c => ({ name: c.name, icon: c.icon }));
+            AD_CATEGORY_ICONS = {};
+            data.categories.forEach(c => { AD_CATEGORY_ICONS[c.name] = c.icon; });
+        }
+    } catch (e) {
+        // تعذّر التحميل — تبقى الأقسام الثلاثة الثابتة كما هي
+    }
+}
 
 // أنواع العدة بقسم "معدات ثقيلة" (وضع الإعلانات) — نفس الستة أنواع وأيقوناتها الموجودة بلوحة "قريباً" وضع النظام المدفوع، لكن هنا فعلية تودّي لإعلانات حقيقية
 const AD_EQUIPMENT_TYPES = [
@@ -177,6 +193,8 @@ async function checkActiveSystem() {
 
 // تحويل الصفحة الرئيسية لواجهة الإعلانات (أقسام الإعلانات بدل الخدمات، إخفاء كيف يعمل/لماذا عتاد، أحدث الإعلانات)
 async function switchToAdsMode() {
+    await loadAdCategories();
+
     const howSection   = document.querySelector('.how-section');
     const whySection   = document.querySelector('.why-section');
     const heroSection  = document.getElementById('heroSection');

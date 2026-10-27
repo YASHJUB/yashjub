@@ -247,7 +247,7 @@ function renderAdDetails(ad) {
         (ad.provider_username ? ` <span class="username-inline">@${ad.provider_username}</span>` : '') +
         (ad.provider_is_verified
             ? ' <span class="verified-badge" title="حساب موثق">✅ موثق</span>'
-            : ' <span class="unverified-badge">غير موثق</span>');
+            : '');
     document.getElementById('adRating').innerHTML = ad.avg_rating
         ? `<svg class="icon" style="color:#F5C518;width:13px;height:13px"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating} (${ad.reviews_count} تقييم)`
         : 'بدون تقييم بعد';
@@ -417,6 +417,56 @@ async function submitAdRating() {
             closeAdRatingForm();
             showAppAlert('✅ تم إرسال تقييمك، شكراً لك!');
             loadAdReviews();
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (e) {
+        alert('❌ خطأ في الاتصال بالسيرفر');
+    }
+}
+
+// نافذة الإبلاغ عن الإعلان — ترسل شكوى عادية (reportedType:'provider') بـad_id مرتبط، تظهر تلقائياً بفلتر "📢 إعلانات" بلوحة الإدارة
+function openReportAdForm() {
+    const phone = localStorage.getItem('yashjub_phone');
+    if (!phone) {
+        showAppAlert('⚠️ يجب تسجيل الدخول أولاً للإبلاغ عن إعلان', () => window.location.href = 'login.html');
+        return;
+    }
+    if (!currentAd) return;
+
+    document.getElementById('reportAdDesc').value = '';
+    document.getElementById('reportAdType').value = 'محتوى مخالف';
+    document.getElementById('reportAdOverlay').style.display = 'flex';
+}
+
+function closeReportAdForm() {
+    document.getElementById('reportAdOverlay').style.display = 'none';
+}
+
+async function submitAdReport() {
+    const phone = localStorage.getItem('yashjub_phone');
+    const type  = document.getElementById('reportAdType').value;
+    const desc  = document.getElementById('reportAdDesc').value.trim();
+
+    try {
+        const res  = await fetch(`${API}/complaints`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                adId,
+                reporterPhone: phone,
+                reporterType: 'client',
+                reportedPhone: currentAd.provider_phone,
+                reportedType: 'provider',
+                type,
+                description: desc,
+            }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            closeReportAdForm();
+            showAppAlert('🚨 تم إرسال بلاغك — شكراً لمساعدتك بالحفاظ على جودة المنصة');
         } else {
             alert(`❌ ${data.message}`);
         }

@@ -318,6 +318,43 @@ db.exec(`
         created_at      TEXT DEFAULT (datetime('now'))
     );
 
+    -- أقسام الإعلانات (ديناميكي — لوحة الإدارة "إعدادات الأقسام" بوضع الإعلانات)
+    CREATE TABLE IF NOT EXISTS ad_categories (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        name       TEXT UNIQUE NOT NULL,
+        name_en    TEXT,
+        name_ur    TEXT,
+        icon       TEXT NOT NULL,
+        min_price  INTEGER,
+        is_active  INTEGER DEFAULT 1,
+        sort_order INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    -- إعدادات رقمية عامة (تكلفة/مدة تصدير الإعلان، نسبة/مهلة رسوم المعاهدة) — منفصل عمداً عن system_settings البوليني لتفادي أي خطر على ads_system/paid_system
+    CREATE TABLE IF NOT EXISTS app_config (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        key        TEXT UNIQUE NOT NULL,
+        value      TEXT NOT NULL,
+        updated_at TEXT DEFAULT (datetime('now'))
+    );
+
+    -- ترجمات نظام تغيير اللغة القابلة للتعديل من لوحة الإدارة — المفتاح هو النص العربي الأصلي نفسه، نفس فلسفة ATAD_TRANSLATIONS بـ i18n.js
+    CREATE TABLE IF NOT EXISTS translations (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        ar_key     TEXT UNIQUE NOT NULL,
+        en         TEXT,
+        ur         TEXT,
+        updated_at TEXT DEFAULT (datetime('now'))
+    );
+
+    -- الكلمات المحظورة (فلتر محتوى اختياري لعناوين/أوصاف الإعلانات والتعليقات)
+    CREATE TABLE IF NOT EXISTS banned_words (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        word       TEXT UNIQUE NOT NULL,
+        created_at TEXT DEFAULT (datetime('now'))
+    );
+
 `);
 
 // زرع المدن الأساسية أول مرة بس (لو الجدول فاضي)
@@ -348,6 +385,9 @@ if (settingsCount === 0) {
     insertSetting.run('ads_system', 'false');
 }
 
+// إضافة مفتاح فلتر الكلمات المحظورة لاحقاً (بعد ما كان الجدول مزروع أصلاً بقيمتين بس) — INSERT OR IGNORE عشان ما يكرر الصف لو نُفِّذ أكثر من مرة
+db.prepare("INSERT OR IGNORE INTO system_settings (key, value) VALUES ('banned_words_filter', 'false')").run();
+
 // زرع باقات العملات الذهبية الافتراضية أول مرة بس (لو الجدول فاضي)
 const coinsPackageCount = db.prepare('SELECT COUNT(*) AS n FROM coins_packages').get().n;
 if (coinsPackageCount === 0) {
@@ -360,6 +400,48 @@ if (coinsPackageCount === 0) {
     insertPackage.run('109 عملة', 109, 33,  142,  64.99,  1);
     insertPackage.run('274 عملة', 274, 90,  364,  159.99, 0);
     insertPackage.run('824 عملة', 824, 280, 1104, 479.99, 0);
+}
+
+// زرع أقسام الإعلانات الثلاثة الأساسية أول مرة بس (لو الجدول فاضي) — نفس الأقسام اللي كانت مصفوفة ثابتة AD_CATEGORIES بـ app.js
+const adCategoryCount = db.prepare('SELECT COUNT(*) AS n FROM ad_categories').get().n;
+if (adCategoryCount === 0) {
+    const insertAdCategory = db.prepare('INSERT INTO ad_categories (name, name_en, name_ur, icon, sort_order) VALUES (?, ?, ?, ?, ?)');
+    insertAdCategory.run('سطحة',       'Flatbed',         'فلیٹ بیڈ',      'tow-truck', 1);
+    insertAdCategory.run('حاوية',      'Container',       'کنٹینر',        'box',       2);
+    insertAdCategory.run('معدات ثقيلة', 'Heavy Equipment', 'بھاری مشینری', 'crane',     3);
+}
+
+// زرع الإعدادات الرقمية الافتراضية أول مرة بس (لو الجدول فاضي) — نفس القيم اللي كانت ثوابت مكتوبة بالكود (FEATURE_COST=10 بـ server.js، FEE_RATE=0.01 بـ fees.js، 10 أيام بنص معاهدة عتاد)
+const configCount = db.prepare('SELECT COUNT(*) AS n FROM app_config').get().n;
+if (configCount === 0) {
+    const insertConfig = db.prepare('INSERT INTO app_config (key, value) VALUES (?, ?)');
+    insertConfig.run('feature_ad_coin_cost', '10');
+    insertConfig.run('feature_ad_duration_hours', '24');
+    insertConfig.run('covenant_fee_percent', '1');
+    insertConfig.run('covenant_payment_days', '10');
+}
+
+// زرع قاموس الترجمة الحالي بـ i18n.js داخل جدول translations أول مرة بس (لو الجدول فاضي) — عشان تصير قابلة للتعديل من لوحة الإدارة
+const translationsCount = db.prepare('SELECT COUNT(*) AS n FROM translations').get().n;
+if (translationsCount === 0) {
+    const insertTranslation = db.prepare('INSERT INTO translations (ar_key, en, ur) VALUES (?, ?, ?)');
+    insertTranslation.run('الخدمات', 'Services', 'خدمات');
+    insertTranslation.run('اختر الخدمة المناسبة لك', 'Choose your service', 'اپنی خدمت منتخب کریں');
+    insertTranslation.run('سطحة', 'Tow Truck', 'ٹو ٹرک');
+    insertTranslation.run('حاوية', 'Container', 'کنٹینر');
+    insertTranslation.run('معدات ثقيلة', 'Heavy Equipment', 'بھاری آلات');
+    insertTranslation.run('أحدث الإعلانات', 'Latest Ads', 'تازہ اشتہارات');
+    insertTranslation.run('ابدأ الآن', 'Start Now', 'ابھی شروع کریں');
+    insertTranslation.run('دخول', 'Login', 'لاگ ان');
+    insertTranslation.run('إرسال', 'Send', 'بھیجیں');
+    insertTranslation.run('بحث', 'Search', 'تلاش');
+    insertTranslation.run('تواصل', 'Contact', 'رابطہ');
+    insertTranslation.run('واتساب', 'WhatsApp', 'واٹس ایپ');
+    insertTranslation.run('اتصال', 'Call', 'کال');
+    insertTranslation.run('مراسلة', 'Message', 'پیغام');
+    insertTranslation.run('انشر إعلانك', 'Post Your Ad', 'اشتہار دیں');
+    insertTranslation.run('انشر إعلانك الآن', 'Post Your Ad Now', 'ابھی اشتہار دیں');
+    insertTranslation.run('إعلان', 'Ad', 'اشتہار');
 }
 
 // ترقية الجداول القديمة (migrations بسيطة — تتجاهل الخطأ لو العمود موجود مسبقاً)
@@ -415,6 +497,8 @@ const migrations = [
     'ALTER TABLE users ADD COLUMN verified_at TEXT',
     'ALTER TABLE users ADD COLUMN verified_by TEXT',
     'ALTER TABLE ads ADD COLUMN equipment_type TEXT',
+    'ALTER TABLE complaints ADD COLUMN ad_id INTEGER',
+    'ALTER TABLE coins_packages ADD COLUMN is_active INTEGER DEFAULT 1',
 ];
 
 for (const sql of migrations) {

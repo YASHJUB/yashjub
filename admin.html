@@ -749,6 +749,12 @@
         .provider-name-sm { font-size: 13px; font-weight: 600; }
         .provider-meta-sm { font-size: 11px; color: var(--text3); }
         .provider-revenue { font-size: 13px; font-weight: 700; color: var(--gold); }
+
+        /* طباعة "التقرير المالي" (زر تصدير PDF — بدون مولّد PDF حقيقي، نفس فلسفة invoice.html) */
+        @media print {
+            .sidebar, .topbar, .no-print { display: none !important; }
+            .main { margin-right: 0 !important; }
+        }
     </style>
 </head>
 <body>
@@ -779,7 +785,7 @@
         </div>
 
         <div class="sidebar-section-label">الرئيسية</div>
-        <a class="sidebar-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <a class="sidebar-item active" data-page="dashboard" onclick="goToDashboard()">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></span> لوحة التحكم
         </a>
         <a class="sidebar-item" data-page="operations" onclick="showPage('operations')">
@@ -787,35 +793,74 @@
             <span class="sidebar-badge gold">مباشر</span>
         </a>
 
-        <div class="sidebar-section-label">إدارة الطلبات</div>
-        <a class="sidebar-item" data-page="orders" onclick="showPage('orders')">
+        <div class="sidebar-section-label ads-only-sidebar" id="adsContentLabel" style="display:none">إدارة المحتوى (إعلانات)</div>
+        <a class="sidebar-item ads-only-sidebar" id="navAdsAdmin" data-page="ads" onclick="showPage('ads')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إدارة الإعلانات
+        </a>
+        <a class="sidebar-item ads-only-sidebar" data-page="membersAds" onclick="showPage('membersAds')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></span> إدارة الأعضاء
+        </a>
+        <a class="sidebar-item ads-only-sidebar" data-page="commentsAdmin" onclick="showPage('commentsAdmin')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> إدارة التعليقات
+        </a>
+
+        <div class="sidebar-section-label ads-only-sidebar" style="display:none">المالية (إعلانات)</div>
+        <a class="sidebar-item ads-only-sidebar" data-page="coinsAdmin" onclick="showPage('coinsAdmin')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-coin"></use></svg></span> إدارة العملات
+        </a>
+        <a class="sidebar-item ads-only-sidebar" data-page="feesAdmin" onclick="showPage('feesAdmin')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> رسوم المعاهدة
+        </a>
+        <a class="sidebar-item ads-only-sidebar" data-page="financialReportsAds" onclick="showPage('financialReportsAds')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></span> التقارير المالية
+        </a>
+
+        <div class="sidebar-section-label ads-only-sidebar" style="display:none">الإعدادات (إعلانات)</div>
+        <a class="sidebar-item ads-only-sidebar" data-page="adCategoriesSettings" onclick="showPage('adCategoriesSettings')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعدادات الأقسام
+        </a>
+        <a class="sidebar-item ads-only-sidebar" data-page="coinsConfigSettings" onclick="showPage('coinsConfigSettings')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-coin"></use></svg></span> إعدادات العملات
+        </a>
+        <a class="sidebar-item ads-only-sidebar" data-page="covenantSettings" onclick="showPage('covenantSettings')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> إعدادات المعاهدة
+        </a>
+        <a class="sidebar-item ads-only-sidebar" data-page="translationsSettings" onclick="showPage('translationsSettings')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-globe"></use></svg></span> إعدادات اللغات
+        </a>
+        <a class="sidebar-item ads-only-sidebar" data-page="bannedWordsSettings" onclick="showPage('bannedWordsSettings')" style="display:none">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg></span> الكلمات المحظورة
+        </a>
+
+        <div class="sidebar-section-label paid-only-sidebar">إدارة الطلبات</div>
+        <a class="sidebar-item paid-only-sidebar" data-page="orders" onclick="showPage('orders')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> الطلبات
             <span class="sidebar-badge" id="pendingBadge">0</span>
         </a>
-        <a class="sidebar-item" data-page="services" onclick="showPage('services')">
+        <a class="sidebar-item paid-only-sidebar" data-page="services" onclick="showPage('services')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></span> الخدمات
         </a>
 
-        <div class="sidebar-section-label">إدارة المستخدمين</div>
-        <a class="sidebar-item" data-page="clients" onclick="showPage('clients')">
+        <div class="sidebar-section-label paid-only-sidebar">إدارة المستخدمين</div>
+        <a class="sidebar-item paid-only-sidebar" data-page="clients" onclick="showPage('clients')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></span> العملاء
         </a>
-        <a class="sidebar-item" data-page="providers" onclick="showPage('providers')">
+        <a class="sidebar-item paid-only-sidebar" data-page="providers" onclick="showPage('providers')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> الموردون
         </a>
-        <a class="sidebar-item" data-page="verification" onclick="showPage('verification')">
+        <a class="sidebar-item paid-only-sidebar" data-page="verification" onclick="showPage('verification')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></span> طلبات التوثيق
             <span class="sidebar-badge" id="verifyBadge" style="display:none">0</span>
         </a>
 
-        <div class="sidebar-section-label">المالية</div>
-        <a class="sidebar-item" data-page="payments" onclick="showPage('payments')">
+        <div class="sidebar-section-label paid-only-sidebar">المالية</div>
+        <a class="sidebar-item paid-only-sidebar" data-page="payments" onclick="showPage('payments')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> المدفوعات
         </a>
-        <a class="sidebar-item" data-page="commissions" onclick="showPage('commissions')">
+        <a class="sidebar-item paid-only-sidebar" data-page="commissions" onclick="showPage('commissions')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></span> العمولات
         </a>
-        <a class="sidebar-item" data-page="invoices" onclick="showPage('invoices')">
+        <a class="sidebar-item paid-only-sidebar" data-page="invoices" onclick="showPage('invoices')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> الفواتير
         </a>
 
@@ -834,24 +879,21 @@
         </a>
 
         <div class="sidebar-section-label">أخرى</div>
-        <a class="sidebar-item" data-page="reviews" onclick="showPage('reviews')">
+        <a class="sidebar-item paid-only-sidebar" data-page="reviews" onclick="showPage('reviews')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></span> التقييمات
             <span class="sidebar-badge" id="reviewsBadge" style="display:none;background:var(--red)">0</span>
         </a>
-        <a class="sidebar-item" data-page="testimonials" onclick="showPage('testimonials')">
+        <a class="sidebar-item paid-only-sidebar" data-page="testimonials" onclick="showPage('testimonials')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-gem"></use></svg></span> الشهادات
             <span class="sidebar-badge" id="testimonialsBadge" style="display:none;background:var(--orange)">0</span>
         </a>
-        <a class="sidebar-item" data-page="ads" onclick="showPage('ads')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إدارة الإعلانات
-        </a>
-        <a class="sidebar-item" data-page="cities" onclick="showPage('cities')">
+        <a class="sidebar-item paid-only-sidebar" data-page="cities" onclick="showPage('cities')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></span> المدن
         </a>
-        <a class="sidebar-item" data-page="coupons" onclick="showPage('coupons')">
+        <a class="sidebar-item paid-only-sidebar" data-page="coupons" onclick="showPage('coupons')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></span> كوبونات الخصم
         </a>
-        <a class="sidebar-item" data-page="settings" onclick="showPage('settings')">
+        <a class="sidebar-item paid-only-sidebar" data-page="settings" onclick="showPage('settings')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-settings"></use></svg></span> الإعدادات
         </a>
         <a class="sidebar-item" data-page="system" onclick="showPage('system')">
@@ -1851,12 +1893,418 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>#</th><th>العنوان</th><th>المزوّد</th><th>القسم</th>
+                                    <th>#</th><th></th><th>العنوان</th><th>المزوّد</th><th>القسم</th>
                                     <th>المدينة</th><th>السعر</th><th>المشاهدات</th><th>التقييم</th>
                                     <th>التعليقات</th><th>الحالة</th><th>إجراء</th>
                                 </tr>
                             </thead>
                             <tbody id="allAdsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ لوحة تحكم الإعلانات (تظهر فقط بوضع الإعلانات) ══ -->
+            <div id="page-adsDashboard" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">لوحة التحكم <svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></div>
+                    <div class="page-sub">نظرة عامة على منصة عتاد معاهدة — الإعلانات</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إعلانات نشطة</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ad-s-activeAds">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي الأعضاء</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ad-s-totalMembers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إعلانات متصدرة الآن</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ad-s-featuredAds">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي المشاهدات</div>
+                            <div class="stat-card-icon" style="background:rgba(139,92,246,0.1)"><svg class="icon"><use href="icons.svg#icon-eye"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ad-s-totalViews">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">تعليقات اليوم</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ad-s-todayComments">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">بلاغات إعلانات جديدة</div>
+                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="ad-s-newReports">0</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">أكثر الأقسام نشاطاً</div>
+                        <div id="adsDashCategoryBars"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">تنبيهات</div>
+                        <div id="adsDashAlerts" style="font-size:13px;color:var(--text2)"></div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">آخر الإعلانات المنشورة <a href="#" onclick="showPage('ads')">عرض الكل</a></div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th></th><th>العنوان</th><th>القسم</th><th>المدينة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+                                <tbody id="adsDashRecentAds"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">آخر الأعضاء المسجلين</div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>الاسم</th><th>العضوية</th><th>تاريخ الانضمام</th></tr></thead>
+                                <tbody id="adsDashRecentMembers"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ إدارة الأعضاء (وضع الإعلانات) ══ -->
+            <div id="page-membersAds" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">إدارة الأعضاء <svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></div>
+                    <div class="page-sub">كل أعضاء منصة عتاد معاهدة — عملاء ومعلنون</div>
+                </div>
+                <div class="card">
+                    <div style="margin-bottom:14px">
+                        <select id="membersFilter" onchange="renderMembersTable()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px">
+                            <option value="all">الكل</option>
+                            <option value="verified">موثق</option>
+                            <option value="unverified">غير موثق</option>
+                            <option value="suspended">موقوف</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>الاسم</th><th>الجوال</th><th>رصيد العملات</th>
+                                    <th>الإعلانات</th><th>التوثيق</th><th>تاريخ الانضمام</th><th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allMembersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ إدارة التعليقات (وضع الإعلانات) ══ -->
+            <div id="page-commentsAdmin" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">إدارة التعليقات <svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div>
+                    <div class="page-sub">كل التعليقات على إعلانات منصة عتاد معاهدة</div>
+                </div>
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>التعليق</th><th>المعلّق</th><th>الإعلان</th>
+                                    <th>التاريخ</th><th>الحالة</th><th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allCommentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ إدارة العملات (وضع الإعلانات) ══ -->
+            <div id="page-coinsAdmin" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">إدارة العملات <svg class="icon"><use href="icons.svg#icon-coin"></use></svg></div>
+                    <div class="page-sub">العملات الذهبية 🪙 — الشراء والصرف على تصدير الإعلانات</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي العملات المباعة</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-coin"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="coins-s-sold">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي الإيرادات (تقديري)</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="coins-s-revenue">0 ر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">العملات المصروفة (تصدير)</div>
+                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="coins-s-spent">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">متوسط الإنفاق للمستخدم</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="coins-s-avgSpend">0</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">🎁 إضافة عملات هدية</div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+                        <div style="flex:1;min-width:160px">
+                            <label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px">رقم جوال العضو</label>
+                            <input type="text" id="giftPhoneInput" placeholder="5XXXXXXXX" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px" dir="ltr"/>
+                        </div>
+                        <div style="width:110px">
+                            <label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px">عدد العملات</label>
+                            <input type="number" id="giftAmountInput" placeholder="50" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <div style="flex:1;min-width:160px">
+                            <label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px">السبب (اختياري)</label>
+                            <input type="text" id="giftReasonInput" placeholder="هدية ترحيبية مثلاً" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px"/>
+                        </div>
+                        <button class="btn-gold" onclick="submitGiftCoinsForm()">إضافة</button>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">إعدادات الباقات <a href="#" onclick="addNewCoinsPackage(); return false;">➕ إضافة باقة جديدة</a></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>الاسم</th><th>العملات</th><th>البونص</th><th>الإجمالي</th><th>السعر</th><th>مميزة</th><th>الحالة</th><th>إجراء</th></tr></thead>
+                            <tbody id="coinsPackagesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">سجل المشتريات</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>المستخدم</th><th>العملات</th><th>الوصف</th><th>التاريخ</th></tr></thead>
+                            <tbody id="coinsPurchasesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ رسوم المعاهدة (وضع الإعلانات) ══ -->
+            <div id="page-feesAdmin" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">رسوم المعاهدة <svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></div>
+                    <div class="page-sub">سجل مدفوعات رسوم معاهدة عتاد (1% من قيمة الخدمة) كما سجّلها المعلنون بأنفسهم</div>
+                </div>
+
+                <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">إجمالي الرسوم المسجَّلة</div>
+                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="fees-s-total">0 ر</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">عدد الدفعات</div>
+                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="fees-s-count">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-top">
+                            <div class="stat-card-label">معلنون سجّلوا دفعة</div>
+                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></div>
+                        </div>
+                        <div class="stat-card-num" id="fees-s-payers">0</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">معلنون لم يسجّلوا أي دفعة رسوم بعد</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>المعلن</th><th>عدد الإعلانات</th><th>إجراء</th></tr></thead>
+                            <tbody id="feesUnpaidTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">سجل المدفوعات</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>المعلن</th><th>قيمة الخدمة</th><th>الرسوم</th><th>طريقة الدفع</th><th>التاريخ</th></tr></thead>
+                            <tbody id="feesPaymentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ التقارير المالية (وضع الإعلانات) ══ -->
+            <div id="page-financialReportsAds" style="display:none">
+                <div class="page-header no-print">
+                    <div class="page-title">التقارير المالية <svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></div>
+                    <div class="page-sub">إيرادات العملات ورسوم المعاهدة — منصة عتاد معاهدة</div>
+                </div>
+                <div class="no-print" style="margin-bottom:16px">
+                    <button class="btn-gold" onclick="window.print()">🖨️ تصدير التقرير PDF</button>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-card-title">إيرادات العملات شهرياً (تقديري)</div>
+                        <canvas id="coinsRevenueChart" height="90"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-card-title">رسوم المعاهدة شهرياً</div>
+                        <canvas id="feesChart" height="90"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">أكثر المستخدمين إنفاقاً على العملات</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>المستخدم</th><th>إجمالي الإنفاق (عملات)</th></tr></thead>
+                            <tbody id="topSpendersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ إعدادات الأقسام (وضع الإعلانات) ══ -->
+            <div id="page-adCategoriesSettings" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">إعدادات الأقسام <svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
+                    <div class="page-sub">الأقسام الظاهرة بالصفحة الرئيسية وفورم نشر الإعلان بوضع الإعلانات</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">الأقسام الحالية <a href="#" onclick="addNewAdCategory(); return false;">➕ إضافة قسم جديد</a></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>الاسم (عربي)</th><th>الإنجليزي</th><th>الأردو</th><th>الأيقونة</th><th>عدد الإعلانات</th><th>الحالة</th><th>إجراء</th></tr></thead>
+                            <tbody id="adCategoriesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ إعدادات العملات (وضع الإعلانات) ══ -->
+            <div id="page-coinsConfigSettings" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">إعدادات العملات <svg class="icon"><use href="icons.svg#icon-coin"></use></svg></div>
+                    <div class="page-sub">تكلفة ومدة تصدير الإعلان بنظام العملات الذهبية 🪙</div>
+                </div>
+                <div class="card">
+                    <div style="display:flex;gap:16px;flex-wrap:wrap">
+                        <div style="flex:1;min-width:220px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">تكلفة تصدير إعلان (عملات 🪙)</label>
+                            <input type="number" id="configFeatureCost" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:14px"/>
+                        </div>
+                        <div style="flex:1;min-width:220px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">مدة التصدّر (ساعات)</label>
+                            <input type="number" id="configFeatureHours" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:14px"/>
+                        </div>
+                    </div>
+                    <button class="btn-gold" style="margin-top:16px" onclick="saveCoinsConfig()">حفظ الإعدادات</button>
+                </div>
+            </div>
+
+            <!-- ══ إعدادات المعاهدة (وضع الإعلانات) ══ -->
+            <div id="page-covenantSettings" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">إعدادات المعاهدة <svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></div>
+                    <div class="page-sub">نسبة الرسوم ومهلة الدفع بمعاهدة عتاد</div>
+                </div>
+                <div class="card">
+                    <div style="display:flex;gap:16px;flex-wrap:wrap">
+                        <div style="flex:1;min-width:220px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">نسبة الرسوم (%)</label>
+                            <input type="number" id="configFeePercent" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:14px"/>
+                        </div>
+                        <div style="flex:1;min-width:220px">
+                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">مهلة الدفع (أيام)</label>
+                            <input type="number" id="configPaymentDays" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:14px"/>
+                        </div>
+                    </div>
+                    <button class="btn-gold" style="margin-top:16px" onclick="saveCovenantConfig()">حفظ الإعدادات</button>
+                    <div style="margin-top:16px;padding:12px 16px;background:var(--gray);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.8">
+                        ℹ️ نص المعاهدة نفسه (الآيات القرآنية وصيغة القسم) ثابت ومُراجَع، وما يتغيّر من هذي الصفحة — فقط الرقمين أعلاه (النسبة والمهلة) يعكسان تلقائياً بنص المعاهدة وحاسبة الرسوم بمجرد حفظهما هنا.
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ إعدادات اللغات (وضع الإعلانات) ══ -->
+            <div id="page-translationsSettings" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">إعدادات اللغات <svg class="icon"><use href="icons.svg#icon-globe"></use></svg></div>
+                    <div class="page-sub">ترجمات نظام تغيير اللغة (الصفحة الرئيسية حالياً) — عدّل الإنجليزي/الأردو لكل مفتاح</div>
+                </div>
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>المفتاح (عربي)</th><th>الإنجليزي</th><th>الأردو</th><th>إجراء</th></tr></thead>
+                            <tbody id="translationsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ الكلمات المحظورة (وضع الإعلانات) ══ -->
+            <div id="page-bannedWordsSettings" style="display:none">
+                <div class="page-header">
+                    <div class="page-title">الكلمات المحظورة <svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg></div>
+                    <div class="page-sub">فلتر محتوى اختياري لعناوين/أوصاف الإعلانات والتعليقات</div>
+                </div>
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">تفعيل الفلتر</div>
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+                        <input type="checkbox" id="bannedWordsFilterToggle" onchange="toggleBannedWordsFilter(this.checked)" style="width:18px;height:18px"/>
+                        تفعيل فلتر الكلمات المحظورة (رفض نشر أي إعلان/تعليق يحتوي إحدى الكلمات أدناه)
+                    </label>
+                </div>
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-title">إضافة كلمة محظورة</div>
+                    <div style="display:flex;gap:10px">
+                        <input type="text" id="newBannedWordInput" placeholder="اكتب الكلمة..." style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px"/>
+                        <button class="btn-gold" onclick="addBannedWord()">إضافة</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">الكلمات المحظورة الحالية</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>الكلمة</th><th>تاريخ الإضافة</th><th>إجراء</th></tr></thead>
+                            <tbody id="bannedWordsTable"></tbody>
                         </table>
                     </div>
                 </div>
@@ -2170,6 +2618,7 @@
                         <button class="btn-detail complaint-filter-btn" data-filter="reviewing" onclick="setComplaintFilter('reviewing', this)">قيد المراجعة</button>
                         <button class="btn-detail complaint-filter-btn" data-filter="resolved" onclick="setComplaintFilter('resolved', this)">محلولة</button>
                         <button class="btn-detail complaint-filter-btn" data-filter="closed" onclick="setComplaintFilter('closed', this)">مغلقة</button>
+                        <button class="btn-detail complaint-filter-btn" data-filter="ads" onclick="setComplaintFilter('ads', this)">📢 إعلانات</button>
                     </div>
                 </div>
 

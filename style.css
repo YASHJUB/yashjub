@@ -7443,6 +7443,14 @@ body.dark-mode .featured-ad-badge { background: rgba(245,197,24,0.1); color: #F5
     z-index: 5;
 }
 
+/* زر الإبلاغ عن الإعلان — نفس شكل زر المفضلة، بالزاوية المقابلة */
+.ad-detail-report-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 5;
+}
+
 /* بطاقة "الإعلان لم يعد متاحاً" بصفحة المفضلة — بديل .ad-card لإعلان مُحذوف */
 .favorite-missing-card {
     height: 280px;

@@ -683,6 +683,7 @@ async function checkActiveSystemForAds(phone) {
         setInterval(loadMessagesBadge, 30000);
 
         loadCitiesForAds();
+        loadAdCategoriesForProvider();
         loadMyAds();
         loadAdsStats(phone);
     } catch (e) {}
@@ -709,6 +710,19 @@ async function loadCitiesForAds() {
         if (data.success && data.cities.length) {
             select.innerHTML = '<option value="">اختر المدينة</option>' +
                 data.cities.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
+    } catch (e) {}
+}
+
+// أقسام الإعلانات الحقيقية من "إعدادات الأقسام" بلوحة الإدارة — تستبدل الأقسام الثلاثة الثابتة بالـHTML لو نجح الطلب، وإلا تبقى كما هي
+async function loadAdCategoriesForProvider() {
+    const select = document.getElementById('adCategorySelect');
+    try {
+        const res  = await fetch(`${API}/ad-categories/active`);
+        const data = await res.json();
+        if (data.success && data.categories.length) {
+            select.innerHTML = '<option value="">اختر القسم</option>' +
+                data.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
         }
     } catch (e) {}
 }
@@ -1029,10 +1043,20 @@ function handlePublishClick() {
 
 // ══ معاهدة عتاد (popup إلزامي قبل نشر أي إعلان جديد) ══
 
-function openCovenantModal() {
+async function openCovenantModal() {
     document.getElementById('covenantCheckbox').checked = false;
     onCovenantCheckboxChange();
     document.getElementById('covenantOverlay').style.display = 'flex';
+
+    // نسبة الرسوم ومهلة الدفع صارتا قابلتين للتعديل من لوحة الإدارة (إعدادات المعاهدة) — النص الافتراضي 1%/10 أيام يبقى لو تعذّر الاتصال
+    try {
+        const res  = await fetch(`${API}/config`);
+        const data = await res.json();
+        if (data.success) {
+            if (data.config.covenant_fee_percent)   document.getElementById('covenantFeePercentText').textContent  = `${data.config.covenant_fee_percent}%`;
+            if (data.config.covenant_payment_days)  document.getElementById('covenantPaymentDaysText').textContent = `${data.config.covenant_payment_days} أيام`;
+        }
+    } catch (e) {}
 }
 
 function closeCovenantModal() {
