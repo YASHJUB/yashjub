@@ -244,10 +244,7 @@ function renderAdDetails(ad) {
     document.getElementById('adFeaturedBadge').style.display = ad.is_featured ? 'inline-flex' : 'none';
 
     document.getElementById('adProviderName').innerHTML = (ad.provider_name || 'مزوّد') +
-        (ad.provider_username ? ` <span class="username-inline">@${ad.provider_username}</span>` : '') +
-        (ad.provider_is_verified
-            ? ' <span class="verified-badge" title="حساب موثق">✅ موثق</span>'
-            : '');
+        (ad.provider_username ? ` <span class="username-inline">@${ad.provider_username}</span>` : '');
     document.getElementById('adRating').innerHTML = ad.avg_rating
         ? `<svg class="icon" style="color:#F5C518;width:13px;height:13px"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating} (${ad.reviews_count} تقييم)`
         : 'بدون تقييم بعد';
