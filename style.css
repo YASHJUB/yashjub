@@ -6146,19 +6146,21 @@ body.dark-mode .ad-filter-clear-btn:hover { background: #3d3d3d; }
 }
 
 .covenant-term {
+    position: relative;
     font-size: 14px;
     color: #222222;
     line-height: 1.8;
     margin-bottom: 10px;
-    display: flex;
-    gap: 6px;
+    padding-right: 16px;
 }
 
 .covenant-term::before {
     content: "*";
     color: #F5C518;
     font-weight: 900;
-    flex-shrink: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
 }
 
 .covenant-divider {
