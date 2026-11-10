@@ -7358,15 +7358,21 @@ body.dark-mode .coins-transaction-desc { color: #ffffff; }
 }
 .ad-card-featured-badge .icon { width: 11px; height: 11px; }
 
-/* علامة توثيق الحساب (✅) — بجانب اسم المعلن/المعلّق/المرسل بكل أنحاء الموقع، وبصف "نوع الحساب" بـprofile.html */
+/* علامة توثيق الحساب — بجانب اسم المعلن/المعلّق/المرسل بكل أنحاء الموقع، وبصف "نوع الحساب" بـprofile.html */
 .verified-badge {
     color: #10B981;
     font-size: 14px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
     cursor: default;
+}
+/* أيقونة الشارة نفسها (دائرة ذهبية + صح أسود) — ألوان ثابتة بالرمز نفسه، بدون fill:currentColor */
+.verified-badge-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 /* نص "غير موثق" الصريح — بطاقة المعلن بـad-details.html فقط */

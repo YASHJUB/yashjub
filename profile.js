@@ -60,7 +60,7 @@ async function loadMyVerification(phone) {
 function renderVerificationStatus(isVerified) {
     const el = document.getElementById('infoType');
     el.innerHTML = isVerified
-        ? '<span class="verified-badge" title="حساب موثق">✅ موثق</span>'
+        ? '<span class="verified-badge" title="حساب موثق"><svg class="verified-badge-icon"><use href="icons.svg#icon-verified-badge"></use></svg> موثق</span>'
         : 'عضو';
 }
 

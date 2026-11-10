@@ -126,7 +126,6 @@ function renderComments(comments) {
                 <div class="comment-body">
                     <div class="comment-header">
                         <span class="comment-name">${c.commenter_name || 'مستخدم'}</span>
-                        ${c.commenter_is_verified ? '<span class="verified-badge" title="حساب موثق">✅</span>' : ''}
                         ${c.commenter_username ? `<span class="username-inline">@${c.commenter_username}</span>` : ''}
                         <span class="comment-time">${timeAgo(c.created_at)}</span>
                     </div>
