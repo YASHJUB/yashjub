@@ -150,6 +150,13 @@
             <!-- فورم نشر/تعديل إعلان -->
             <div class="product-form" id="adForm" style="display:none">
                 <div class="order-field">
+                    <label>نوع الإعلان</label>
+                    <div class="user-type-tabs">
+                        <button type="button" class="type-tab active" id="adTypeServiceTab" onclick="selectAdType('service')">خدمة</button>
+                        <button type="button" class="type-tab" id="adTypeSaleTab" onclick="selectAdType('sale')">بيع</button>
+                    </div>
+                </div>
+                <div class="order-field">
                     <label>القسم</label>
                     <select id="adCategorySelect" onchange="checkExistingAdInCategory()">
                         <option value="">اختر القسم</option>
@@ -175,14 +182,14 @@
                     <input type="text" id="adTitleInput" placeholder="مثال: سطحة سريعة بالرياض"/>
                 </div>
                 <div class="order-field">
-                    <label>وصف الخدمة</label>
+                    <label id="adDescriptionLabel">وصف الخدمة</label>
                     <textarea id="adDescriptionInput" rows="3" placeholder="اشرح خدمتك بالتفصيل..."></textarea>
                 </div>
                 <div class="order-field">
-                    <label>السعر من (ريال)</label>
+                    <label id="adPriceFromLabel">السعر من (ريال)</label>
                     <input type="number" id="adPriceFromInput" placeholder="مثال: 100"/>
                 </div>
-                <div class="order-field">
+                <div class="order-field" id="adPriceToField">
                     <label>السعر إلى (اختياري)</label>
                     <input type="number" id="adPriceToInput" placeholder="مثال: 500"/>
                 </div>

@@ -197,12 +197,13 @@ db.exec(`
         updated_at TEXT DEFAULT (datetime('now'))
     );
 
-    -- جدول إعلانات "منصة عتاد معاهدة" (نظام بديل مجاني — إعلان واحد فقط لكل مزود بكل قسم)
+    -- جدول إعلانات "منصة عتاد معاهدة" (نظام بديل مجاني — إعلان واحد فقط لكل مزود بكل قسم ونوع)
     CREATE TABLE IF NOT EXISTS ads (
         id             INTEGER PRIMARY KEY AUTOINCREMENT,
         provider_phone TEXT NOT NULL,
         provider_name  TEXT,
         category       TEXT NOT NULL,
+        ad_type        TEXT DEFAULT 'service',
         title          TEXT NOT NULL,
         description    TEXT,
         price_from     INTEGER NOT NULL,
@@ -215,7 +216,7 @@ db.exec(`
         views_count    INTEGER DEFAULT 0,
         created_at     TEXT DEFAULT (datetime('now')),
         updated_at     TEXT DEFAULT (datetime('now')),
-        UNIQUE(provider_phone, category)
+        UNIQUE(provider_phone, category, ad_type)
     );
 
     -- جدول تقييمات الإعلانات
@@ -442,6 +443,10 @@ if (translationsCount === 0) {
     insertTranslation.run('انشر إعلانك', 'Post Your Ad', 'اشتہار دیں');
     insertTranslation.run('انشر إعلانك الآن', 'Post Your Ad Now', 'ابھی اشتہار دیں');
     insertTranslation.run('إعلان', 'Ad', 'اشتہار');
+    insertTranslation.run('خدمة', 'Service', 'خدمت');
+    insertTranslation.run('بيع', 'Sale', 'فروخت');
+    insertTranslation.run('نوع الإعلان', 'Ad Type', 'اشتہار کی قسم');
+    insertTranslation.run('سعر البيع', 'Sale Price', 'فروخت کی قیمت');
 }
 
 // ترقية الجداول القديمة (migrations بسيطة — تتجاهل الخطأ لو العمود موجود مسبقاً)
@@ -499,6 +504,7 @@ const migrations = [
     'ALTER TABLE ads ADD COLUMN equipment_type TEXT',
     'ALTER TABLE complaints ADD COLUMN ad_id INTEGER',
     'ALTER TABLE coins_packages ADD COLUMN is_active INTEGER DEFAULT 1',
+    "ALTER TABLE ads ADD COLUMN ad_type TEXT DEFAULT 'service'",
 ];
 
 for (const sql of migrations) {
@@ -507,6 +513,47 @@ for (const sql of migrations) {
     } catch (err) {
         // العمود موجود مسبقاً — تجاهل
     }
+}
+
+// توسعة قيد "إعلان واحد لكل قسم" ليشمل نوع الإعلان (خدمة/بيع) — SQLite ما يدعم تعديل UNIQUE مركّب بـALTER TABLE مباشرة، فيُعاد بناء الجدول مرة وحدة فقط لقواعد البيانات القديمة اللي لسه على القيد القديم
+try {
+    const adsTableDef = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='ads'").get();
+    if (adsTableDef && adsTableDef.sql && !adsTableDef.sql.includes('UNIQUE(provider_phone, category, ad_type)')) {
+        db.exec(`
+            CREATE TABLE ads_new (
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                provider_phone TEXT NOT NULL,
+                provider_name  TEXT,
+                category       TEXT NOT NULL,
+                ad_type        TEXT DEFAULT 'service',
+                title          TEXT NOT NULL,
+                description    TEXT,
+                price_from     INTEGER NOT NULL,
+                price_to       INTEGER,
+                city           TEXT NOT NULL,
+                district       TEXT,
+                whatsapp       TEXT NOT NULL,
+                images         TEXT DEFAULT '[]',
+                is_active      INTEGER DEFAULT 1,
+                views_count    INTEGER DEFAULT 0,
+                created_at     TEXT DEFAULT (datetime('now')),
+                updated_at     TEXT DEFAULT (datetime('now')),
+                accepted_covenant    INTEGER DEFAULT 0,
+                covenant_accepted_at TEXT,
+                is_featured    INTEGER DEFAULT 0,
+                featured_until TEXT,
+                featured_count INTEGER DEFAULT 0,
+                equipment_type TEXT,
+                UNIQUE(provider_phone, category, ad_type)
+            );
+            INSERT INTO ads_new (id, provider_phone, provider_name, category, ad_type, title, description, price_from, price_to, city, district, whatsapp, images, is_active, views_count, created_at, updated_at, accepted_covenant, covenant_accepted_at, is_featured, featured_until, featured_count, equipment_type)
+            SELECT id, provider_phone, provider_name, category, COALESCE(ad_type, 'service'), title, description, price_from, price_to, city, district, whatsapp, images, is_active, views_count, created_at, updated_at, accepted_covenant, covenant_accepted_at, is_featured, featured_until, featured_count, equipment_type FROM ads;
+            DROP TABLE ads;
+            ALTER TABLE ads_new RENAME TO ads;
+        `);
+    }
+} catch (err) {
+    console.error('تعذّر ترقية قيد UNIQUE بجدول ads:', err.message);
 }
 
 // فهرس فريد لاسم العضوية (يمنع التكرار) — بعد إضافة العمود بالـmigrations فوق مباشرة

@@ -242,13 +242,20 @@ function renderAdDetails(ad) {
     document.getElementById('adCategory').textContent = ad.category;
     document.getElementById('adFeaturedBadge').style.display = ad.is_featured ? 'inline-flex' : 'none';
 
+    const isSale = ad.ad_type === 'sale';
+    document.getElementById('adTypeBadge').classList.toggle('sale', isSale);
+    document.getElementById('adTypeBadge').classList.toggle('service', !isSale);
+    document.getElementById('adTypeBadgeText').textContent = isSale ? 'بيع' : 'خدمة';
+
     document.getElementById('adProviderName').innerHTML = (ad.provider_name || 'مزوّد') +
         (ad.provider_username ? ` <span class="username-inline">@${ad.provider_username}</span>` : '');
     document.getElementById('adRating').innerHTML = ad.avg_rating
         ? `<svg class="icon" style="color:#F5C518;width:13px;height:13px"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating} (${ad.reviews_count} تقييم)`
         : 'بدون تقييم بعد';
     document.getElementById('adLocation').textContent = ad.city + (ad.district ? ' — ' + ad.district : '');
-    document.getElementById('adPrice').textContent     = ad.price_to ? `من ${ad.price_from} إلى ${ad.price_to} ريال` : `من ${ad.price_from} ريال`;
+    document.getElementById('adPrice').textContent     = isSale
+        ? `${ad.price_from} ريال`
+        : (ad.price_to ? `من ${ad.price_from} إلى ${ad.price_to} ريال` : `من ${ad.price_from} ريال`);
     document.getElementById('adViews').textContent     = `${ad.views_count} مشاهدة`;
     document.getElementById('adDescription').textContent = ad.description || '';
 

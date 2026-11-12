@@ -645,6 +645,23 @@ async function deleteProduct(id) {
 let myAds       = [];
 let editingAdId = null;
 let editingAdImages = [];
+let selectedAdType  = 'service';
+
+// تبديل تبويب "نوع الإعلان" (خدمة/بيع) — يبدّل تسمية السعر، placeholder الوصف، وإظهار/إخفاء "السعر إلى"
+function selectAdType(type) {
+    selectedAdType = type;
+    document.getElementById('adTypeServiceTab').classList.toggle('active', type === 'service');
+    document.getElementById('adTypeSaleTab').classList.toggle('active', type === 'sale');
+
+    const isSale = type === 'sale';
+    document.getElementById('adPriceFromLabel').textContent = isSale ? 'سعر البيع (ريال)' : 'السعر من (ريال)';
+    document.getElementById('adPriceToField').style.display  = isSale ? 'none' : 'block';
+    if (isSale) document.getElementById('adPriceToInput').value = '';
+    document.getElementById('adDescriptionLabel').textContent = isSale ? 'وصف الإعلان' : 'وصف الخدمة';
+    document.getElementById('adDescriptionInput').placeholder = isSale
+        ? 'اذكر تفاصيل ما تبيعه (الحالة، سنة الصنع...)'
+        : 'اشرح خدمتك بالتفصيل...';
+}
 
 // يظهر قسم "إعلاناتي" فقط لو نظام الإعلانات هو النشط حالياً
 async function checkActiveSystemForAds(phone) {
@@ -754,12 +771,13 @@ function renderMyAds() {
 
     container.innerHTML = myAds.map(ad => {
         const isFeatured = !!ad.is_featured && ad.featured_until && new Date(ad.featured_until.replace(' ', 'T') + 'Z') > new Date();
+        const isSale     = ad.ad_type === 'sale';
 
         return `
         <div class="product-item">
             <div class="product-item-top">
                 <div>
-                    <div class="product-item-name">${ad.title}</div>
+                    <div class="product-item-name">${ad.title} <span class="ad-type-badge ${isSale ? 'sale' : 'service'}">${isSale ? 'بيع' : 'خدمة'}</span></div>
                     <div class="product-item-desc">${ad.category} — ${ad.city}${ad.district ? ' / ' + ad.district : ''}</div>
                 </div>
                 <span class="product-item-status" style="${ad.is_active
@@ -771,7 +789,7 @@ function renderMyAds() {
             <div class="product-item-details">
                 <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>
                 <span><svg class="icon"><use href="icons.svg#icon-star"></use></svg> ${ad.avg_rating || '—'} (${ad.reviews_count || 0} تقييم)</span>
-                <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</span>
+                <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> ${isSale ? `${ad.price_from} ريال` : `من ${ad.price_from} ريال`}</span>
                 <span style="cursor:pointer" onclick="window.location.href='ad-details.html?id=${ad.id}#commentsSection'"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg> ${ad.comments_count || 0} تعليق</span>
             </div>
             <div class="product-item-actions">
@@ -889,6 +907,7 @@ function toggleAdForm(forceClose) {
 
 function resetAdForm() {
     editingAdId = null;
+    selectAdType('service');
     document.getElementById('adCategorySelect').value    = '';
     document.getElementById('adTitleInput').value         = '';
     document.getElementById('adDescriptionInput').value   = '';
@@ -913,7 +932,7 @@ function checkExistingAdInCategory() {
     if (editingAdId) return;
 
     const category = document.getElementById('adCategorySelect').value;
-    const existing = myAds.find(a => a.category === category);
+    const existing = myAds.find(a => a.category === category && (a.ad_type || 'service') === selectedAdType);
 
     if (existing) {
         if (confirm('عندك إعلان في هذا القسم، هل تريد تعديله؟')) {
@@ -938,6 +957,7 @@ function editAd(id) {
     if (!ad) return;
 
     editingAdId = id;
+    selectAdType(ad.ad_type === 'sale' ? 'sale' : 'service');
     document.getElementById('adCategorySelect').value   = ad.category;
     document.getElementById('adTitleInput').value         = ad.title;
     document.getElementById('adDescriptionInput').value   = ad.description || '';
@@ -1096,7 +1116,7 @@ async function saveAd(acceptedCovenant) {
             const res  = await fetch(`${API}/ads/${editingAdId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category, title, description, priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone, images: editingAdImages, equipmentType: equipmentType || null }),
+                body: JSON.stringify({ category, adType: selectedAdType, title, description, priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone, images: editingAdImages, equipmentType: equipmentType || null }),
             });
             const data = await res.json();
             if (!data.success) { alert(`❌ ${data.message}`); return; }
@@ -1106,7 +1126,7 @@ async function saveAd(acceptedCovenant) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    providerPhone: phone, providerName: currentProviderName, category, title, description,
+                    providerPhone: phone, providerName: currentProviderName, category, adType: selectedAdType, title, description,
                     priceFrom, priceTo: priceTo || null, city, district, whatsapp: whatsapp || phone,
                     equipmentType: equipmentType || null,
                     acceptedCovenant: !!acceptedCovenant,

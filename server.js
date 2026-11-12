@@ -1492,7 +1492,8 @@ const AD_JOIN_SQL = `
 `;
 
 app.post('/api/ads', (req, res) => {
-    const { providerPhone, providerName, category, title, description, priceFrom, priceTo, city, district, whatsapp, acceptedCovenant, equipmentType } = req.body;
+    const { providerPhone, providerName, category, adType, title, description, priceFrom, priceTo, city, district, whatsapp, acceptedCovenant, equipmentType } = req.body;
+    const type = adType === 'sale' ? 'sale' : 'service';
 
     if (!providerPhone || !category || !title || !priceFrom || !city) {
         return res.json({ success: false, message: 'بيانات ناقصة' });
@@ -1503,8 +1504,8 @@ app.post('/api/ads', (req, res) => {
         return res.json({ success: false, message: 'يرجى اختيار نوع العدة' });
     }
 
-    // كل مزوّد إعلان واحد فقط لكل قسم
-    const existing = db.prepare('SELECT * FROM ads WHERE provider_phone = ? AND category = ?').get(providerPhone, category);
+    // كل مزوّد إعلان واحد فقط لكل قسم ونوع (خدمة/بيع) — يقدر ينشر إعلان خدمة وإعلان بيع بنفس القسم
+    const existing = db.prepare('SELECT * FROM ads WHERE provider_phone = ? AND category = ? AND ad_type = ?').get(providerPhone, category, type);
     if (existing) {
         return res.json({
             success: false,
@@ -1524,10 +1525,10 @@ app.post('/api/ads', (req, res) => {
     }
 
     const result = db.prepare(`
-        INSERT INTO ads (provider_phone, provider_name, category, title, description, price_from, price_to, city, district, whatsapp, equipment_type, accepted_covenant, covenant_accepted_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now'))
+        INSERT INTO ads (provider_phone, provider_name, category, ad_type, title, description, price_from, price_to, city, district, whatsapp, equipment_type, accepted_covenant, covenant_accepted_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now'))
     `).run(
-        providerPhone, providerName || null, category, title, description || '',
+        providerPhone, providerName || null, category, type, title, description || '',
         priceFrom, priceTo || null, city, district || null, whatsapp || providerPhone, equipmentType || null,
     );
 
@@ -1536,13 +1537,14 @@ app.post('/api/ads', (req, res) => {
 });
 
 app.get('/api/ads', (req, res) => {
-    const { category, city, district, price_from, price_to, includeInactive, providerPhone, exclude, limit, equipment_type } = req.query;
+    const { category, city, district, price_from, price_to, includeInactive, providerPhone, exclude, limit, equipment_type, ad_type } = req.query;
 
     let sql = `${AD_JOIN_SQL} WHERE 1=1`;
     const params = [];
 
     if (!includeInactive) { sql += ' AND ads.is_active = 1'; }
     if (category)          { sql += ' AND ads.category = ?'; params.push(category); }
+    if (ad_type)            { sql += ' AND ads.ad_type = ?'; params.push(ad_type); }
     if (equipment_type)    { sql += ' AND ads.equipment_type = ?'; params.push(equipment_type); }
     if (city)              { sql += ' AND ads.city = ?'; params.push(city); }
     if (district)          { sql += ' AND ads.district LIKE ?'; params.push(`%${district}%`); }
@@ -1585,7 +1587,7 @@ app.put('/api/ads/:id', (req, res) => {
     const ad = db.prepare('SELECT * FROM ads WHERE id = ?').get(req.params.id);
     if (!ad) return res.json({ success: false, message: 'الإعلان غير موجود' });
 
-    const { title, description, priceFrom, priceTo, city, district, whatsapp, category, isActive, images, equipmentType } = req.body;
+    const { title, description, priceFrom, priceTo, city, district, whatsapp, category, isActive, images, equipmentType, adType } = req.body;
 
     // فلتر الكلمات المحظورة (اختياري) — يفحص بس لو العنوان/الوصف تغيّروا فعلياً بهذا التعديل
     if ((title !== undefined && containsBannedWord(title)) || (description !== undefined && containsBannedWord(description))) {
@@ -1595,7 +1597,7 @@ app.put('/api/ads/:id', (req, res) => {
     db.prepare(`
         UPDATE ads SET
             title = ?, description = ?, price_from = ?, price_to = ?,
-            city = ?, district = ?, whatsapp = ?, category = ?, is_active = ?, images = ?, equipment_type = ?,
+            city = ?, district = ?, whatsapp = ?, category = ?, ad_type = ?, is_active = ?, images = ?, equipment_type = ?,
             updated_at = datetime('now')
         WHERE id = ?
     `).run(
@@ -1607,6 +1609,7 @@ app.put('/api/ads/:id', (req, res) => {
         district ?? ad.district,
         whatsapp ?? ad.whatsapp,
         category ?? ad.category,
+        adType === 'sale' || adType === 'service' ? adType : ad.ad_type,
         isActive !== undefined ? (isActive ? 1 : 0) : ad.is_active,
         images !== undefined ? JSON.stringify(images) : ad.images,
         equipmentType !== undefined ? equipmentType : ad.equipment_type,
@@ -1931,7 +1934,7 @@ app.get('/api/favorites/:phone', (req, res) => {
             favorites.ad_id,
             favorites.created_at AS favorited_at,
             (ads.id IS NOT NULL) AS ad_exists,
-            ads.id, ads.provider_phone, ads.provider_name, ads.category, ads.title, ads.description,
+            ads.id, ads.provider_phone, ads.provider_name, ads.category, ads.ad_type, ads.title, ads.description,
             ads.price_from, ads.price_to, ads.city, ads.district, ads.whatsapp, ads.images,
             ads.is_active, ads.views_count, ads.is_featured, ads.featured_until,
             (SELECT ROUND(AVG(rating), 1) FROM ad_reviews WHERE ad_reviews.ad_id = ads.id) AS avg_rating,

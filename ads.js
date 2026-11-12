@@ -52,6 +52,7 @@ async function loadCities() {
 
 // البحث عن الإعلانات حسب الفلاتر الحالية + كلمة البحث (تُطبَّق محلياً على العنوان/الوصف، السيرفر ما يدعم بحث نصي عام)
 async function searchAds() {
+    const adType     = document.getElementById('searchAdType').value;
     const city       = document.getElementById('searchCity').value;
     const district   = document.getElementById('searchDistrict').value.trim();
     const priceFrom  = document.getElementById('searchPriceFrom').value;
@@ -61,6 +62,7 @@ async function searchAds() {
     const query = new URLSearchParams();
     if (currentCategory)  query.set('category', currentCategory);
     if (currentEquipment) query.set('equipment_type', currentEquipment);
+    if (adType)           query.set('ad_type', adType);
     if (city)             query.set('city', city);
     if (district)         query.set('district', district);
     if (priceFrom)        query.set('price_from', priceFrom);
@@ -108,6 +110,7 @@ function applyFilterPanel() {
 }
 
 function clearFilterPanel() {
+    document.getElementById('searchAdType').value      = '';
     document.getElementById('searchCity').value       = '';
     document.getElementById('searchDistrict').value   = '';
     document.getElementById('searchPriceFrom').value  = '';
@@ -119,7 +122,8 @@ function clearFilterPanel() {
 
 // تحديد شكل زر الفلترة (أصفر + نقطة) حسب وجود فلتر مفعّل
 function updateFilterBtnState() {
-    const active = document.getElementById('searchCity').value ||
+    const active = document.getElementById('searchAdType').value ||
+                   document.getElementById('searchCity').value ||
                    document.getElementById('searchDistrict').value.trim() ||
                    document.getElementById('searchPriceFrom').value ||
                    document.getElementById('searchPriceTo').value;
@@ -151,9 +155,12 @@ function renderAdCard(ad) {
     const bgStyle = hasImage ? `background-image:url('${images[0]}')` : '';
     const isFav = favoriteAdIds.has(ad.id);
 
+    const isSale = ad.ad_type === 'sale';
+
     return `
         <div class="ad-card ${ad.is_featured ? 'featured' : ''}" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${ad.id}'">
             ${hasImage ? '<div class="ad-card-overlay"></div>' : ''}
+            <div class="ad-card-type-badge ${isSale ? 'sale' : 'service'}">${isSale ? 'بيع' : 'خدمة'}</div>
             ${ad.is_featured ? '<div class="ad-card-featured-badge"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> متصدر</div>' : ''}
             <button class="ad-card-fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${ad.id}, this)">
                 <svg class="icon"><use href="icons.svg#icon-heart"></use></svg>
@@ -166,7 +173,7 @@ function renderAdCard(ad) {
                     <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>
                 </div>
                 <div class="ad-card-location"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${ad.city}${ad.district ? ' — ' + ad.district : ''}</div>
-                <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</div>
+                <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> ${isSale ? `${ad.price_from} ريال` : `من ${ad.price_from} ريال`}</div>
             </div>
         </div>
     `;

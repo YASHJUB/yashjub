@@ -344,9 +344,12 @@ function renderAdCard(ad) {
     const bgStyle = hasImage ? `background-image:url('${images[0]}')` : '';
     const isFav = favoriteAdIds.has(ad.id);
 
+    const isSale = ad.ad_type === 'sale';
+
     return `
         <div class="ad-card ${ad.is_featured ? 'featured' : ''}" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${ad.id}'">
             ${hasImage ? '<div class="ad-card-overlay"></div>' : ''}
+            <div class="ad-card-type-badge ${isSale ? 'sale' : 'service'}">${isSale ? 'بيع' : 'خدمة'}</div>
             ${ad.is_featured ? '<div class="ad-card-featured-badge"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> متصدر</div>' : ''}
             <button class="ad-card-fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${ad.id}, this)">
                 <svg class="icon"><use href="icons.svg#icon-heart"></use></svg>
@@ -359,7 +362,7 @@ function renderAdCard(ad) {
                     <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${ad.views_count} مشاهدة</span>
                 </div>
                 <div class="ad-card-location"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${ad.city}${ad.district ? ' — ' + ad.district : ''}</div>
-                <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${ad.price_from} ريال</div>
+                <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> ${isSale ? `${ad.price_from} ريال` : `من ${ad.price_from} ريال`}</div>
             </div>
         </div>
     `;

@@ -1888,12 +1888,17 @@
                             <option value="1">نشط</option>
                             <option value="0">موقوف</option>
                         </select>
+                        <select class="table-filter" id="adsTypeFilter" onchange="renderAdsAdminTable()">
+                            <option value="">كل الأنواع</option>
+                            <option value="service">خدمة</option>
+                            <option value="sale">بيع</option>
+                        </select>
                     </div>
                     <div class="table-wrap">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>#</th><th></th><th>العنوان</th><th>المزوّد</th><th>القسم</th>
+                                    <th>#</th><th></th><th>العنوان</th><th>المزوّد</th><th>القسم</th><th>النوع</th>
                                     <th>المدينة</th><th>السعر</th><th>المشاهدات</th><th>التقييم</th>
                                     <th>التعليقات</th><th>الحالة</th><th>إجراء</th>
                                 </tr>

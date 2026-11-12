@@ -72,10 +72,12 @@ function renderFavoriteCard(fav) {
     try { images = JSON.parse(fav.images || '[]'); } catch (e) { images = []; }
     const hasImage = images.length > 0;
     const bgStyle = hasImage ? `background-image:url('${images[0]}')` : '';
+    const isSale = fav.ad_type === 'sale';
 
     return `
         <div class="ad-card ${fav.is_featured ? 'featured' : ''}" style="${bgStyle}" onclick="window.location.href='ad-details.html?id=${fav.ad_id}'">
             ${hasImage ? '<div class="ad-card-overlay"></div>' : ''}
+            <div class="ad-card-type-badge ${isSale ? 'sale' : 'service'}">${isSale ? 'بيع' : 'خدمة'}</div>
             ${fav.is_featured ? '<div class="ad-card-featured-badge"><svg class="icon"><use href="icons.svg#icon-star"></use></svg> متصدر</div>' : ''}
             <button class="ad-card-fav-btn active" onclick="event.stopPropagation(); removeFavorite(${fav.ad_id})">
                 <svg class="icon"><use href="icons.svg#icon-heart"></use></svg>
@@ -88,7 +90,7 @@ function renderFavoriteCard(fav) {
                     <span><svg class="icon"><use href="icons.svg#icon-eye"></use></svg> ${fav.views_count} مشاهدة</span>
                 </div>
                 <div class="ad-card-location"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${fav.city}${fav.district ? ' — ' + fav.district : ''}</div>
-                <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> من ${fav.price_from} ريال</div>
+                <div class="ad-card-price"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> ${isSale ? `${fav.price_from} ريال` : `من ${fav.price_from} ريال`}</div>
             </div>
         </div>
     `;

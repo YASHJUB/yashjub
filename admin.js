@@ -2814,12 +2814,14 @@ function renderAdsAdminTable() {
     const category = document.getElementById('adsCategoryFilter').value;
     const city     = document.getElementById('adsCityFilter').value;
     const status   = document.getElementById('adsStatusFilter').value;
+    const adType   = document.getElementById('adsTypeFilter').value;
 
     let list = allAds;
     if (search)   list = list.filter(a => a.title.toLowerCase().includes(search) || (a.provider_name || '').toLowerCase().includes(search));
     if (category) list = list.filter(a => a.category === category);
     if (city)     list = list.filter(a => a.city === city);
     if (status !== '') list = list.filter(a => String(a.is_active) === status);
+    if (adType)   list = list.filter(a => (a.ad_type || 'service') === adType);
 
     document.getElementById('allAdsTable').innerHTML = list.map(a => `
         <tr>
@@ -2828,8 +2830,9 @@ function renderAdsAdminTable() {
             <td>${a.title}</td>
             <td>${a.provider_name || '—'}${a.provider_username ? ` <span style="color:var(--text3)">@${a.provider_username}</span>` : ''}<br><span style="font-size:11px;color:var(--text3)" dir="ltr">+966${a.provider_phone}</span></td>
             <td>${a.category}</td>
+            <td>${a.ad_type === 'sale' ? '<span class="badge" style="background:#F5C518;color:#111111">بيع</span>' : '<span class="badge" style="background:#F5C518;color:#111111">خدمة</span>'}</td>
             <td>${a.city}${a.district ? ' — ' + a.district : ''}</td>
-            <td>${a.price_to ? `${a.price_from}-${a.price_to}` : `من ${a.price_from}`} ر</td>
+            <td>${a.price_to ? `${a.price_from}-${a.price_to}` : (a.ad_type === 'sale' ? `${a.price_from}` : `من ${a.price_from}`)} ر</td>
             <td>${a.views_count}</td>
             <td>${a.avg_rating ? `⭐ ${a.avg_rating} (${a.reviews_count})` : '—'}</td>
             <td>${a.comments_count || 0} <button class="btn-detail" onclick="openAdCommentsPanel(${a.id}, '${(a.title || '').replace(/'/g, "\\'")}')">عرض</button></td>
@@ -2839,7 +2842,7 @@ function renderAdsAdminTable() {
                 <button class="btn-detail" style="color:var(--red)" onclick="deleteAdAdmin(${a.id})">حذف</button>
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="12" style="text-align:center;color:var(--text3)">لا توجد إعلانات مطابقة</td></tr>';
+    `).join('') || '<tr><td colspan="13" style="text-align:center;color:var(--text3)">لا توجد إعلانات مطابقة</td></tr>';
 }
 
 // صورة مصغرة لأول صورة بالإعلان (أو أيقونة القسم لو بدون صور) — تُستخدم بجدول "إدارة الإعلانات" ولوحة تحكم الإعلانات
