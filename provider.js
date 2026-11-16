@@ -42,9 +42,12 @@ async function loadProvider() {
         return;
     }
 
-    // تحديث البيانات
-    document.getElementById('providerName').textContent        = 'مزود خدمة';
-    document.getElementById('providerNameSidebar').textContent = 'مزود خدمة';
+    // تحديث البيانات — الاسم الحقيقي المحفوظ (yashjub_name) له الأولوية دايماً؛ النص الاحتياطي ("معلن"/"مزود خدمة") يظهر فقط لمن لسه ما حدد اسمه
+    // (مهم بوضع الإعلانات تحديداً: مستخدم بدون صف بجدول providers يوقف loadProviderProfile قبل ما تحدّث الاسم، فبدون هذا كان يبقى عالقاً على النص الاحتياطي حتى لو عنده اسم حقيقي محفوظ)
+    const defaultName = activeSystem === 'ads' ? 'معلن' : 'مزود خدمة';
+    const savedName = localStorage.getItem('yashjub_name');
+    document.getElementById('providerName').textContent        = savedName || defaultName;
+    document.getElementById('providerNameSidebar').textContent = savedName || defaultName;
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
     renderAvatars();
 
