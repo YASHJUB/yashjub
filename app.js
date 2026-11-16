@@ -1,137 +1,8 @@
-// عتاد - كود التفاعل الكامل
+// عتاد - كود التفاعل الكامل (منصة إعلانات — النظام المدفوع أُزيل بالكامل)
 
 const API = window.location.origin + '/api';
 
-const SERVICE_BADGE_LABELS = { instant: 'فوري', scheduled: 'مجدول', coming: 'قريباً' };
-
-let activeOrderBarInterval = null;
-
-const ACTIVE_ORDER_BAR_STATUS = {
-    pending:  { text: '🔍 جاري البحث عن مزود...',            progress: 25 },
-    accepted: { text: '✅ تم قبول طلبك — المزود في الطريق',  progress: 60 },
-    arrived:  { text: '📍 المزود وصل لموقعك',                progress: 90 },
-};
-
-// شريط تتبع الطلب النشط — يتحدّث كل 30 ثانية
-function startActiveOrderBar() {
-    checkActiveOrderBar();
-    activeOrderBarInterval = setInterval(checkActiveOrderBar, 30000);
-}
-
-function checkActiveOrderBar() {
-    const phone     = localStorage.getItem('yashjub_phone');
-    const orderData = localStorage.getItem('yashjub_order');
-
-    if (!phone || !orderData) {
-        hideActiveOrderBar();
-        return;
-    }
-
-    let localOrder;
-    try {
-        localOrder = JSON.parse(orderData);
-    } catch (e) {
-        hideActiveOrderBar();
-        return;
-    }
-
-    fetchActiveOrderStatus(localOrder);
-}
-
-async function fetchActiveOrderStatus(localOrder) {
-    try {
-        const res  = await fetch(`${API}/orders/${localOrder.id}`);
-        const data = await res.json();
-
-        if (!data.success) {
-            hideActiveOrderBar();
-            return;
-        }
-
-        const order = data.order;
-
-        if (order.status === 'completed' || order.status === 'cancelled') {
-            localStorage.removeItem('yashjub_order');
-            hideActiveOrderBar();
-            return;
-        }
-
-        showActiveOrderBar(order, localOrder.icon);
-    } catch (e) {
-        hideActiveOrderBar();
-    }
-}
-
-function showActiveOrderBar(order, icon) {
-    const bar  = document.getElementById('activeOrderBar');
-    const meta = ACTIVE_ORDER_BAR_STATUS[order.status];
-    if (!bar || !meta) {
-        hideActiveOrderBar();
-        return;
-    }
-
-    document.getElementById('activeOrderIconUse').setAttribute('href', `icons.svg#icon-${icon || 'truck'}`);
-    document.getElementById('activeOrderService').textContent = order.service;
-    document.getElementById('activeOrderNumber').textContent  = `#${order.id}`;
-    document.getElementById('activeOrderStatus').textContent  = meta.text;
-    document.getElementById('activeOrderProgressFill').style.width = `${meta.progress}%`;
-
-    bar.style.display = 'flex';
-}
-
-function hideActiveOrderBar() {
-    const bar = document.getElementById('activeOrderBar');
-    if (bar) bar.style.display = 'none';
-}
-
-function goToActiveOrderTracking() {
-    window.location.href = 'tracking.html';
-}
-
-// تحميل قائمة الخدمات من لوحة الإدارة وعرضها بالصفحة الرئيسية
-async function loadServices() {
-    const container = document.getElementById('servicesList');
-    if (!container) return;
-
-    try {
-        const res  = await fetch(`${API}/services/active`);
-        const data = await res.json();
-
-        if (!data.success || !data.services.length) return;
-
-        container.innerHTML = data.services.map(s => {
-            const badgeLabel = SERVICE_BADGE_LABELS[s.badge_type] || s.badge_type;
-            const soonClass  = s.action_type === 'panel' ? ' soon' : '';
-            const onclick    = s.action_type === 'panel'
-                ? 'showHeavyEquipment()'
-                : `orderService('${s.name.replace(/'/g, "\\'")}', '${s.action_type}')`;
-
-            return `
-                <div class="service-row${soonClass}" onclick="${onclick}">
-                    <div class="service-row-right">
-                        <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-${s.icon}"></use></svg></div>
-                        <div class="service-row-info">
-                            <div class="service-row-name">${t(s.name)}</div>
-                            <div class="service-row-desc">${s.description || ''}</div>
-                        </div>
-                    </div>
-                    <div class="service-row-left">
-                        <span class="service-row-type ${s.badge_type}">${badgeLabel}</span>
-                        <span class="service-row-arrow">←</span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } catch (e) {
-        // تعذّر التحميل — تبقى الخدمات الأربع الثابتة بالـ HTML كما هي
-    }
-}
-
-// ══ التبديل بين نظام الطلبات المدفوعة ونظام الإعلانات (منصة عتاد معاهدة) ══
-
-let currentActiveSystem = 'paid';
-
-// نسختان ثابتتان احتياطيتان (لو تعذّر الاتصال بالسيرفر) — تصيران ديناميكيتين عبر loadAdCategories() بوضع الإعلانات، راجع "إعدادات الأقسام" بالتوثيق
+// نسختان ثابتتان احتياطيتان (لو تعذّر الاتصال بالسيرفر) — تصيران ديناميكيتين عبر loadAdCategories()، راجع "إعدادات الأقسام" بالتوثيق
 let AD_CATEGORIES      = [
     { name: 'سطحة',       icon: 'tow-truck' },
     { name: 'حاوية',      icon: 'box'       },
@@ -139,7 +10,7 @@ let AD_CATEGORIES      = [
 ];
 let AD_CATEGORY_ICONS = { 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane' };
 
-// تُحمَّل أول ما يتفعّل وضع الإعلانات — تستبدل المصفوفة الثابتة أعلاه بقائمة "إعدادات الأقسام" الحقيقية من لوحة الإدارة لو نجح الطلب
+// تُحمَّل أول ما تُفتح الصفحة — تستبدل المصفوفة الثابتة أعلاه بقائمة "إعدادات الأقسام" الحقيقية من لوحة الإدارة لو نجح الطلب
 async function loadAdCategories() {
     try {
         const res  = await fetch(`${API}/ad-categories/active`);
@@ -154,7 +25,7 @@ async function loadAdCategories() {
     }
 }
 
-// أنواع العدة بقسم "معدات ثقيلة" (وضع الإعلانات) — نفس الستة أنواع وأيقوناتها الموجودة بلوحة "قريباً" وضع النظام المدفوع، لكن هنا فعلية تودّي لإعلانات حقيقية
+// أنواع العدة بقسم "معدات ثقيلة" — كل نوع يودّي لإعلانات حقيقية من نفس النوع
 const AD_EQUIPMENT_TYPES = [
     { name: 'بوكلين',  icon: 'tractor'      },
     { name: 'شيول',    icon: 'construction' },
@@ -166,88 +37,10 @@ const AD_EQUIPMENT_TYPES = [
 let adsEquipmentCounts = {};
 let adsCategoryCounts  = {};
 
-// يحدد أي نظام نشط حالياً ويبني الصفحة الرئيسية على أساسه — يُستدعى بدل loadServices() مباشرة
-async function checkActiveSystem() {
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        if (data.success) currentActiveSystem = data.activeSystem;
-    } catch (e) {}
-
-    // المزوّد مقفل على لوحة المزود فقط بوضع النظام المدفوع — بوضع الإعلانات يتصفح الرئيسية كأي مستخدم (راح يدير إعلاناته من "إعلاناتي" بدل لوحة منفصلة)
-    const type = localStorage.getItem('yashjub_type') || 'client';
-    if (type === 'provider' && currentActiveSystem !== 'ads') {
-        window.location.href = 'provider.html';
-        return;
-    }
-
+// تهيئة الصفحة الرئيسية (أقسام الإعلانات + أحدث الإعلانات)
+async function initHomepage() {
     applyLoginUI();
-
-    if (currentActiveSystem === 'ads') {
-        switchToAdsMode();
-    } else {
-        loadServices();
-        loadTestimonials();
-    }
-}
-
-// تحويل الصفحة الرئيسية لواجهة الإعلانات (أقسام الإعلانات بدل الخدمات، إخفاء كيف يعمل/لماذا عتاد، أحدث الإعلانات)
-async function switchToAdsMode() {
     await loadAdCategories();
-
-    const howSection   = document.querySelector('.how-section');
-    const whySection   = document.querySelector('.why-section');
-    const heroSection  = document.getElementById('heroSection');
-    const statsSection = document.getElementById('statsSection');
-    if (howSection) howSection.style.display = 'none';
-    if (whySection) whySection.style.display = 'none';
-    if (heroSection) heroSection.style.display = 'none';
-    if (statsSection) statsSection.style.display = 'none';
-
-    // رابط "انضم كمزود" بالفوتر — ماكو تسجيل مزوّد منفصل بوضع الإعلانات
-    const footerJoinLink = document.getElementById('footerJoinProviderLink');
-    if (footerJoinLink) footerJoinLink.style.display = 'none';
-
-    // عنوان قسم الخدمات يتحول لـ"الأقسام" بوضع الإعلانات (المحتوى تحته صار أقسام إعلانات، مو خدمات حقيقية)
-    // نشيل data-i18n الثابت (قيمته "الخدمات"/الوصف الأصلي) عشان ما يتضارب مع النص الجديد عند أي تبديل لغة لاحق — t() تتكفّل بترجمته مباشرة بدل الاعتماد على محرك data-i18n العام
-    const servicesTitle    = document.getElementById('servicesSectionTitle');
-    const servicesSubtitle = document.getElementById('servicesSectionSubtitle');
-    if (servicesTitle)    { servicesTitle.removeAttribute('data-i18n');    servicesTitle.textContent    = t('الأقسام'); }
-    if (servicesSubtitle) { servicesSubtitle.removeAttribute('data-i18n'); servicesSubtitle.textContent = t('اختر القسم المناسب لك'); }
-
-    // سايد بار موحّد بوضع الإعلانات — نفس البنية المستخدمة بـ provider.html ("إعلاناتي") بالضبط
-    const sidebarMenu = document.getElementById('sidebarMenu');
-    if (sidebarMenu) sidebarMenu.innerHTML = `
-        <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
-        <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
-        <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
-        <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
-        <a class="sidebar-link" href="favorites.html"><span><svg class="icon"><use href="icons.svg#icon-heart"></use></svg></span> قائمة المفضلة</a>
-        <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
-        <a class="sidebar-link" href="fees.html"><span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع</a>
-        <a class="sidebar-link" href="messages.html"><span><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> الرسائل <span class="sidebar-badge" id="messagesBadge" style="display:none">0</span></a>
-        <div class="sidebar-divider"></div>
-        <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
-        <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
-        <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
-        <a class="sidebar-link" href="privacy.html"><span><svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></span> سياسة الخصوصية</a>
-    `;
-    loadMessagesBadge();
-    setInterval(loadMessagesBadge, 30000);
-
-    const title   = document.getElementById('providerSectionTitle');
-    const desc    = document.getElementById('providerSectionDesc');
-    const bens    = document.getElementById('providerSectionBenefits');
-    const btn     = document.getElementById('providerSectionBtn');
-    const visual  = document.querySelector('.provider-visual');
-    const badge   = document.querySelector('.provider-badge');
-    if (title) title.textContent = 'لديك ما تعرضه؟';
-    if (desc) desc.textContent = 'انشر إعلانك الآن وابدأ باستقبال العملاء';
-    if (bens) bens.style.display = 'none';
-    if (badge) badge.style.display = 'none';
-    if (btn) btn.textContent = t('انشر إعلانك الآن');
-    if (visual && btn) visual.appendChild(btn); // نقل الزر لمكان دائرة "+500 مزود نشط" (يسار النص بوضع RTL)
-
     await loadFavoriteIds();
 
     try {
@@ -274,19 +67,11 @@ async function switchToAdsMode() {
 }
 
 // يُستدعى تلقائياً من i18n.js's applyLanguage() بعد كل تبديل لغة — يعيد رسم النصوص الديناميكية اللي ما تغطّيها [data-i18n] الثابتة
-// (عنوان/وصف قسم الخدمات حسب الوضع النشط، وصفوف الأقسام بوضع الإعلانات لو كانت ظاهرة أصلاً)
 function onLanguageChange() {
-    if (currentActiveSystem === 'ads') {
-        renderAdCategoryRows(adsCategoryCounts);
-        const title    = document.getElementById('servicesSectionTitle');
-        const subtitle = document.getElementById('servicesSectionSubtitle');
-        if (title)    title.textContent    = t('الأقسام');
-        if (subtitle) subtitle.textContent = t('اختر القسم المناسب لك');
-    }
-    // وضع النظام المدفوع: العنوان/الوصف الافتراضي معلَّم بـ[data-i18n] أصلاً بالـHTML، فـapplyLanguage() يترجمهما تلقائياً بدون أي كود إضافي هنا
+    renderAdCategoryRows(adsCategoryCounts);
 }
 
-// صفوف أقسام الإعلانات (تحل محل قائمة الخدمات بالصفحة الرئيسية بوضع الإعلانات)
+// صفوف أقسام الإعلانات (الصفحة الرئيسية)
 function renderAdCategoryRows(counts) {
     const container = document.getElementById('servicesList');
     if (!container) return;
@@ -312,7 +97,7 @@ function renderAdCategoryRows(counts) {
     }).join('');
 }
 
-// لوحة "اختر نوع العدة" — تظهر عند الضغط على قسم "معدات ثقيلة" بوضع الإعلانات، كل نوع يودّي لإعلاناته الفعلية
+// لوحة "اختر نوع العدة" — تظهر عند الضغط على قسم "معدات ثقيلة"، كل نوع يودّي لإعلاناته الفعلية
 function openAdsEquipmentPanel() {
     const panel = document.getElementById('adsEquipmentPanel');
     const grid  = document.getElementById('adsEquipmentGrid');
@@ -415,56 +200,13 @@ async function toggleFavorite(adId, btnEl) {
     }
 }
 
-// زر "انضم كمزود" / "انشر إعلانك" بأسفل الرئيسية — بوضع الإعلانات: يوديك لـ"إعلاناتي" مباشرة لو مسجّل دخولك (ماكو تسجيل مزوّد منفصل بعد الآن)، أو لتسجيل الدخول أولاً
+// زر "انشر إعلانك الآن" بأسفل الرئيسية — يوديك لـ"إعلاناتي" مباشرة لو مسجّل دخولك، أو لتسجيل الدخول أولاً
 function goToProviderSection() {
-    if (currentActiveSystem === 'ads') {
-        const phone = localStorage.getItem('yashjub_phone');
-        window.location.href = phone ? 'provider.html#adsSection' : 'login.html';
-    } else {
-        window.location.href = 'register-provider.html';
-    }
+    const phone = localStorage.getItem('yashjub_phone');
+    window.location.href = phone ? 'provider.html#adsSection' : 'login.html';
 }
 
-// تحميل شهادات العملاء الموافق عليها وعرضها بالصفحة الرئيسية (يختفي القسم كلياً لو ماكو شهادات)
-async function loadTestimonials() {
-    const section = document.getElementById('testimonialsSection');
-    const grid    = document.getElementById('testimonialsGrid');
-    if (!section || !grid) return;
-
-    try {
-        const res  = await fetch(`${API}/testimonials/approved`);
-        const data = await res.json();
-
-        if (!data.success || !data.testimonials.length) {
-            section.style.display = 'none';
-            return;
-        }
-
-        grid.innerHTML = data.testimonials.map(t => {
-            let stars = '';
-            for (let i = 1; i <= 5; i++) {
-                stars += `<svg class="icon" style="opacity:${i <= t.rating ? 1 : 0.25}"><use href="icons.svg#icon-star"></use></svg>`;
-            }
-            const date = new Date(t.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('ar-SA');
-
-            return `
-                <div class="testimonial-card">
-                    <div class="testimonial-quote-mark">"</div>
-                    <div class="testimonial-stars">${stars}</div>
-                    <div class="testimonial-text">${t.comment}</div>
-                    <div class="testimonial-name">${t.client_name}</div>
-                    <div class="testimonial-meta">${t.service ? t.service + ' • ' : ''}${date}</div>
-                </div>
-            `;
-        }).join('');
-
-        section.style.display = 'block';
-    } catch (e) {
-        section.style.display = 'none';
-    }
-}
-
-// تحديث واجهة السايد بار/الجرس لمستخدم مسجّل دخوله (عميل أو مزوّد بوضع الإعلانات) — يُستدعى من checkActiveSystem() بعد تحديد النظام النشط
+// تحديث واجهة السايد بار/الجرس لمستخدم مسجّل دخوله
 function applyLoginUI() {
     const phone = localStorage.getItem('yashjub_phone');
     const type  = localStorage.getItem('yashjub_type') || 'client';
@@ -477,14 +219,10 @@ function applyLoginUI() {
         // تحديث السايد بار
         const savedName = localStorage.getItem('yashjub_name');
         document.getElementById('sidebarPhone').textContent    = `+966${phone}`;
-        document.getElementById('sidebarUserName') && (document.getElementById('sidebarUserName').textContent = savedName || (type === 'provider' ? 'مزود خدمة' : 'عميل'));
+        document.getElementById('sidebarUserName') && (document.getElementById('sidebarUserName').textContent = savedName || (type === 'provider' ? 'معلن' : 'عميل'));
         document.getElementById('sidebarLoginBtn').style.display  = 'none';
         document.getElementById('sidebarLogoutBtn').style.display = 'block';
         renderSidebarAvatar();
-
-        // رابط "إعلاناتي" يظهر لأي مستخدم مسجّل دخوله بوضع الإعلانات فقط (ماكو تسجيل مزوّد منفصل بعد الآن) — بوضع النظام المدفوع ما توصل الدالة هذي أصلاً لمزوّد (يتحوّل لـprovider.html قبلها بـcheckActiveSystem())
-        const myAdsLink = document.getElementById('myAdsLink');
-        if (myAdsLink) myAdsLink.style.display = (currentActiveSystem === 'ads') ? 'flex' : 'none';
 
         // إظهار جرس الإشعارات وتحميلها
         const bellWrap = document.getElementById('notifBellWrap');
@@ -493,6 +231,9 @@ function applyLoginUI() {
             loadNotifBell();
             setInterval(loadNotifBell, 60000);
         }
+
+        loadMessagesBadge();
+        setInterval(loadMessagesBadge, 30000);
     }
 }
 
@@ -623,36 +364,9 @@ function logout() {
     location.reload();
 }
 
-// طلب خدمة
-function orderService(name, actionType) {
-    const phone = localStorage.getItem('yashjub_phone');
-
-    if (!phone) {
-        showAppAlert("⚠️ يجب تسجيل الدخول أولاً!", () => window.location.href = 'login.html');
-        return;
-    }
-
-    if (actionType === 'container' || (!actionType && name === 'حاوية')) {
-        window.location.href = 'container-location.html';
-        return;
-    }
-
-    window.location.href = `order.html?service=${encodeURIComponent(name)}`;
-}
-
-// إظهار/إخفاء قائمة المعدات الثقيلة
-function showHeavyEquipment() {
-    const panel  = document.getElementById('heavyEquipmentPanel');
-    const isOpen = panel.style.display === 'block';
-    panel.style.display = isOpen ? 'none' : 'block';
-    if (!isOpen) {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-}
-
 // تشغيل التحقق عند فتح الصفحة
-checkActiveSystem();
-startActiveOrderBar();
+initHomepage();
+
 // الوضع الليلي
 function toggleTheme() {
     const body = document.body;

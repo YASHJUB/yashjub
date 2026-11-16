@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عتاد - لوحة المزود</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <title>عتاد - إعلاناتي</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -17,7 +16,7 @@
     <div class="header">
         <div class="header-right">
             <img src="images/logo.jpg" alt="عتاد" class="logo-img">
-            <div class="tagline">لوحة تحكم المزود</div>
+            <div class="tagline">إعلاناتي</div>
         </div>
         <div class="header-left">
             <div id="notifBellWrap" style="position:relative">
@@ -42,18 +41,20 @@
         <div class="sidebar-header">
             <div class="sidebar-user-icon" id="sidebarUserIcon"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
             <div>
-                <div class="sidebar-user-name" id="providerNameSidebar">مزود خدمة</div>
+                <div class="sidebar-user-name" id="providerNameSidebar">مستخدم عتاد</div>
                 <div class="sidebar-user-phone" id="providerPhoneSidebar">+966XXXXXXXXX</div>
-                <div class="provider-hero-badge" id="sidebarProviderBadge" style="margin-top:6px"><svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> موثق</div>
             </div>
             <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
         </div>
         <div class="sidebar-menu" id="sidebarMenu">
-            <a class="sidebar-link active" href="provider.html"><span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> لوحة المزود</a>
-            <a class="sidebar-link" href="provider-orders.html"><span><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> سجل الطلبات</a>
-            <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
-            <a class="sidebar-link" href="my-orders.html"><span><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> طلباتي</a>
+            <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
+            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
             <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
+            <a class="sidebar-link active" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
+            <a class="sidebar-link" href="favorites.html"><span><svg class="icon"><use href="icons.svg#icon-heart"></use></svg></span> قائمة المفضلة</a>
+            <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
+            <a class="sidebar-link" href="fees.html"><span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع</a>
+            <a class="sidebar-link" href="messages.html"><span><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> الرسائل <span class="sidebar-badge" id="messagesBadge" style="display:none">0</span></a>
             <div class="sidebar-divider"></div>
             <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
             <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
@@ -72,52 +73,20 @@
             <div class="provider-hero-right">
                 <div class="provider-hero-avatar" id="providerHeroAvatar"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
                 <div class="provider-hero-info">
-                    <div class="provider-hero-name" id="providerName">مزود خدمة</div>
-                    <div class="provider-hero-service" id="providerServiceType" style="display:none"></div>
+                    <div class="provider-hero-name" id="providerName">معلن</div>
                     <div class="provider-hero-rating"><span id="providerHeroStars"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg></span> <span id="providerHeroRatingNum">5.0</span></div>
-                    <div class="provider-hero-badge" id="providerBadge"><svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> موثق</div>
+                    <div class="verified-badge" id="providerBadge" style="display:none" title="حساب موثق"><svg class="verified-badge-icon"><use href="icons.svg#icon-verified-badge"></use></svg> موثق</div>
                 </div>
             </div>
             <div class="provider-hero-left">
-                <div class="availability-toggle" id="availabilityToggleWrap">
-                    <span class="avail-label" id="availLabel">متاح</span>
-                    <label class="toggle">
-                        <input type="checkbox" id="availToggle" checked onchange="toggleAvailability()">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <button class="btn-small" id="myAccountBtn" style="display:none" onclick="window.location.href='profile.html'">
+                <button class="btn-small" onclick="window.location.href='profile.html'">
                     حسابي <svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg>
                 </button>
             </div>
         </div>
 
-        <!-- الإحصائيات (وضع النظام المدفوع) -->
-        <div class="provider-stats-grid" id="paidStatsGrid">
-            <div class="provider-stat-card">
-                <div class="provider-stat-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
-                <div class="provider-stat-num" id="statToday">0</div>
-                <div class="provider-stat-label">طلبات اليوم</div>
-            </div>
-            <div class="provider-stat-card">
-                <div class="provider-stat-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
-                <div class="provider-stat-num" id="statWeek">0</div>
-                <div class="provider-stat-label">أرباح الأسبوع (ر)</div>
-            </div>
-            <div class="provider-stat-card">
-                <div class="provider-stat-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
-                <div class="provider-stat-num" id="providerRatingStat">5.0</div>
-                <div class="provider-stat-label">التقييم</div>
-            </div>
-            <div class="provider-stat-card">
-                <div class="provider-stat-icon" style="background:rgba(139,92,246,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
-                <div class="provider-stat-num">93%</div>
-                <div class="provider-stat-label">نسبة الإتمام</div>
-            </div>
-        </div>
-
-        <!-- الإحصائيات (وضع الإعلانات) -->
-        <div class="provider-stats-grid" id="adsStatsGrid" style="display:none">
+        <!-- الإحصائيات -->
+        <div class="provider-stats-grid" id="adsStatsGrid">
             <div class="provider-stat-card">
                 <div class="provider-stat-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
                 <div class="provider-stat-num" id="adsStatActive">0</div>
@@ -140,8 +109,8 @@
             </div>
         </div>
 
-        <!-- إعلاناتي (منصة عتاد معاهدة — تظهر فقط بوضع نظام الإعلانات) -->
-        <div class="my-products-section" id="adsSection" style="display:none">
+        <!-- إعلاناتي (منصة عتاد معاهدة) -->
+        <div class="my-products-section" id="adsSection">
             <div class="my-products-header">
                 <div class="my-products-title"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg> إعلاناتي</div>
                 <button class="btn-small" onclick="toggleAdForm()">+ نشر إعلان جديد</button>
@@ -216,123 +185,6 @@
             </div>
 
             <div id="adsList"></div>
-        </div>
-
-        <!-- منتجاتي (لمزودي الحاوية فقط) -->
-        <div class="my-products-section" id="myProductsSection" style="display:none">
-            <div class="my-products-header">
-                <div class="my-products-title"><svg class="icon"><use href="icons.svg#icon-box"></use></svg> منتجاتي</div>
-                <button class="btn-small" onclick="toggleProductForm()">+ إضافة منتج جديد</button>
-            </div>
-
-            <!-- فورم إضافة/تعديل منتج -->
-            <div class="product-form" id="productForm" style="display:none">
-                <div class="order-field">
-                    <label>اسم المنتج</label>
-                    <input type="text" id="productName" placeholder="مثال: حاوية صغيرة 3 متر"/>
-                </div>
-                <div class="order-field">
-                    <label>وصف المنتج</label>
-                    <textarea id="productDescription" rows="2" placeholder="مثال: مناسبة للمنازل والمشاريع الصغيرة"></textarea>
-                </div>
-                <div class="order-field">
-                    <label>الحجم</label>
-                    <select id="productSize">
-                        <option value="small">صغيرة (3م)</option>
-                        <option value="medium">متوسطة (6م)</option>
-                        <option value="large">كبيرة (12م)</option>
-                    </select>
-                </div>
-                <div class="order-field">
-                    <label>سعر الحزمة (ريال)</label>
-                    <input type="number" id="productPrice" placeholder="مثال: 600"/>
-                </div>
-                <div class="order-field">
-                    <label>الحد الأدنى للأيام</label>
-                    <input type="number" id="productMinDays" min="1" placeholder="مثال: 10"/>
-                    <span style="color:#888;font-size:12px">السعر أعلاه مقابل هذا العدد من الأيام — أي أيام إضافية تُحسب بنفس السعر اليومي تلقائياً</span>
-                </div>
-                <div class="order-field">
-                    <label>المدينة</label>
-                    <select id="productCity">
-                        <option value="">اختر المدينة</option>
-                        <option value="الرياض">الرياض</option>
-                        <option value="جدة">جدة</option>
-                        <option value="الدمام">الدمام</option>
-                        <option value="مكة">مكة</option>
-                        <option value="المدينة المنورة">المدينة المنورة</option>
-                    </select>
-                </div>
-                <div class="order-field">
-                    <label>الحي</label>
-                    <input type="text" id="productNeighborhood" placeholder="مثال: حي النرجس"/>
-                </div>
-                <div class="order-field">
-                    <label>الموقع على الخريطة (اختياري — يساعد العملاء يشوفون موقعك بالضبط)</label>
-                    <button type="button" class="btn-locate" onclick="useMyLocationForProduct()"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> استخدم موقعي الحالي</button>
-                    <div id="productMap" class="location-map"></div>
-                    <input type="hidden" id="productLat"/>
-                    <input type="hidden" id="productLng"/>
-                </div>
-                <div class="order-field">
-                    <label>حالة المنتج</label>
-                    <select id="productAvailable">
-                        <option value="1">متاح</option>
-                        <option value="0">غير متاح</option>
-                    </select>
-                </div>
-                <button class="btn btn-full" onclick="saveProduct()" id="saveProductBtn">حفظ المنتج</button>
-            </div>
-
-            <div id="productsList"></div>
-        </div>
-
-        <!-- الطلب الوارد -->
-        <div class="new-order-section" id="newOrderSection" style="display:none">
-            <div class="new-order-header">
-                <div class="new-order-pulse"></div>
-                <div class="new-order-title" id="newOrderTitle"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg> طلب جديد وارد!</div>
-            </div>
-
-            <div class="new-order-body">
-                <div class="new-order-service" id="newOrderService"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg> وايت ماء</div>
-                <div class="new-order-details-grid">
-                    <div class="new-order-detail">
-                        <span class="new-order-detail-label"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> الموقع</span>
-                        <span class="new-order-detail-value" id="newOrderAddress">الرياض</span>
-                    </div>
-                    <div class="new-order-detail">
-                        <span class="new-order-detail-label"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> السعر المحدد من العميل</span>
-                        <span class="new-order-detail-value new-order-price" id="newOrderAmount">0 ريال</span>
-                    </div>
-                    <div class="new-order-detail">
-                        <span class="new-order-detail-label"><svg class="icon"><use href="icons.svg#icon-phone"></use></svg> العميل</span>
-                        <span class="new-order-detail-value" id="newOrderClient">+966XXXXXXXXX</span>
-                    </div>
-                    <div class="new-order-detail">
-                        <span class="new-order-detail-label"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> النوع</span>
-                        <span class="new-order-detail-value" id="newOrderType">فوري</span>
-                    </div>
-                </div>
-
-                <div class="new-order-actions" id="newOrderActions">
-                    <!-- تُبنى ديناميكياً بـ renderActiveOrderActions() حسب حالة الطلب الحقيقية -->
-                </div>
-
-                <div class="countdown-wrap" id="countdownWrap">
-                    <div class="countdown-bar-wrap">
-                        <div class="countdown-bar-fill" id="countdownFill"></div>
-                    </div>
-                    <div class="countdown-text"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> <span id="countdownNum">60</span> ثانية للرد</div>
-                </div>
-
-                <div class="countdown-wrap" id="awaitingReleaseWrap" style="display:none">
-                    <div class="countdown-text" style="color:#F5C518;font-weight:700">
-                        <svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg>
-                        سيتم تحرير مبلغك خلال <span id="awaitingReleaseTimer">23:59:59</span>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- تقييماتي -->
@@ -433,7 +285,6 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="alert.js"></script>
     <script src="provider.js"></script>
 </body>

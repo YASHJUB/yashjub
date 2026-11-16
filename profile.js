@@ -2,17 +2,6 @@
 
 const API = window.location.origin + '/api';
 
-// رابط "انضم كمزود" بالفوتر — ماكو تسجيل مزوّد منفصل بوضع الإعلانات
-(async function hideFooterJoinLinkInAdsMode() {
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        if (data.activeSystem !== 'ads') return;
-        const link = document.getElementById('footerJoinProviderLink');
-        if (link) link.style.display = 'none';
-    } catch (e) {}
-})();
-
 function loadProfile() {
     const phone = localStorage.getItem('yashjub_phone');
     const type  = localStorage.getItem('yashjub_type') || 'client';
@@ -36,12 +25,8 @@ function loadProfile() {
     renderVerificationStatus(false);
     loadMyVerification(phone);
 
-    if (type === 'provider') {
-        document.getElementById('profileName').textContent  = name || 'مزود خدمة';
-        document.getElementById('providerAction').style.display = 'flex';
-    } else {
-        document.getElementById('profileName').textContent  = name || 'عميل عتاد';
-    }
+    document.getElementById('profileName').textContent = name || (type === 'provider' ? 'معلن' : 'عميل عتاد');
+    document.getElementById('providerAction').style.display = 'flex';
 }
 
 // ══ توثيق الحساب (✅) — صف "نوع الحساب" يعرض حالة التوثيق بدل عميل/مزوّد ══

@@ -41,18 +41,20 @@
         <div class="sidebar-header">
             <div class="sidebar-user-icon" id="sidebarUserIcon"><svg class="icon"><use href="icons.svg#icon-user"></use></svg></div>
             <div>
-                <div class="sidebar-user-name" id="providerNameSidebar">مزود خدمة</div>
+                <div class="sidebar-user-name" id="providerNameSidebar">مستخدم عتاد</div>
                 <div class="sidebar-user-phone" id="providerPhoneSidebar">+966XXXXXXXXX</div>
-                <div class="provider-hero-badge" id="sidebarProviderBadge" style="margin-top:6px"><svg class="icon"><use href="icons.svg#icon-medal-gold"></use></svg> موثق</div>
             </div>
             <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
         </div>
         <div class="sidebar-menu" id="sidebarMenu">
-            <a class="sidebar-link" href="provider.html"><span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> لوحة المزود</a>
-            <a class="sidebar-link" href="provider-orders.html"><span><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> سجل الطلبات</a>
-            <a class="sidebar-link active" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
-            <a class="sidebar-link" href="my-orders.html"><span><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> طلباتي</a>
+            <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
+            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
             <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
+            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
+            <a class="sidebar-link" href="favorites.html"><span><svg class="icon"><use href="icons.svg#icon-heart"></use></svg></span> قائمة المفضلة</a>
+            <a class="sidebar-link active" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
+            <a class="sidebar-link" href="fees.html"><span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع</a>
+            <a class="sidebar-link" href="messages.html"><span><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> الرسائل <span class="sidebar-badge" id="messagesBadge" style="display:none">0</span></a>
             <div class="sidebar-divider"></div>
             <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
             <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
@@ -67,36 +69,8 @@
     <!-- المحتوى الرئيسي -->
     <div class="provider-page">
 
-        <!-- المحفظة (نظام الطلبات المدفوعة) -->
-        <div class="wallet-card" id="walletSection">
-            <div class="wallet-header">
-                <div class="wallet-title"><svg class="icon"><use href="icons.svg#icon-card"></use></svg> محفظتي</div>
-                <button class="wallet-withdraw-btn" onclick="requestWithdraw()">طلب سحب</button>
-            </div>
-            <div class="wallet-balance-wrap">
-                <div class="wallet-balance-label">الرصيد المتاح</div>
-                <div class="wallet-balance" id="walletBalance">0 ريال</div>
-            </div>
-            <div class="wallet-stats">
-                <div class="wallet-stat">
-                    <div class="wallet-stat-num" id="walletTotal">0</div>
-                    <div class="wallet-stat-label">إجمالي الأرباح</div>
-                </div>
-                <div class="wallet-stat-divider"></div>
-                <div class="wallet-stat">
-                    <div class="wallet-stat-num" id="walletPending">0</div>
-                    <div class="wallet-stat-label">معلق</div>
-                </div>
-                <div class="wallet-stat-divider"></div>
-                <div class="wallet-stat">
-                    <div class="wallet-stat-num" id="walletWithdrawn">0</div>
-                    <div class="wallet-stat-label">تم السحب</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- محفظة العملات الذهبية (نظام الإعلانات — تظهر فقط بوضع الإعلانات) -->
-        <div id="coinsWalletSection" style="display:none">
+        <!-- محفظة العملات الذهبية -->
+        <div id="coinsWalletSection">
 
             <div class="wallet-card">
                 <div class="coins-balance-wrap">

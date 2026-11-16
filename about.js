@@ -1,22 +1,12 @@
-// كود صفحة "من نحن" — محتوى مختلف بوضع الإعلانات (منصة عتاد معاهدة)، بدون أي تغيير بوضع النظام المدفوع
+// كود صفحة "من نحن" — منصة إعلانات (منصة عتاد معاهدة)
 
 const API = window.location.origin + '/api';
 
-(async function checkAboutAdsMode() {
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        if (data.activeSystem === 'ads') switchAboutToAdsMode();
-    } catch (e) {}
-})();
+applyAboutContent();
 
-function switchAboutToAdsMode() {
+function applyAboutContent() {
     // الهيدر
     document.getElementById('aboutHeroDesc').textContent = 'منصة إعلانات متخصصة في خدمات ومعدات البناء';
-
-    // رابط "انضم كمزود" بالفوتر — ماكو تسجيل مزوّد منفصل بوضع الإعلانات
-    const footerJoinLink = document.getElementById('footerJoinProviderLink');
-    if (footerJoinLink) footerJoinLink.style.display = 'none';
 
     // المهمة والرؤية
     document.getElementById('missionText').textContent = 'نوفر سوقاً إلكترونياً متخصصاً في خدمات البناء يربط أصحاب المشاريع بمزودي الخدمات مباشرة، بدون وسيط وبدون عمولة، قائماً على مبدأ الأمانة والمعاهدة الشرعية';
@@ -51,14 +41,6 @@ function switchAboutToAdsMode() {
 
     // CTA
     document.getElementById('ctaDesc').textContent = 'انضم لمنصة عتاد وانشر إعلانك اليوم';
-
-    const btn1 = document.getElementById('ctaBtn1');
-    btn1.innerHTML = 'انشر إعلانك الآن <svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg>';
-    btn1.onclick = goToPublishAd;
-
-    const btn2 = document.getElementById('ctaBtn2');
-    btn2.innerHTML = 'تصفح الإعلانات <svg class="icon"><use href="icons.svg#icon-search"></use></svg>';
-    btn2.onclick = () => window.location.href = 'ads.html';
 
     loadAdsStats();
 }

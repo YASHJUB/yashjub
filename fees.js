@@ -6,15 +6,6 @@ const API = window.location.origin + '/api';
 let FEE_RATE = 0.01;
 let selectedPaymentMethod = null;
 
-// الصفحة خاصة بوضع الإعلانات فقط (رسوم معاهدة عتاد ماكو مفهوم ينطبق على النظام المدفوع)
-(async function redirectAwayIfPaidMode() {
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        if (data.activeSystem !== 'ads') window.location.href = 'index.html';
-    } catch (e) {}
-})();
-
 // نسبة الرسوم ومهلة الدفع الحقيقيتان من "إعدادات المعاهدة" بلوحة الإدارة — النص/الحساب الافتراضي (1%/10 أيام) يبقى لو تعذّر الاتصال
 async function loadFeeConfig() {
     try {

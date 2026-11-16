@@ -750,7 +750,7 @@
         .provider-meta-sm { font-size: 11px; color: var(--text3); }
         .provider-revenue { font-size: 13px; font-weight: 700; color: var(--gold); }
 
-        /* طباعة "التقرير المالي" (زر تصدير PDF — بدون مولّد PDF حقيقي، نفس فلسفة invoice.html) */
+        /* طباعة "التقرير المالي" (زر تصدير PDF — بدون مولّد PDF حقيقي بالمشروع) */
         @media print {
             .sidebar, .topbar, .no-print { display: none !important; }
             .main { margin-right: 0 !important; }
@@ -785,90 +785,53 @@
         </div>
 
         <div class="sidebar-section-label">الرئيسية</div>
-        <a class="sidebar-item active" data-page="dashboard" onclick="goToDashboard()">
+        <a class="sidebar-item active" data-page="adsDashboard" onclick="showPage('adsDashboard')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></span> لوحة التحكم
         </a>
-        <a class="sidebar-item" data-page="operations" onclick="showPage('operations')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-target"></use></svg></span> مركز العمليات
-            <span class="sidebar-badge gold">مباشر</span>
-        </a>
 
-        <div class="sidebar-section-label ads-only-sidebar" id="adsContentLabel" style="display:none">إدارة المحتوى (إعلانات)</div>
-        <a class="sidebar-item ads-only-sidebar" id="navAdsAdmin" data-page="ads" onclick="showPage('ads')" style="display:none">
+        <div class="sidebar-section-label">إدارة المحتوى (إعلانات)</div>
+        <a class="sidebar-item" id="navAdsAdmin" data-page="ads" onclick="showPage('ads')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إدارة الإعلانات
         </a>
-        <a class="sidebar-item ads-only-sidebar" data-page="membersAds" onclick="showPage('membersAds')" style="display:none">
+        <a class="sidebar-item" data-page="membersAds" onclick="showPage('membersAds')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></span> إدارة الأعضاء
         </a>
-        <a class="sidebar-item ads-only-sidebar" data-page="commentsAdmin" onclick="showPage('commentsAdmin')" style="display:none">
+        <a class="sidebar-item" data-page="commentsAdmin" onclick="showPage('commentsAdmin')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> إدارة التعليقات
         </a>
 
-        <div class="sidebar-section-label ads-only-sidebar" style="display:none">المالية (إعلانات)</div>
-        <a class="sidebar-item ads-only-sidebar" data-page="coinsAdmin" onclick="showPage('coinsAdmin')" style="display:none">
+        <div class="sidebar-section-label">المالية</div>
+        <a class="sidebar-item" data-page="coinsAdmin" onclick="showPage('coinsAdmin')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-coin"></use></svg></span> إدارة العملات
         </a>
-        <a class="sidebar-item ads-only-sidebar" data-page="feesAdmin" onclick="showPage('feesAdmin')" style="display:none">
+        <a class="sidebar-item" data-page="feesAdmin" onclick="showPage('feesAdmin')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> رسوم المعاهدة
         </a>
-        <a class="sidebar-item ads-only-sidebar" data-page="financialReportsAds" onclick="showPage('financialReportsAds')" style="display:none">
+        <a class="sidebar-item" data-page="financialReportsAds" onclick="showPage('financialReportsAds')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></span> التقارير المالية
         </a>
 
-        <div class="sidebar-section-label ads-only-sidebar" style="display:none">الإعدادات (إعلانات)</div>
-        <a class="sidebar-item ads-only-sidebar" data-page="adCategoriesSettings" onclick="showPage('adCategoriesSettings')" style="display:none">
+        <div class="sidebar-section-label">الإعدادات</div>
+        <a class="sidebar-item" data-page="adCategoriesSettings" onclick="showPage('adCategoriesSettings')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعدادات الأقسام
         </a>
-        <a class="sidebar-item ads-only-sidebar" data-page="coinsConfigSettings" onclick="showPage('coinsConfigSettings')" style="display:none">
+        <a class="sidebar-item" data-page="coinsConfigSettings" onclick="showPage('coinsConfigSettings')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-coin"></use></svg></span> إعدادات العملات
         </a>
-        <a class="sidebar-item ads-only-sidebar" data-page="covenantSettings" onclick="showPage('covenantSettings')" style="display:none">
+        <a class="sidebar-item" data-page="covenantSettings" onclick="showPage('covenantSettings')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> إعدادات المعاهدة
         </a>
-        <a class="sidebar-item ads-only-sidebar" data-page="translationsSettings" onclick="showPage('translationsSettings')" style="display:none">
+        <a class="sidebar-item" data-page="translationsSettings" onclick="showPage('translationsSettings')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-globe"></use></svg></span> إعدادات اللغات
         </a>
-        <a class="sidebar-item ads-only-sidebar" data-page="bannedWordsSettings" onclick="showPage('bannedWordsSettings')" style="display:none">
+        <a class="sidebar-item" data-page="bannedWordsSettings" onclick="showPage('bannedWordsSettings')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg></span> الكلمات المحظورة
         </a>
-
-        <div class="sidebar-section-label paid-only-sidebar">إدارة الطلبات</div>
-        <a class="sidebar-item paid-only-sidebar" data-page="orders" onclick="showPage('orders')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> الطلبات
-            <span class="sidebar-badge" id="pendingBadge">0</span>
-        </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="services" onclick="showPage('services')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></span> الخدمات
-        </a>
-
-        <div class="sidebar-section-label paid-only-sidebar">إدارة المستخدمين</div>
-        <a class="sidebar-item paid-only-sidebar" data-page="clients" onclick="showPage('clients')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></span> العملاء
-        </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="providers" onclick="showPage('providers')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> الموردون
-        </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="verification" onclick="showPage('verification')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></span> طلبات التوثيق
-            <span class="sidebar-badge" id="verifyBadge" style="display:none">0</span>
-        </a>
-
-        <div class="sidebar-section-label paid-only-sidebar">المالية</div>
-        <a class="sidebar-item paid-only-sidebar" data-page="payments" onclick="showPage('payments')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> المدفوعات
-        </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="commissions" onclick="showPage('commissions')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></span> العمولات
-        </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="invoices" onclick="showPage('invoices')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></span> الفواتير
+        <a class="sidebar-item" data-page="cities" onclick="showPage('cities')">
+            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></span> المدن
         </a>
 
         <div class="sidebar-section-label">التواصل</div>
-        <a class="sidebar-item" data-page="chats" onclick="showPage('chats')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> المحادثات
-            <span class="sidebar-badge" id="chatsBadge" style="display:none;background:var(--red)">0</span>
-        </a>
         <a class="sidebar-item" data-page="notifications" onclick="showPage('notifications')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg></span> الإشعارات
             <span class="sidebar-badge" id="notificationsBadge" style="display:none;background:var(--red)">0</span>
@@ -879,22 +842,13 @@
         </a>
 
         <div class="sidebar-section-label">أخرى</div>
-        <a class="sidebar-item paid-only-sidebar" data-page="reviews" onclick="showPage('reviews')">
+        <a class="sidebar-item" data-page="reviews" onclick="showPage('reviews')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></span> التقييمات
             <span class="sidebar-badge" id="reviewsBadge" style="display:none;background:var(--red)">0</span>
         </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="testimonials" onclick="showPage('testimonials')">
+        <a class="sidebar-item" data-page="testimonials" onclick="showPage('testimonials')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-gem"></use></svg></span> الشهادات
             <span class="sidebar-badge" id="testimonialsBadge" style="display:none;background:var(--orange)">0</span>
-        </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="cities" onclick="showPage('cities')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></span> المدن
-        </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="coupons" onclick="showPage('coupons')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></span> كوبونات الخصم
-        </a>
-        <a class="sidebar-item paid-only-sidebar" data-page="settings" onclick="showPage('settings')">
-            <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-settings"></use></svg></span> الإعدادات
         </a>
         <a class="sidebar-item" data-page="system" onclick="showPage('system')">
             <span class="s-icon"><svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></span> النظام والسياسات
@@ -937,597 +891,7 @@
         <!-- PAGES -->
         <div class="page-content">
 
-            <!-- ══ DASHBOARD ══ -->
-            <div id="page-dashboard">
-                <div class="page-header">
-                    <div class="page-title">لوحة التحكم <svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></div>
-                    <div class="page-sub">مرحباً بك — آخر تحديث: الآن</div>
-                </div>
-
-                <!-- Stats -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">إجمالي الإيرادات</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="s-revenue">0 ر</div>
-                        <div class="stat-card-change up">↑ 12% هذا الشهر</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">إجمالي العمولات</div>
-                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-line"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="s-commission">0 ر</div>
-                        <div class="stat-card-change up">↑ 8% هذا الشهر</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">طلبات اليوم</div>
-                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="s-today">0</div>
-                        <div class="stat-card-change up">↑ 5 عن أمس</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">الطلبات الجارية</div>
-                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-bolt"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="s-active">0</div>
-                        <div class="stat-card-change down">↓ 2 عن أمس</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">الطلبات المكتملة</div>
-                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="s-completed">0</div>
-                        <div class="stat-card-change up">↑ 18% هذا الشهر</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">الموردون</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="s-providers">0</div>
-                        <div class="stat-card-change up">↑ 3 جدد هذا الأسبوع</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">العملاء</div>
-                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="s-users">0</div>
-                        <div class="stat-card-change up">↑ 15 جدد هذا الأسبوع</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">متوسط التقييم</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num">4.8</div>
-                        <div class="stat-card-change up">↑ ممتاز</div>
-                    </div>
-                </div>
-
-                <!-- Status Cards -->
-                <div class="status-cards">
-                    <div class="status-card">
-                        <div class="status-card-dot" style="background:#3B82F6"></div>
-                        <div class="status-card-num" style="color:#3B82F6" id="sc-active">0</div>
-                        <div class="status-card-label">جارية</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-card-dot" style="background:#F59E0B"></div>
-                        <div class="status-card-num" style="color:#F59E0B" id="sc-pending">0</div>
-                        <div class="status-card-label">بانتظار القبول</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-card-dot" style="background:#10B981"></div>
-                        <div class="status-card-num" style="color:#10B981" id="sc-done">0</div>
-                        <div class="status-card-label">مكتملة</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-card-dot" style="background:#EF4444"></div>
-                        <div class="status-card-num" style="color:#EF4444" id="sc-cancel">0</div>
-                        <div class="status-card-label">ملغية</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-card-dot" style="background:#8B5CF6"></div>
-                        <div class="status-card-num" style="color:#8B5CF6">0</div>
-                        <div class="status-card-label">متأخرة</div>
-                    </div>
-                </div>
-
-                <!-- Charts -->
-                <div class="charts-grid">
-                    <div class="chart-card">
-                        <div class="chart-card-title">
-                            عدد الطلبات — آخر 30 يوم
-                            <span>تحديث تلقائي</span>
-                        </div>
-                        <canvas id="ordersChart" height="80"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <div class="chart-card-title">
-                            الإيرادات — آخر 12 شهر
-                            <span>بالريال</span>
-                        </div>
-                        <canvas id="revenueChart" height="160"></canvas>
-                    </div>
-                </div>
-
-                <!-- Grid 3 -->
-                <div class="grid-3">
-
-                    <!-- أكثر الخدمات طلباً -->
-                    <div class="card">
-                        <div class="card-title">أكثر الخدمات طلباً <a href="#">عرض الكل</a></div>
-                        <div class="service-stat">
-                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-tow-truck"></use></svg></div>
-                            <div>
-                                <div class="service-stat-name">سطحة</div>
-                                <div class="service-stat-count">١٢٤ طلب</div>
-                            </div>
-                            <div class="service-stat-right">
-                                <div class="service-stat-pct">+12%</div>
-                                <div class="service-bar"><div class="service-bar-fill" style="width:85%"></div></div>
-                            </div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg></div>
-                            <div>
-                                <div class="service-stat-name">وايت ماء</div>
-                                <div class="service-stat-count">٩٨ طلب</div>
-                            </div>
-                            <div class="service-stat-right">
-                                <div class="service-stat-pct">+8%</div>
-                                <div class="service-bar"><div class="service-bar-fill" style="width:68%"></div></div>
-                            </div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg></div>
-                            <div>
-                                <div class="service-stat-name">معدات ثقيلة</div>
-                                <div class="service-stat-count">٧٦ طلب</div>
-                            </div>
-                            <div class="service-stat-right">
-                                <div class="service-stat-pct">+5%</div>
-                                <div class="service-bar"><div class="service-bar-fill" style="width:52%"></div></div>
-                            </div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-box"></use></svg></div>
-                            <div>
-                                <div class="service-stat-name">حاوية</div>
-                                <div class="service-stat-count">٥٤ طلب</div>
-                            </div>
-                            <div class="service-stat-right">
-                                <div class="service-stat-pct">+3%</div>
-                                <div class="service-bar"><div class="service-bar-fill" style="width:37%"></div></div>
-                            </div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
-                            <div>
-                                <div class="service-stat-name">عمالة</div>
-                                <div class="service-stat-count">٣٢ طلب</div>
-                            </div>
-                            <div class="service-stat-right">
-                                <div class="service-stat-pct">+2%</div>
-                                <div class="service-bar"><div class="service-bar-fill" style="width:22%"></div></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- أكثر المدن نشاطاً -->
-                    <div class="card">
-                        <div class="card-title">أكثر المدن نشاطاً</div>
-                        <div class="city-item">
-                            <div class="city-rank" style="background:#F5C518;color:#111">١</div>
-                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> الرياض</div>
-                            <div class="city-count">٢٤٨ طلب</div>
-                        </div>
-                        <div class="city-item">
-                            <div class="city-rank">٢</div>
-                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> جدة</div>
-                            <div class="city-count">١٣٦ طلب</div>
-                        </div>
-                        <div class="city-item">
-                            <div class="city-rank">٣</div>
-                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> الدمام</div>
-                            <div class="city-count">٨٩ طلب</div>
-                        </div>
-                        <div class="city-item">
-                            <div class="city-rank">٤</div>
-                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> مكة</div>
-                            <div class="city-count">٦٤ طلب</div>
-                        </div>
-                        <div class="city-item">
-                            <div class="city-rank">٥</div>
-                            <div class="city-name"><svg class="icon"><use href="icons.svg#icon-city"></use></svg> المدينة</div>
-                            <div class="city-count">٤٢ طلب</div>
-                        </div>
-                    </div>
-
-                    <!-- إجراءات سريعة -->
-                    <div class="card">
-                        <div class="card-title">إجراءات سريعة</div>
-                        <div class="quick-actions">
-                            <button class="quick-btn">
-                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></div>
-                                <div class="quick-btn-label">إضافة خدمة</div>
-                            </button>
-                            <button class="quick-btn">
-                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
-                                <div class="quick-btn-label">إضافة مورد</div>
-                            </button>
-                            <button class="quick-btn">
-                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div>
-                                <div class="quick-btn-label">إرسال إشعار</div>
-                            </button>
-                            <button class="quick-btn">
-                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></div>
-                                <div class="quick-btn-label">إنشاء كوبون</div>
-                            </button>
-                            <button class="quick-btn">
-                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
-                                <div class="quick-btn-label">تعديل العمولة</div>
-                            </button>
-                            <button class="quick-btn">
-                                <div class="quick-btn-icon"><svg class="icon"><use href="icons.svg#icon-city"></use></svg></div>
-                                <div class="quick-btn-label">إضافة مدينة</div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grid 2 -->
-                <div class="grid-2">
-
-                    <!-- آخر الطلبات -->
-                    <div class="card">
-                        <div class="card-title">آخر الطلبات <a href="#" onclick="showPage('orders')">عرض الكل</a></div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>الخدمة</th>
-                                        <th>العميل</th>
-                                        <th>المبلغ</th>
-                                        <th>الحالة</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recentOrders"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- آخر النشاطات -->
-                    <div class="card">
-                        <div class="card-title">آخر النشاطات</div>
-                        <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
-                            <div>
-                                <div class="activity-text">تم تسجيل مورد جديد — محمد العتيبي</div>
-                                <div class="activity-time">منذ 5 دقائق</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
-                            <div>
-                                <div class="activity-text">تم إنشاء طلب جديد #١٠٢٣ — وايت ماء</div>
-                                <div class="activity-time">منذ 12 دقيقة</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
-                            <div>
-                                <div class="activity-text">تم قبول مورد — سطحة الرياض</div>
-                                <div class="activity-time">منذ 28 دقيقة</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg></div>
-                            <div>
-                                <div class="activity-text">تم رفض طلب توثيق — بدون وثائق</div>
-                                <div class="activity-time">منذ ساعة</div>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-dot" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
-                            <div>
-                                <div class="activity-text">تم دفع مستحقات مورد — ٢٤٠٠ ريال</div>
-                                <div class="activity-time">منذ ساعتين</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grid 2 -->
-                <div class="grid-2">
-
-                    <!-- التنبيهات -->
-                    <div class="card">
-                        <div class="card-title">التنبيهات <svg class="icon"><use href="icons.svg#icon-bell"></use></svg></div>
-                        <div class="alert-item alert-warn">
-                            <svg class="icon"><use href="icons.svg#icon-warning"></use></svg> يوجد ٣ موردين بانتظار التوثيق
-                        </div>
-                        <div class="alert-item alert-red">
-                            <svg class="icon"><use href="icons.svg#icon-siren"></use></svg> توجد ٢ شكاوى جديدة بحاجة للمراجعة
-                        </div>
-                        <div class="alert-item alert-warn">
-                            <svg class="icon"><use href="icons.svg#icon-clock"></use></svg> توجد ٤ طلبات متأخرة عن الموعد
-                        </div>
-                        <div class="alert-item alert-blue">
-                            <svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg> توجد ٦ طلبات بدون قبول من مورد
-                        </div>
-                    </div>
-
-                    <!-- المدفوعات والعمولات -->
-                    <div class="card">
-                        <div class="card-title">المدفوعات والعمولات <svg class="icon"><use href="icons.svg#icon-card"></use></svg></div>
-                        <div class="payment-row">
-                            <div class="payment-label"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> مدفوعات ناجحة</div>
-                            <div class="payment-val" style="color:var(--green)" id="p-success">0 ر</div>
-                        </div>
-                        <div class="payment-row">
-                            <div class="payment-label"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> مدفوعات معلقة</div>
-                            <div class="payment-val" style="color:var(--orange)">٠ ر</div>
-                        </div>
-                        <div class="payment-row">
-                            <div class="payment-label"><svg class="icon"><use href="icons.svg#icon-undo"></use></svg> مدفوعات مسترجعة</div>
-                            <div class="payment-val" style="color:var(--red)">٠ ر</div>
-                        </div>
-                        <div style="height:12px"></div>
-                        <div class="commission-grid">
-                            <div class="commission-item">
-                                <div class="commission-period">اليوم</div>
-                                <div class="commission-val" id="c-today">٠</div>
-                                <div class="commission-label">ريال</div>
-                            </div>
-                            <div class="commission-item">
-                                <div class="commission-period">هذا الأسبوع</div>
-                                <div class="commission-val" id="c-week">٠</div>
-                                <div class="commission-label">ريال</div>
-                            </div>
-                            <div class="commission-item">
-                                <div class="commission-period">هذا الشهر</div>
-                                <div class="commission-val" id="c-month">٠</div>
-                                <div class="commission-label">ريال</div>
-                            </div>
-                            <div class="commission-item">
-                                <div class="commission-period">هذه السنة</div>
-                                <div class="commission-val" id="c-year">٠</div>
-                                <div class="commission-label">ريال</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grid 2 -->
-                <div class="grid-2">
-
-                    <!-- أكثر الموردين نشاطاً -->
-                    <div class="card">
-                        <div class="card-title">أكثر الموردين نشاطاً</div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>المورد</th>
-                                    <th>الطلبات</th>
-                                    <th>التقييم</th>
-                                    <th>الإيرادات</th>
-                                    <th>الإلغاء</th>
-                                </tr>
-                            </thead>
-                            <tbody id="topProviders"></tbody>
-                        </table>
-                    </div>
-
-                    <!-- آخر التقييمات -->
-                    <div class="card">
-                        <div class="card-title">آخر التقييمات <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
-                        <div class="review-item">
-                            <div class="review-top">
-                                <div class="review-stars"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
-                                <div class="review-name">أحمد السالم</div>
-                                <div class="review-time">منذ ساعة</div>
-                            </div>
-                            <div class="review-text">خدمة ممتازة وسريعة، المورد محترف جداً</div>
-                        </div>
-                        <div class="review-item">
-                            <div class="review-top">
-                                <div class="review-stars"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
-                                <div class="review-name">محمد الغامدي</div>
-                                <div class="review-time">منذ 3 ساعات</div>
-                            </div>
-                            <div class="review-text">جيد بس تأخر شوي في الوصول</div>
-                        </div>
-                        <div class="review-item">
-                            <div class="review-top">
-                                <div class="review-stars"><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg><svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
-                                <div class="review-name">خالد العتيبي</div>
-                                <div class="review-time">منذ 5 ساعات</div>
-                            </div>
-                            <div class="review-text">عتاد منصة رائعة، أنصح الجميع</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- آخر الشكاوى -->
-                <div class="card" style="margin-bottom:24px">
-                    <div class="card-title">آخر الشكاوى <svg class="icon"><use href="icons.svg#icon-siren"></use></svg> <a href="#" onclick="showPage('complaints')">عرض الكل</a></div>
-                    <div class="complaint-item">
-                        <div class="activity-dot" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div>
-                        <div class="complaint-info">
-                            <div class="complaint-title">تأخر في التوصيل — طلب #١٠١٥</div>
-                            <div class="complaint-sub">العميل: أحمد السالم · منذ ساعتين</div>
-                        </div>
-                        <span class="badge badge-pending">قيد المراجعة</span>
-                    </div>
-                    <div class="complaint-item">
-                        <div class="activity-dot" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-siren"></use></svg></div>
-                        <div class="complaint-info">
-                            <div class="complaint-title">المورد لم يحضر — طلب #١٠٠٨</div>
-                            <div class="complaint-sub">العميل: محمد الزهراني · منذ 5 ساعات</div>
-                        </div>
-                        <span class="badge badge-cancel">مرفوع للإدارة</span>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- ══ ORDERS PAGE ══ -->
-            <div id="page-orders" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">الطلبات <svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></div>
-                    <div class="page-sub">إدارة جميع طلبات المنصة</div>
-                </div>
-                <div class="card">
-                    <div class="table-controls">
-                        <div class="table-search">
-                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
-                            <input type="text" placeholder="بحث برقم الطلب، العميل، المورد..."/>
-                        </div>
-                        <select class="table-filter" id="statusFilter" onchange="loadOrdersPage()">
-                            <option value="">كل الحالات</option>
-                            <option value="pending">انتظار</option>
-                            <option value="accepted">مقبول</option>
-                            <option value="arrived">وصل الموقع</option>
-                            <option value="awaiting_confirmation">بانتظار التأكيد</option>
-                            <option value="disputed">نزاع</option>
-                            <option value="completed">مكتمل</option>
-                            <option value="cancelled">ملغي</option>
-                        </select>
-                        <span class="sidebar-badge gold" id="awaitingConfirmBadge" style="display:none;margin-right:6px">0 بانتظار التأكيد</span>
-                        <select class="table-filter">
-                            <option>كل الخدمات</option>
-                            <option>وايت ماء</option>
-                            <option>سطحة</option>
-                            <option>معدات ثقيلة</option>
-                            <option>حاوية</option>
-                            <option>عمالة</option>
-                        </select>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>رقم الطلب</th>
-                                    <th>الخدمة</th>
-                                    <th>العميل</th>
-                                    <th>المدينة</th>
-                                    <th>السعر</th>
-                                    <th>العمولة</th>
-                                    <th>الحالة</th>
-                                    <th>التاريخ</th>
-                                    <th>إجراء</th>
-                                </tr>
-                            </thead>
-                            <tbody id="allOrdersTable"></tbody>
-                        </table>
-                    </div>
-                    <div class="pagination">
-                        <button class="page-btn">‹</button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                        <button class="page-btn">3</button>
-                        <button class="page-btn">›</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ══ PROVIDERS PAGE ══ -->
-            <div id="page-providers" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">الموردون <svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
-                    <div class="page-sub">إدارة جميع موردي المنصة</div>
-                </div>
-                <div class="card">
-                    <div class="table-controls">
-                        <div class="table-search">
-                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
-                            <input type="text" placeholder="بحث باسم المورد أو الجوال..."/>
-                        </div>
-                        <select class="table-filter">
-                            <option>كل المستويات</option>
-                            <option>أساسي</option>
-                            <option>موثق</option>
-                            <option>شركة</option>
-                        </select>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>الاسم</th>
-                                    <th>الجوال</th>
-                                    <th>الخدمة</th>
-                                    <th>المستوى</th>
-                                    <th>التقييم</th>
-                                    <th>الحالة</th>
-                                    <th>المستندات</th>
-                                    <th>إجراء</th>
-                                </tr>
-                            </thead>
-                            <tbody id="allProvidersTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ══ CLIENTS PAGE ══ -->
-            <div id="page-clients" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">العملاء <svg class="icon"><use href="icons.svg#icon-users-group"></use></svg></div>
-                    <div class="page-sub">إدارة جميع عملاء المنصة</div>
-                </div>
-                <div class="card">
-                    <div style="margin-bottom:14px">
-                        <select id="clientsVerifyFilter" onchange="renderClientsTable()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--gray2);font-family:'Cairo',sans-serif;font-size:13px">
-                            <option value="all">الكل</option>
-                            <option value="verified">موثق</option>
-                            <option value="unverified">غير موثق</option>
-                        </select>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>الجوال</th>
-                                    <th>الطلبات</th>
-                                    <th>إجمالي الإنفاق</th>
-                                    <th>التوثيق</th>
-                                    <th>تاريخ الانضمام</th>
-                                    <th>إجراء</th>
-                                </tr>
-                            </thead>
-                            <tbody id="allUsersTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ══ VERIFICATION PAGE ══ -->
-            <div id="page-verification" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">طلبات التوثيق <svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
-                    <div class="page-sub">مراجعة تسجيل المزودين الجدد قبل ظهورهم للعملاء</div>
-                </div>
-                <div class="card">
-                    <div id="verificationListContainer">
-                        <p style="color:var(--text3);text-align:center;padding:40px">لا توجد طلبات توثيق معلقة حالياً</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ══ EMPLOYEES PAGE (المدير العام فقط) ══ -->
+            <!-- ══ EMPLOYEES PAGE ══ -->
             <div id="page-employees" style="display:none">
                 <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
                     <div>
@@ -1609,52 +973,6 @@
                 </div>
             </div>
 
-            <!-- ══ SETTINGS PAGE ══ -->
-            <div id="page-settings" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">الإعدادات <svg class="icon"><use href="icons.svg#icon-settings"></use></svg></div>
-                    <div class="page-sub">إعدادات المنصة العامة</div>
-                </div>
-                <div class="grid-2">
-                    <div class="card">
-                        <div class="card-title">إعدادات المنصة</div>
-                        <div class="form-group" style="margin-bottom:14px">
-                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">اسم المنصة</label>
-                            <input type="text" value="عتاد" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
-                        </div>
-                        <div class="form-group" style="margin-bottom:14px">
-                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">نسبة رسوم الخدمة %</label>
-                            <input type="number" value="5" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
-                        </div>
-                        <div class="form-group" style="margin-bottom:14px">
-                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">رقم الدعم</label>
-                            <input type="text" placeholder="+966XXXXXXXXX" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
-                        </div>
-                        <div class="form-group" style="margin-bottom:14px">
-                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">البريد الإلكتروني</label>
-                            <input type="email" placeholder="info@atad.sa" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
-                        </div>
-                        <button style="background:var(--gold);color:var(--black);border:none;padding:11px 24px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer">حفظ الإعدادات</button>
-                    </div>
-                    <div class="card">
-                        <div class="card-title">مفاتيح API</div>
-                        <div class="form-group" style="margin-bottom:14px">
-                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Google Maps API Key</label>
-                            <input type="text" placeholder="AIza..." style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
-                        </div>
-                        <div class="form-group" style="margin-bottom:14px">
-                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Twilio SMS Key</label>
-                            <input type="text" placeholder="SK..." style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
-                        </div>
-                        <div class="form-group" style="margin-bottom:14px">
-                            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">Firebase Key</label>
-                            <input type="text" placeholder="firebase..." style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"/>
-                        </div>
-                        <button style="background:var(--black);color:var(--white);border:none;padding:11px 24px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer">حفظ المفاتيح</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- ══ SYSTEM & POLICIES PAGE ══ -->
             <div id="page-system" style="display:none">
                 <div class="page-header">
@@ -1664,180 +982,7 @@
                 <div id="systemSettingsList"></div>
             </div>
 
-            <!-- ══ OTHER PAGES ══ -->
-            <!-- ══ OPERATIONS PAGE (LIVE) ══ -->
-            <div id="page-operations" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">مركز العمليات المباشر <svg class="icon"><use href="icons.svg#icon-target"></use></svg></div>
-                    <div class="page-sub">تحديث تلقائي كل 30 ثانية</div>
-                </div>
-
-                <!-- إحصائيات لحظية -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">الطلبات النشطة الآن</div>
-                            <div class="stat-card-icon" style="background:rgba(239,68,68,0.1)"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="ops-active-orders">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">المزودون المتاحون</div>
-                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="ops-available-providers">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">متوسط وقت القبول</div>
-                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="ops-avg-acceptance">—</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">إيرادات اليوم</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="ops-today-revenue">0 ر</div>
-                    </div>
-                </div>
-
-                <!-- الخريطة المباشرة -->
-                <div class="card" style="margin-bottom:16px">
-                    <div class="card-title">الخريطة المباشرة</div>
-                    <div id="opsMap" style="height:400px;border-radius:12px;overflow:hidden"></div>
-                </div>
-
-                <!-- التنبيهات الفورية -->
-                <div class="card" style="margin-bottom:16px">
-                    <div class="card-title">التنبيهات الفورية</div>
-                    <div id="opsAlertsList">
-                        <p style="color:var(--text3);text-align:center;padding:16px;font-size:13px">لا توجد تنبيهات حالياً</p>
-                    </div>
-                </div>
-
-                <!-- جدول الطلبات المباشرة -->
-                <div class="card" style="margin-bottom:16px">
-                    <div class="card-title">الطلبات المباشرة</div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr><th>رقم الطلب</th><th>الخدمة</th><th>العميل</th><th>الموقع</th><th>منذ</th><th>الحالة</th><th>إجراء</th></tr>
-                            </thead>
-                            <tbody id="opsOrdersTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- المزودون المتاحون الآن -->
-                <div class="card">
-                    <div class="card-title">المزودون المتاحون الآن</div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr><th>الاسم</th><th>نوع الخدمة</th><th>التقييم</th><th>آخر نشاط</th><th>إجراء</th></tr>
-                            </thead>
-                            <tbody id="opsProvidersTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal تعيين مزود يدوياً -->
-            <div id="assignProviderModal" class="modal-overlay">
-                <div class="modal-box">
-                    <div class="card-title">تعيين مزود للطلب #<span id="assignOrderId"></span></div>
-                    <div class="form-group" style="margin-bottom:14px">
-                        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px">اختر مزود متاح لنفس الخدمة</label>
-                        <select id="assignProviderSelect" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #ddd;font-family:'Cairo',sans-serif;font-size:13px"></select>
-                    </div>
-                    <div style="display:flex;gap:10px">
-                        <button class="btn-gold" onclick="submitAssignProvider()">تعيين</button>
-                        <button class="btn-detail" onclick="closeAssignModal()">إلغاء</button>
-                    </div>
-                </div>
-            </div>
-            <!-- ══ SERVICES PAGE ══ -->
-            <div id="page-services" style="display:none">
-                <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-                    <div>
-                        <div class="page-title">الخدمات <svg class="icon"><use href="icons.svg#icon-wrench"></use></svg></div>
-                        <div class="page-sub">كتالوج الخدمات المعروضة بالصفحة الرئيسية للعملاء</div>
-                    </div>
-                    <button class="btn-gold" onclick="toggleServiceForm()">+ إضافة خدمة</button>
-                </div>
-
-                <div class="card" id="serviceForm" style="display:none;margin-bottom:16px">
-                    <div class="card-title" id="serviceFormTitle">إضافة خدمة جديدة</div>
-                    <div class="emp-form-grid">
-                        <div class="form-group">
-                            <label>اسم الخدمة</label>
-                            <input type="text" id="serviceName" placeholder="مثال: تنظيف مواقع"/>
-                        </div>
-                        <div class="form-group">
-                            <label>اسم الأيقونة (من icons.svg)</label>
-                            <input type="text" id="serviceIcon" placeholder="مثال: truck"/>
-                        </div>
-                        <div class="form-group" style="grid-column:1/-1">
-                            <label>الوصف</label>
-                            <input type="text" id="serviceDescription" placeholder="وصف قصير يظهر تحت اسم الخدمة"/>
-                        </div>
-                        <div class="form-group">
-                            <label>نوع التوقيت</label>
-                            <select id="serviceBadgeType">
-                                <option value="instant">فوري</option>
-                                <option value="scheduled">مجدول</option>
-                                <option value="coming">قريباً</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>ماذا يحصل عند الضغط عليها؟</label>
-                            <select id="serviceActionType">
-                                <option value="order">طلب عادي (صفحة الطلب — العميل يحدد السعر)</option>
-                                <option value="container">تدفق الحاوية (اختيار موقع ثم منتج)</option>
-                                <option value="panel">لوحة "قريباً" فقط (بدون طلب فعلي)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>الحد الأدنى للسعر (ريال — لخدمات "طلب عادي" فقط)</label>
-                            <input type="number" id="serviceMinPrice" placeholder="مثال: 150"/>
-                        </div>
-                        <div class="form-group">
-                            <label>الوقت التقديري (نص حر)</label>
-                            <input type="text" id="serviceTimeEstimate" placeholder="مثال: 8 دقائق"/>
-                        </div>
-                        <div class="form-group">
-                            <label>ترتيب الظهور</label>
-                            <input type="number" id="serviceSortOrder" placeholder="0"/>
-                        </div>
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding-top:8px">
-                                <input type="checkbox" id="serviceActive" checked style="width:auto"/> الخدمة نشطة (تظهر للعملاء)
-                            </label>
-                        </div>
-                    </div>
-                    <div style="display:flex;gap:10px">
-                        <button class="btn-gold" onclick="submitService()">حفظ</button>
-                        <button class="btn-detail" onclick="toggleServiceForm()">إلغاء</button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr><th>الأيقونة</th><th>الاسم</th><th>الوصف</th><th>التوقيت</th><th>الإجراء عند الضغط</th><th>الحد الأدنى</th><th>الترتيب</th><th>الحالة</th><th>إجراء</th></tr>
-                            </thead>
-                            <tbody id="allServicesTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ══ ADS MANAGEMENT PAGE (منصة عتاد معاهدة) ══ -->
+            <!-- ══ ADS ADMIN PAGE ══ -->
             <div id="page-ads" style="display:none">
                 <div class="page-header">
                     <div class="page-title">إدارة الإعلانات <svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
@@ -1906,6 +1051,20 @@
                             <tbody id="allAdsTable"></tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- panel جانبي لعرض/إدارة تعليقات إعلان واحد (من داخل "إدارة الإعلانات") -->
+            <div id="adCommentsPanelOverlay" onclick="if(event.target===this) closeAdCommentsPanel()">
+                <div class="chat-side-panel">
+                    <div class="chat-side-header">
+                        <div>
+                            <div class="chat-side-title">تعليقات: <span id="adCommentsPanelTitle"></span></div>
+                            <div class="chat-side-sub" id="adCommentsPanelSub">0 تعليق</div>
+                        </div>
+                        <button class="chat-side-close" onclick="closeAdCommentsPanel()">✕</button>
+                    </div>
+                    <div class="chat-side-messages" id="adCommentsPanelList"></div>
                 </div>
             </div>
 
@@ -2315,205 +1474,6 @@
                 </div>
             </div>
 
-            <!-- ══ PAYMENTS PAGE ══ -->
-            <div id="page-payments" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">المدفوعات <svg class="icon"><use href="icons.svg#icon-card"></use></svg></div>
-                    <div class="page-sub">سجل معاملات كل الطلبات — المبلغ، عمولة المنصة، وصافي المزوّد</div>
-                </div>
-                <div class="card">
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>رقم الطلب</th><th>العميل</th><th>الخدمة</th><th>المزوّد</th>
-                                    <th>المبلغ الإجمالي</th><th>الخصم</th><th>عمولة المنصة</th><th>صافي المزوّد</th>
-                                    <th>الحالة</th><th>التاريخ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="paymentsTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ══ COMMISSIONS PAGE ══ -->
-            <div id="page-commissions" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">العمولات <svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
-                    <div class="page-sub">تقرير عمولات المنصة (5% من كل طلب)</div>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">عمولات اليوم</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="comm-today">0 ر</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">عمولات هذا الأسبوع</div>
-                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-bar"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="comm-week">0 ر</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">عمولات هذا الشهر</div>
-                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-line"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="comm-month">0 ر</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">إجمالي منذ البداية</div>
-                            <div class="stat-card-icon" style="background:rgba(139,92,246,0.1)"><svg class="icon"><use href="icons.svg#icon-trophy"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="comm-total">0 ر</div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">العمولات حسب الخدمة</div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr><th>الخدمة</th><th>عدد الطلبات</th><th>إجمالي الإيرادات</th><th>إجمالي العمولة</th></tr>
-                            </thead>
-                            <tbody id="commissionsByServiceTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ══ INVOICES PAGE ══ -->
-            <div id="page-invoices" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">الفواتير <svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></div>
-                    <div class="page-sub">سجل الفواتير الضريبية التلقائي للطلبات المكتملة</div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">إجمالي الفواتير</div>
-                            <div class="stat-card-icon" style="background:rgba(59,130,246,0.1)"><svg class="icon"><use href="icons.svg#icon-receipt"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="inv-total-count">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">إجمالي المبالغ</div>
-                            <div class="stat-card-icon" style="background:rgba(16,185,129,0.1)"><svg class="icon"><use href="icons.svg#icon-cash"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="inv-total-amount">0 ر</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">فواتير اليوم</div>
-                            <div class="stat-card-icon" style="background:rgba(245,197,24,0.1)"><svg class="icon"><use href="icons.svg#icon-calendar"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="inv-today-count">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-top">
-                            <div class="stat-card-label">فواتير هذا الشهر</div>
-                            <div class="stat-card-icon" style="background:rgba(139,92,246,0.1)"><svg class="icon"><use href="icons.svg#icon-chart-line"></use></svg></div>
-                        </div>
-                        <div class="stat-card-num" id="inv-month-count">0</div>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-bottom:16px">
-                    <div class="table-controls">
-                        <div class="table-search">
-                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
-                            <input type="text" id="invoiceSearchInput" placeholder="بحث برقم الفاتورة، رقم الطلب، أو جوال العميل..." oninput="renderInvoicesTable()"/>
-                        </div>
-                    </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap">
-                        <button class="btn-detail invoice-filter-btn active" data-filter="all" onclick="setInvoiceFilter('all', this)">الكل</button>
-                        <button class="btn-detail invoice-filter-btn" data-filter="today" onclick="setInvoiceFilter('today', this)">اليوم</button>
-                        <button class="btn-detail invoice-filter-btn" data-filter="week" onclick="setInvoiceFilter('week', this)">هذا الأسبوع</button>
-                        <button class="btn-detail invoice-filter-btn" data-filter="month" onclick="setInvoiceFilter('month', this)">هذا الشهر</button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>رقم الفاتورة</th><th>العميل</th><th>الخدمة</th><th>المبلغ</th>
-                                    <th>رسوم الخدمة</th><th>الإجمالي</th><th>التاريخ</th><th>إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="invoicesTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ══ CHATS PAGE ══ -->
-            <div id="page-chats" style="display:none">
-                <div class="page-header">
-                    <div class="page-title">المحادثات <svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div>
-                    <div class="page-sub">مراقبة محادثات العملاء والمزودين والتدخل عند الحاجة</div>
-                </div>
-
-                <div class="card" style="margin-bottom:16px">
-                    <div class="table-controls">
-                        <div class="table-search">
-                            <span><svg class="icon"><use href="icons.svg#icon-search"></use></svg></span>
-                            <input type="text" id="chatSearchInput" placeholder="بحث برقم الطلب، اسم العميل، أو الجوال..." oninput="renderChatsList()"/>
-                        </div>
-                    </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap">
-                        <button class="btn-detail chat-filter-btn active" data-filter="all" onclick="setChatFilter('all', this)">الكل</button>
-                        <button class="btn-detail chat-filter-btn" data-filter="active" onclick="setChatFilter('active', this)">نشطة</button>
-                        <button class="btn-detail chat-filter-btn" data-filter="completed" onclick="setChatFilter('completed', this)">مكتملة</button>
-                        <button class="btn-detail chat-filter-btn" data-filter="intervention" onclick="setChatFilter('intervention', this)" style="color:var(--red);border-color:var(--red)">تحتاج تدخل</button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div id="chatsListContainer">
-                        <p style="color:var(--text3);text-align:center;padding:24px;font-size:13px">لا توجد محادثات حالياً</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Panel جانبي لعرض/الرد على محادثة -->
-            <div id="chatPanelOverlay" onclick="if(event.target===this) closeChatPanel()">
-                <div class="chat-side-panel">
-                    <div class="chat-side-header">
-                        <div>
-                            <div class="chat-side-title">الطلب #<span id="chatPanelOrderId"></span> — <span id="chatPanelService"></span></div>
-                            <div class="chat-side-sub" id="chatPanelSub"></div>
-                        </div>
-                        <button class="chat-side-close" onclick="closeChatPanel()">✕</button>
-                    </div>
-                    <div class="chat-side-messages" id="chatPanelMessages"></div>
-                    <div class="chat-side-input-row">
-                        <input type="text" id="chatPanelInput" placeholder="اكتب رسالة كإدارة..." onkeydown="if(event.key==='Enter') sendAdminChatMessage()"/>
-                        <button class="btn-gold" onclick="sendAdminChatMessage()">إرسال</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Panel جانبي لعرض/إدارة تعليقات إعلان معيّن -->
-            <div id="adCommentsPanelOverlay" onclick="if(event.target===this) closeAdCommentsPanel()">
-                <div class="chat-side-panel">
-                    <div class="chat-side-header">
-                        <div>
-                            <div class="chat-side-title">تعليقات: <span id="adCommentsPanelTitle"></span></div>
-                            <div class="chat-side-sub" id="adCommentsPanelSub"></div>
-                        </div>
-                        <button class="chat-side-close" onclick="closeAdCommentsPanel()">✕</button>
-                    </div>
-                    <div class="chat-side-messages" id="adCommentsPanelList"></div>
-                </div>
-            </div>
             <!-- ══ NOTIFICATIONS PAGE ══ -->
             <div id="page-notifications" style="display:none">
                 <div class="page-header">
@@ -2829,76 +1789,10 @@
                 </div>
             </div>
 
-            <!-- ══ COUPONS PAGE ══ -->
-            <div id="page-coupons" style="display:none">
-                <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-                    <div>
-                        <div class="page-title">كوبونات الخصم <svg class="icon"><use href="icons.svg#icon-ticket"></use></svg></div>
-                        <div class="page-sub">إدارة أكواد الخصم المطبّقة تلقائياً عند تأكيد الطلب</div>
-                    </div>
-                    <button class="btn-gold" onclick="toggleCouponForm()">+ إضافة كوبون</button>
-                </div>
-
-                <div class="card" id="couponForm" style="display:none;margin-bottom:16px">
-                    <div class="card-title" id="couponFormTitle">إضافة كوبون جديد</div>
-                    <div class="emp-form-grid">
-                        <div class="form-group">
-                            <label>كود الخصم</label>
-                            <input type="text" id="couponCode" placeholder="مثال: WELCOME10" style="text-transform:uppercase"/>
-                        </div>
-                        <div class="form-group">
-                            <label>نوع الخصم</label>
-                            <select id="couponType">
-                                <option value="percent">نسبة مئوية %</option>
-                                <option value="fixed">مبلغ ثابت (ريال)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>قيمة الخصم</label>
-                            <input type="number" id="couponValue" placeholder="مثال: 10"/>
-                        </div>
-                        <div class="form-group">
-                            <label>الحد الأقصى للخصم (اختياري)</label>
-                            <input type="number" id="couponMax" placeholder="مثال: 50 ريال"/>
-                        </div>
-                        <div class="form-group">
-                            <label>عدد مرات الاستخدام (اختياري)</label>
-                            <input type="number" id="couponLimit" placeholder="اتركه فارغ = بلا حد"/>
-                        </div>
-                        <div class="form-group">
-                            <label>تاريخ الانتهاء (اختياري)</label>
-                            <input type="date" id="couponExpiry"/>
-                        </div>
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding-top:8px">
-                                <input type="checkbox" id="couponActive" checked style="width:auto"/> الكوبون نشط
-                            </label>
-                        </div>
-                    </div>
-                    <div style="display:flex;gap:10px">
-                        <button class="btn-gold" onclick="submitCoupon()">حفظ</button>
-                        <button class="btn-detail" onclick="toggleCouponForm()">إلغاء</button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr><th>الكود</th><th>نوع الخصم</th><th>القيمة</th><th>الحد الأقصى</th><th>الاستخدام</th><th>الانتهاء</th><th>الحالة</th><th>إجراء</th></tr>
-                            </thead>
-                            <tbody id="allCouponsTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="alert.js"></script>
 <script src="admin.js"></script>
 </body>

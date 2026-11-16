@@ -15,6 +15,8 @@ db.exec(`
         created_at TEXT DEFAULT (datetime('now'))
     );
 
+    -- جداول النظام المدفوع (غير مستخدمة) — النظام المدفوع أُزيل بالكامل والإعلانات صارت النظام الوحيد؛
+    -- الجدول باقٍ بدون حذف لحفظ البيانات القديمة فقط (راجع فرع backup-paid-system على GitHub لاستعادة الكود لو احتجنا)
     -- جدول الطلبات
     CREATE TABLE IF NOT EXISTS orders (
         id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +41,7 @@ db.exec(`
         created_at   TEXT DEFAULT (datetime('now'))
     );
 
-    -- جدول منتجات مزودي الحاوية
+    -- جداول النظام المدفوع (غير مستخدمة) — منتجات مزودي الحاوية
     CREATE TABLE IF NOT EXISTS products (
         id           INTEGER PRIMARY KEY AUTOINCREMENT,
         provider_id  INTEGER NOT NULL,
@@ -74,7 +76,7 @@ db.exec(`
         created_at TEXT DEFAULT (datetime('now'))
     );
 
-    -- جدول كوبونات الخصم
+    -- جداول النظام المدفوع (غير مستخدمة) — كوبونات الخصم (كانت تُطبَّق على طلبات order.html)
     CREATE TABLE IF NOT EXISTS coupons (
         id             INTEGER PRIMARY KEY AUTOINCREMENT,
         code           TEXT UNIQUE NOT NULL,
@@ -88,7 +90,7 @@ db.exec(`
         created_at     TEXT DEFAULT (datetime('now'))
     );
 
-    -- جدول كتالوج الخدمات (يغذي قائمة الخدمات بالصفحة الرئيسية)
+    -- جداول النظام المدفوع (غير مستخدمة) — كتالوج الخدمات الأربع (كانت تغذي قائمة الخدمات بالصفحة الرئيسية بوضع النظام المدفوع)
     CREATE TABLE IF NOT EXISTS services (
         id            INTEGER PRIMARY KEY AUTOINCREMENT,
         name          TEXT UNIQUE NOT NULL,
@@ -103,7 +105,7 @@ db.exec(`
         created_at    TEXT DEFAULT (datetime('now'))
     );
 
-    -- جدول محادثات الطلبات (عميل/مزوّد/إدارة)
+    -- جداول النظام المدفوع (غير مستخدمة) — محادثات الطلبات (عميل/مزوّد/إدارة)، استُبدلت بنظام الرسائل المرتبط بالإعلانات (جدولا conversations/messages)
     CREATE TABLE IF NOT EXISTS chats (
         id           INTEGER PRIMARY KEY AUTOINCREMENT,
         order_id     INTEGER NOT NULL,
@@ -172,7 +174,7 @@ db.exec(`
         created_at   TEXT DEFAULT (datetime('now'))
     );
 
-    -- جدول الفواتير (تُنشأ تلقائياً عند اكتمال الطلب)
+    -- جداول النظام المدفوع (غير مستخدمة) — الفواتير (كانت تُنشأ تلقائياً عند اكتمال الطلب)
     CREATE TABLE IF NOT EXISTS invoices (
         id             INTEGER PRIMARY KEY AUTOINCREMENT,
         invoice_number TEXT UNIQUE NOT NULL,

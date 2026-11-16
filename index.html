@@ -79,14 +79,26 @@
             <a class="sidebar-link" href="index.html">
                 <span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية
             </a>
-            <a class="sidebar-link" id="myOrdersLink" href="my-orders.html">
-                <span><svg class="icon"><use href="icons.svg#icon-clipboard"></use></svg></span> طلباتي
+            <a class="sidebar-link" href="provider.html#adsSection">
+                <span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك
             </a>
             <a class="sidebar-link" id="profileLink" href="profile.html">
                 <span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي
             </a>
-            <a class="sidebar-link" id="myAdsLink" href="provider.html#adsSection" style="display:none">
+            <a class="sidebar-link" href="provider.html#adsSection">
                 <span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي
+            </a>
+            <a class="sidebar-link" href="favorites.html">
+                <span><svg class="icon"><use href="icons.svg#icon-heart"></use></svg></span> قائمة المفضلة
+            </a>
+            <a class="sidebar-link" href="wallet.html">
+                <span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي
+            </a>
+            <a class="sidebar-link" href="fees.html">
+                <span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع
+            </a>
+            <a class="sidebar-link" href="messages.html">
+                <span><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> الرسائل <span class="sidebar-badge" id="messagesBadge" style="display:none">0</span>
             </a>
             <div class="sidebar-divider"></div>
             <a class="sidebar-link" href="about.html">
@@ -101,9 +113,6 @@
             <a class="sidebar-link" href="privacy.html">
                 <span><svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></span> سياسة الخصوصية
             </a>
-            <a class="sidebar-link" id="joinProviderLink" href="register-provider.html">
-                <span><svg class="icon"><use href="icons.svg#icon-worker"></use></svg></span> انضم كمزود
-            </a>
         </div>
 
         <div class="sidebar-footer" id="sidebarFooter">
@@ -116,192 +125,14 @@
         </div>
     </div>
 
-    <!-- شريط تتبع الطلب النشط -->
-    <div class="active-order-bar" id="activeOrderBar" style="display:none" onclick="goToActiveOrderTracking()">
-        <div class="active-order-icon"><svg class="icon"><use href="icons.svg#icon-truck" id="activeOrderIconUse"></use></svg></div>
-        <div class="active-order-info">
-            <div class="active-order-top">
-                <span class="active-order-service" id="activeOrderService">—</span>
-                <span class="active-order-number" id="activeOrderNumber">#0</span>
-            </div>
-            <div class="active-order-status" id="activeOrderStatus">—</div>
-            <div class="active-order-progress-track">
-                <div class="active-order-progress-fill" id="activeOrderProgressFill"></div>
-            </div>
-        </div>
-        <div class="active-order-arrow"><svg class="icon"><use href="icons.svg#icon-arrow-left"></use></svg></div>
-    </div>
-
-    <!-- البنر الرئيسي -->
-    <div class="hero-new" id="heroSection">
-        <div class="hero-corner-tl"></div>
-        <div class="hero-corner-tr"></div>
-        <div class="hero-dots-tr">
-            <svg width="80" height="60" viewBox="0 0 80 60">
-                <circle cx="10" cy="10" r="2.5" fill="#ddd"/>
-                <circle cx="28" cy="10" r="2.5" fill="#ddd"/>
-                <circle cx="46" cy="10" r="2.5" fill="#ddd"/>
-                <circle cx="64" cy="10" r="2.5" fill="#ddd"/>
-                <circle cx="10" cy="28" r="2.5" fill="#ddd"/>
-                <circle cx="28" cy="28" r="2.5" fill="#ddd"/>
-                <circle cx="46" cy="28" r="2.5" fill="#ddd"/>
-                <circle cx="64" cy="28" r="2.5" fill="#ddd"/>
-                <circle cx="10" cy="46" r="2.5" fill="#ddd"/>
-                <circle cx="28" cy="46" r="2.5" fill="#ddd"/>
-                <circle cx="46" cy="46" r="2.5" fill="#ddd"/>
-                <circle cx="64" cy="46" r="2.5" fill="#ddd"/>
-            </svg>
-        </div>
-        <div class="hero-dots-bl">
-            <svg width="60" height="60" viewBox="0 0 60 60">
-                <circle cx="10" cy="10" r="2" fill="#ddd"/>
-                <circle cx="28" cy="10" r="2" fill="#ddd"/>
-                <circle cx="10" cy="28" r="2" fill="#ddd"/>
-                <circle cx="28" cy="28" r="2" fill="#ddd"/>
-                <circle cx="10" cy="46" r="2" fill="#ddd"/>
-                <circle cx="28" cy="46" r="2" fill="#ddd"/>
-            </svg>
-        </div>
-        <div class="hero-content">
-            <h1>اطلب خدمتك <span>الآن</span></h1>
-            <p>خدمات فورية وجدولة مسبقة بضغطة واحدة</p>
-            <button class="btn hero-btn" onclick="document.getElementById('servicesSection').scrollIntoView({behavior:'smooth'})" data-i18n="ابدأ الآن">ابدأ الآن</button>
-        </div>
-        <div class="hero-gold-corner"></div>
-    </div>
-
-    <!-- قسم الإحصائيات -->
-    <div class="stats-section" id="statsSection">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-num">+500</div>
-                <div class="stat-label">مزود معتمد</div>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-                <div class="stat-num">+10,000</div>
-                <div class="stat-label">طلب مكتمل</div>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-                <div class="stat-num">4.8 <svg class="icon"><use href="icons.svg#icon-star"></use></svg></div>
-                <div class="stat-label">متوسط التقييم</div>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-                <div class="stat-num">24/7</div>
-                <div class="stat-label">خدمة مستمرة</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- قسم الخدمات -->
+    <!-- قسم الأقسام (إعلانات) -->
     <div class="services-new" id="servicesSection">
-        <h2 id="servicesSectionTitle" data-i18n="الخدمات">الخدمات</h2>
-        <p class="services-subtitle" id="servicesSectionSubtitle" data-i18n="اختر الخدمة المناسبة لك">اختر الخدمة المناسبة لك</p>
+        <h2 id="servicesSectionTitle" data-i18n="الأقسام">الأقسام</h2>
+        <p class="services-subtitle" id="servicesSectionSubtitle" data-i18n="اختر القسم المناسب لك">اختر القسم المناسب لك</p>
 
-        <div class="services-list" id="servicesList">
+        <div class="services-list" id="servicesList"></div>
 
-            <div class="service-row" onclick="orderService('وايت ماء')">
-                <div class="service-row-right">
-                    <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg></div>
-                    <div class="service-row-info">
-                        <div class="service-row-name">وايت ماء</div>
-                        <div class="service-row-desc">توصيل المياه لمواقع البناء</div>
-                    </div>
-                </div>
-                <div class="service-row-left">
-                    <span class="service-row-type instant">فوري</span>
-                    <span class="service-row-arrow">←</span>
-                </div>
-            </div>
-
-            <div class="service-row" onclick="orderService('سطحة')">
-                <div class="service-row-right">
-                    <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-tow-truck"></use></svg></div>
-                    <div class="service-row-info">
-                        <div class="service-row-name">سطحة</div>
-                        <div class="service-row-desc">نقل وسحب المركبات</div>
-                    </div>
-                </div>
-                <div class="service-row-left">
-                    <span class="service-row-type instant">فوري</span>
-                    <span class="service-row-arrow">←</span>
-                </div>
-            </div>
-
-            <div class="service-row" onclick="orderService('حاوية')">
-                <div class="service-row-right">
-                    <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-box"></use></svg></div>
-                    <div class="service-row-info">
-                        <div class="service-row-name">حاوية</div>
-                        <div class="service-row-desc">حاويات البناء والنفايات</div>
-                    </div>
-                </div>
-                <div class="service-row-left">
-                    <span class="service-row-type scheduled">مجدول</span>
-                    <span class="service-row-arrow">←</span>
-                </div>
-            </div>
-
-            <div class="service-row soon" onclick="showHeavyEquipment()">
-                <div class="service-row-right">
-                    <div class="service-row-icon"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg></div>
-                    <div class="service-row-info">
-                        <div class="service-row-name">معدات ثقيلة</div>
-                        <div class="service-row-desc">بوكلينات، شيولات، قلابات، رافعات</div>
-                    </div>
-                </div>
-                <div class="service-row-left">
-                    <span class="service-row-type coming">قريباً</span>
-                    <span class="service-row-arrow">←</span>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- قائمة المعدات الثقيلة -->
-        <div class="heavy-equipment-panel" id="heavyEquipmentPanel" style="display:none">
-            <div class="heavy-panel-title"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg> اختر نوع المعدة</div>
-            <div class="heavy-grid">
-                <div class="heavy-item coming-soon">
-                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-tractor"></use></svg></div>
-                    <div class="heavy-name">بوكلين</div>
-                    <div class="heavy-badge">قريباً</div>
-                </div>
-                <div class="heavy-item coming-soon">
-                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-construction"></use></svg></div>
-                    <div class="heavy-name">شيول</div>
-                    <div class="heavy-badge">قريباً</div>
-                </div>
-                <div class="heavy-item coming-soon">
-                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-truck"></use></svg></div>
-                    <div class="heavy-name">قلابي</div>
-                    <div class="heavy-badge">قريباً</div>
-                </div>
-                <div class="heavy-item coming-soon">
-                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-tractor"></use></svg></div>
-                    <div class="heavy-name">بوبكات</div>
-                    <div class="heavy-badge">قريباً</div>
-                </div>
-                <div class="heavy-item coming-soon">
-                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-building"></use></svg></div>
-                    <div class="heavy-name">خرسانة</div>
-                    <div class="heavy-badge">قريباً</div>
-                </div>
-                <div class="heavy-item coming-soon">
-                    <div class="heavy-icon"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg></div>
-                    <div class="heavy-name">رافعة</div>
-                    <div class="heavy-badge">قريباً</div>
-                </div>
-            </div>
-            <p class="heavy-note"><svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> نعمل على إطلاق هذه الخدمات قريباً!</p>
-            <button class="btn" style="margin-top:12px" onclick="window.location.href='register-provider.html'">
-                أبلغني عند الإطلاق <svg class="icon"><use href="icons.svg#icon-bell"></use></svg>
-            </button>
-        </div>
-
-        <!-- اختر نوع العدة (قسم "معدات ثقيلة" بوضع الإعلانات — يودّي لإعلانات نفس النوع فعلياً) -->
+        <!-- اختر نوع العدة (قسم "معدات ثقيلة" — يودّي لإعلانات نفس النوع فعلياً) -->
         <div class="heavy-equipment-panel" id="adsEquipmentPanel" style="display:none">
             <div class="heavy-panel-title"><svg class="icon"><use href="icons.svg#icon-crane"></use></svg> اختر نوع العدة</div>
             <div class="heavy-grid" id="adsEquipmentGrid"></div>
@@ -319,101 +150,17 @@
         </div>
     </div>
 
-    <!-- قسم كيف يعمل -->
-    <div class="how-section">
-        <h2>كيف يعمل عتاد؟</h2>
-        <p class="services-subtitle">أربع خطوات بسيطة للحصول على خدمتك</p>
-        <div class="how-grid">
-            <div class="how-card">
-                <div class="how-num">١</div>
-                <div class="how-icon"><svg class="icon"><use href="icons.svg#icon-search"></use></svg></div>
-                <div class="how-title">اختر الخدمة</div>
-                <div class="how-desc">اختر من قائمة خدماتنا المتنوعة</div>
-            </div>
-            <div class="how-arrow">←</div>
-            <div class="how-card">
-                <div class="how-num">٢</div>
-                <div class="how-icon"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg></div>
-                <div class="how-title">حدد الموقع</div>
-                <div class="how-desc">أدخل موقعك أو حدده على الخريطة</div>
-            </div>
-            <div class="how-arrow">←</div>
-            <div class="how-card">
-                <div class="how-num">٣</div>
-                <div class="how-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
-                <div class="how-title">أكّد الطلب</div>
-                <div class="how-desc">ادفع بأمان عبر نظام الأمانة</div>
-            </div>
-            <div class="how-arrow">←</div>
-            <div class="how-card">
-                <div class="how-num">٤</div>
-                <div class="how-icon"><svg class="icon"><use href="icons.svg#icon-rocket"></use></svg></div>
-                <div class="how-title">استلم الخدمة</div>
-                <div class="how-desc">تابع المزود وقيّم تجربتك</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- قسم لماذا عتاد -->
-    <div class="why-section">
-        <div class="why-content">
-            <h2>لماذا عتاد؟</h2>
-            <p class="services-subtitle">نحن نضمن لك أفضل تجربة في قطاع البناء</p>
-            <div class="why-grid">
-                <div class="why-card">
-                    <div class="why-icon"><svg class="icon"><use href="icons.svg#icon-lock"></use></svg></div>
-                    <div class="why-title">دفع آمن</div>
-                    <div class="why-desc">نظام أمانة يحفظ حقوقك حتى اكتمال الخدمة</div>
-                </div>
-                <div class="why-card">
-                    <div class="why-icon"><svg class="icon"><use href="icons.svg#icon-check"></use></svg></div>
-                    <div class="why-title">مزودون موثقون</div>
-                    <div class="why-desc">جميع المزودين معتمدون ومتحقق منهم</div>
-                </div>
-                <div class="why-card">
-                    <div class="why-icon"><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></div>
-                    <div class="why-title">تتبع فوري</div>
-                    <div class="why-desc">تابع موقع المزود لحظة بلحظة</div>
-                </div>
-                <div class="why-card">
-                    <div class="why-icon"><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></div>
-                    <div class="why-title">دعم 24/7</div>
-                    <div class="why-desc">فريق دعم متاح على مدار الساعة</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- قسم شهادات العملاء -->
-    <div class="testimonials-section" id="testimonialsSection" style="display:none">
-        <div class="testimonials-content">
-            <h2>ماذا يقول عملاؤنا</h2>
-            <p class="services-subtitle">تجارب حقيقية من عملاء استخدموا خدماتنا</p>
-            <div class="testimonials-grid" id="testimonialsGrid"></div>
-        </div>
-    </div>
-
-    <!-- قسم انضم كمزود -->
+    <!-- قسم لديك ما تعرضه (انشر إعلانك) -->
     <div class="provider-section">
         <div class="provider-content">
             <div class="provider-text">
-                <h2 id="providerSectionTitle">هل أنت مزود خدمة؟</h2>
-                <p id="providerSectionDesc">انضم لآلاف المزودين وابدأ في استقبال الطلبات اليوم</p>
-                <div class="provider-benefits" id="providerSectionBenefits">
-                    <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> بدون رسوم اشتراك</div>
-
-                    <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> دفع فوري لحسابك</div>
-                    <div class="benefit"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> تحكم كامل بجدولك</div>
-                </div>
-                <button class="btn provider-btn" id="providerSectionBtn" onclick="goToProviderSection()">
-                    انضم الآن كمزود <svg class="icon"><use href="icons.svg#icon-worker"></use></svg>
-                </button>
+                <h2 id="providerSectionTitle">لديك ما تعرضه؟</h2>
+                <p id="providerSectionDesc">انشر إعلانك الآن وابدأ باستقبال العملاء</p>
             </div>
             <div class="provider-visual">
-                <div class="provider-badge">
-                    <div class="badge-num">+500</div>
-                    <div class="badge-label">مزود نشط</div>
-                </div>
+                <button class="btn provider-btn" id="providerSectionBtn" onclick="goToProviderSection()" data-i18n="انشر إعلانك الآن">
+                    انشر إعلانك الآن
+                </button>
             </div>
         </div>
     </div>
@@ -426,7 +173,6 @@
             <a href="contact.html">تواصل معنا</a>
             <a href="terms.html">الشروط والأحكام</a>
             <a href="privacy.html">سياسة الخصوصية</a>
-            <a href="register-provider.html" id="footerJoinProviderLink">انضم كمزود</a>
         </div>
         <div class="footer-copy">
             جميع الحقوق محفوظة © 2026 <span>موقع عتاد</span>

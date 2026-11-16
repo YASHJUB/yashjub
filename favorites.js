@@ -2,19 +2,6 @@
 
 const API = window.location.origin + '/api';
 
-// المزوّد مقفل على لوحة المزود فقط بوضع النظام المدفوع — بوضع الإعلانات يتصفح كأي مستخدم (نفس نمط ads.js)
-(async function checkProviderLock() {
-    if (localStorage.getItem('yashjub_type') !== 'provider') return;
-
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        if (data.activeSystem !== 'ads') window.location.href = 'provider.html';
-    } catch (e) {
-        window.location.href = 'provider.html';
-    }
-})();
-
 const AD_CATEGORY_ICONS = { 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane' };
 
 function loadFavoritesPage() {

@@ -1,22 +1,12 @@
-// كود صفحة "تواصل معنا" — محتوى مختلف بوضع الإعلانات (منصة عتاد معاهدة)، بدون أي تغيير بوضع النظام المدفوع
+// كود صفحة "تواصل معنا" — منصة إعلانات (منصة عتاد معاهدة)
 
 const API = window.location.origin + '/api';
 
-(async function checkContactAdsMode() {
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        if (data.activeSystem === 'ads') switchContactToAdsMode();
-    } catch (e) {}
-})();
+applyContactContent();
 
-function switchContactToAdsMode() {
+function applyContactContent() {
     // الهيرو
     document.getElementById('contactHeroDesc').textContent = 'نحن هنا لمساعدتك في أي استفسار عن منصة عتاد معاهدة';
-
-    // رابط "انضم كمزود" بالفوتر — ماكو تسجيل مزوّد منفصل بوضع الإعلانات
-    const footerJoinLink = document.getElementById('footerJoinProviderLink');
-    if (footerJoinLink) footerJoinLink.style.display = 'none';
 
     // موضوع الرسالة
     document.getElementById('contactSubject').innerHTML = `

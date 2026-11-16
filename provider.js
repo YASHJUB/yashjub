@@ -1,77 +1,56 @@
-// كود لوحة المزود
+// كود صفحة "إعلاناتي" (منصة عتاد معاهدة — النظام المدفوع أُزيل بالكامل)
 
 const API = window.location.origin + '/api';
 
-let countdownInterval;
-let countdownSeconds = 60;
-let activeOrderPollInterval = null;
-let currentActiveOrder      = null;
-let awaitingReleaseInterval = null;
-let currentProviderId   = null;
 let currentProviderName = null;
-let editingProductId   = null;
-let productMap    = null;
-let productMarker = null;
 
-const LEVEL_BADGES = {
-    basic:    { label: 'مزود أساسي', icon: 'medal-silver' },
-    verified: { label: 'موثق',       icon: 'medal-gold'   },
-    business: { label: 'شركة',       icon: 'trophy'       },
-};
-
-// تحميل الصفحة
+// تحميل الصفحة — يكفي إن المستخدم مسجّل دخوله (أي نوع)
 async function loadProvider() {
     const phone = localStorage.getItem('yashjub_phone');
-    const type  = localStorage.getItem('yashjub_type');
 
     if (!phone) {
-        showAppAlert('⚠️ هذه الصفحة للمزودين فقط', () => window.location.href = 'login.html');
+        showAppAlert('⚠️ يجب تسجيل الدخول أولاً', () => window.location.href = 'login.html');
         return;
     }
 
-    // بوضع النظام المدفوع الصفحة لمزوّد مسجّل فقط — بوضع الإعلانات أي مستخدم مسجّل دخوله يدخلها (ماكو تسجيل مزوّد منفصل بعد الآن، يدير إعلاناته مباشرة من "إعلاناتي")
-    let activeSystem = 'paid';
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        if (data.success) activeSystem = data.activeSystem;
-    } catch (e) {}
-
-    if (type !== 'provider' && activeSystem !== 'ads') {
-        showAppAlert('⚠️ هذه الصفحة للمزودين فقط', () => window.location.href = 'login.html');
-        return;
-    }
-
-    // تحديث البيانات — الاسم الحقيقي المحفوظ (yashjub_name) له الأولوية دايماً؛ النص الاحتياطي ("معلن"/"مزود خدمة") يظهر فقط لمن لسه ما حدد اسمه
-    // (مهم بوضع الإعلانات تحديداً: مستخدم بدون صف بجدول providers يوقف loadProviderProfile قبل ما تحدّث الاسم، فبدون هذا كان يبقى عالقاً على النص الاحتياطي حتى لو عنده اسم حقيقي محفوظ)
-    const defaultName = activeSystem === 'ads' ? 'معلن' : 'مزود خدمة';
     const savedName = localStorage.getItem('yashjub_name');
-    document.getElementById('providerName').textContent        = savedName || defaultName;
-    document.getElementById('providerNameSidebar').textContent = savedName || defaultName;
+    currentProviderName = savedName || 'معلن';
+    document.getElementById('providerName').textContent        = currentProviderName;
+    document.getElementById('providerNameSidebar').textContent = currentProviderName;
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
+    document.getElementById('adWhatsappInput').value = phone;
     renderAvatars();
 
-    // تحميل الطلبات
-    loadOrders(phone);
-
-    // تحميل بيانات المزود (لمعرفة نوع الخدمة وإظهار قسم المنتجات)
+    // تحميل بيانات المزود القديمة (لو عنده صف فعلي بجدول providers — للتقييم فقط، راجع "تقييماتي")
     loadProviderProfile(phone);
-
-    // بطاقة الطلب النشط (تتحول قبول → وصلت للموقع → اكتملت الخدمة ثم تختفي)
-    checkActiveOrder();
-    if (!activeOrderPollInterval) {
-        activeOrderPollInterval = setInterval(checkActiveOrder, 15000);
-    }
+    loadVerificationBadge(phone);
 
     // جرس الإشعارات
     loadNotifBell();
     setInterval(loadNotifBell, 60000);
 
-    // قسم "إعلاناتي" (يظهر فقط لو نظام الإعلانات هو النشط حالياً)
-    checkActiveSystemForAds(phone);
+    loadMessagesBadge();
+    setInterval(loadMessagesBadge, 30000);
+
+    loadCitiesForAds();
+    loadAdCategoriesForProvider();
+    loadMyAds();
+    loadAdsStats(phone);
 }
 
-// تحميل بيانات المزود الحالي
+// علامة التوثيق (✅) بالبطاقة — تعتمد على توثيق الحساب الإداري (users.is_verified)، مو على تسجيل مزوّد قديم
+async function loadVerificationBadge(phone) {
+    try {
+        const res  = await fetch(`${API}/users`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        const me = data.users.find(u => u.phone === phone);
+        document.getElementById('providerBadge').style.display = (me && me.is_verified) ? 'inline-flex' : 'none';
+    } catch (e) {}
+}
+
+// تحميل بيانات المزود الحالي (لو عنده صف فعلي بجدول providers — حسابات قديمة مسجّلة قبل إزالة النظام المدفوع)
 async function loadProviderProfile(phone) {
     try {
         const res  = await fetch(`${API}/providers`);
@@ -82,30 +61,12 @@ async function loadProviderProfile(phone) {
         const me = data.providers.find(p => p.phone === phone);
         if (!me) return;
 
-        // اسم المزود الحقيقي ونوع خدمته (بطاقة الهيدر + السايد بار)
-        currentProviderName = me.name;
-        document.getElementById('providerName').textContent        = me.name;
-        document.getElementById('providerNameSidebar').textContent = me.name;
-
-        if (me.service_type === 'حاوية') {
-            currentProviderId = me.id;
-            document.getElementById('myProductsSection').style.display = 'block';
-            loadProducts();
-        }
-
-        // تحديث عرض التقييم (بطاقة الهيدر + بطاقتي الإحصائيات بوضعي النظام المدفوع/الإعلانات)
+        // تحديث عرض التقييم (بطاقة الهيدر + بطاقة الإحصائيات)
         document.getElementById('providerHeroRatingNum').textContent = me.rating;
-        document.getElementById('providerRatingStat').textContent    = me.rating;
         document.getElementById('adsStatRating').textContent         = me.rating;
         document.getElementById('providerHeroStars').innerHTML = Array.from({ length: 5 }, (_, i) =>
             `<svg class="icon" style="opacity:${i < Math.round(me.rating) ? 1 : 0.3}"><use href="icons.svg#icon-star"></use></svg>`
         ).join('');
-
-        // تحديث شارة المستوى (بطاقة الهيدر + السايد بار)
-        const levelBadge = LEVEL_BADGES[me.level] || LEVEL_BADGES.verified;
-        const badgeHTML  = `<svg class="icon"><use href="icons.svg#icon-${levelBadge.icon}"></use></svg> ${levelBadge.label}`;
-        document.getElementById('providerBadge').innerHTML        = badgeHTML;
-        document.getElementById('sidebarProviderBadge').innerHTML = badgeHTML;
 
         loadMyReviews(phone);
     } catch (e) {
@@ -152,259 +113,6 @@ async function loadMyReviews(phone) {
     } catch (e) {}
 }
 
-// تحميل الطلبات (إحصائيات الصفحة الرئيسية فقط — سجل الطلبات الكامل صار بصفحة provider-orders.html)
-async function loadOrders(phone) {
-    try {
-        const res  = await fetch(`${API}/orders/provider/${phone}`);
-        const data = await res.json();
-
-        if (data.success) {
-            updateStats(data.orders);
-        }
-    } catch(e) {
-        console.log('خطأ في تحميل الطلبات');
-    }
-}
-
-// تحديث الإحصائيات
-function updateStats(orders) {
-    const today     = new Date().toLocaleDateString('ar-SA');
-    const todayOrders = orders.filter(o => {
-        const orderDate = new Date(o.created_at).toLocaleDateString('ar-SA');
-        return orderDate === today;
-    });
-
-    const weekRevenue = orders
-        .filter(o => o.status === 'completed')
-        .reduce((sum, o) => sum + (o.price - o.commission), 0);
-
-    document.getElementById('statToday').textContent = todayOrders.length;
-    document.getElementById('statWeek').textContent  = weekRevenue.toLocaleString();
-}
-
-// ══ بطاقة الطلب النشط (تتحول: قبول الطلب → وصلت للموقع → اكتملت الخدمة، ثم تختفي) ══
-
-const ACTIVE_ORDER_ICONS = {
-    'وايت ماء': 'truck', 'سطحة': 'tow-truck', 'حاوية': 'box', 'معدات ثقيلة': 'crane'
-};
-
-// يجلب طلبات المزوّد الحقيقية ويعرض أقدم طلب نشط (لسه ما اكتمل) بالبطاقة
-async function checkActiveOrder() {
-    const phone = localStorage.getItem('yashjub_phone');
-    if (!phone) return;
-
-    try {
-        const res  = await fetch(`${API}/orders/provider/${phone}`);
-        const data = await res.json();
-        if (!data.success) return;
-
-        const active = data.orders.find(o => ['pending', 'accepted', 'arrived', 'awaiting_confirmation'].includes(o.status));
-        renderActiveOrderCard(active || null);
-    } catch (e) {}
-}
-
-function renderActiveOrderCard(order) {
-    const section = document.getElementById('newOrderSection');
-
-    if (!order) {
-        section.style.display = 'none';
-        clearInterval(countdownInterval);
-        clearInterval(awaitingReleaseInterval);
-        currentActiveOrder = null;
-        return;
-    }
-
-    // ما نعيد بناء البطاقة لو نفس الطلب بنفس الحالة (يحافظ على العداد التنازلي شغال بدون تصفير كل استطلاع)
-    const isSameState = currentActiveOrder && currentActiveOrder.id === order.id && currentActiveOrder.status === order.status;
-    currentActiveOrder = order;
-    if (isSameState) return;
-
-    const icon = ACTIVE_ORDER_ICONS[order.service] || 'wrench';
-    document.getElementById('newOrderService').innerHTML   = `<svg class="icon"><use href="icons.svg#icon-${icon}"></use></svg> ${order.service}`;
-    document.getElementById('newOrderAddress').textContent = order.address;
-    document.getElementById('newOrderAmount').textContent  = `${order.price} ريال`;
-    document.getElementById('newOrderClient').textContent  = `+966${order.phone}`;
-    section.style.display = 'block';
-
-    renderActiveOrderActions(order);
-}
-
-// يبني عنوان البطاقة وزر الإجراء المناسب حسب الحالة الحقيقية للطلب
-function renderActiveOrderActions(order) {
-    const titleEl      = document.getElementById('newOrderTitle');
-    const actionsEl    = document.getElementById('newOrderActions');
-    const countdownEl  = document.getElementById('countdownWrap');
-
-    if (order.status === 'pending') {
-        titleEl.innerHTML = '<svg class="icon"><use href="icons.svg#icon-bell"></use></svg> طلب جديد وارد!';
-        actionsEl.innerHTML = `
-            <button class="btn-accept-order" onclick="acceptRealOrder(${order.id})"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> قبول الطلب</button>
-            <button class="btn-reject-order" onclick="rejectActiveOrder(${order.id})"><svg class="icon"><use href="icons.svg#icon-x-circle"></use></svg> رفض</button>
-        `;
-        countdownEl.style.display = 'block';
-        startCountdown();
-    } else if (order.status === 'accepted') {
-        titleEl.innerHTML = '<svg class="icon"><use href="icons.svg#icon-car"></use></svg> الطلب مقبول — توجّه للموقع';
-        actionsEl.innerHTML = `
-            <button class="btn-accept-order" style="grid-column:1 / -1" onclick="markOrderArrived(${order.id})"><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> وصلت للموقع</button>
-        `;
-        clearInterval(countdownInterval);
-        countdownEl.style.display = 'none';
-    } else if (order.status === 'arrived') {
-        titleEl.innerHTML = '<svg class="icon"><use href="icons.svg#icon-car"></use></svg> وصلت للموقع — أكمل الخدمة';
-        actionsEl.innerHTML = `
-            <button class="btn-accept-order" style="grid-column:1 / -1" onclick="markOrderCompleted(${order.id})"><svg class="icon"><use href="icons.svg#icon-check"></use></svg> اكتملت الخدمة</button>
-        `;
-        clearInterval(countdownInterval);
-        countdownEl.style.display = 'none';
-        document.getElementById('awaitingReleaseWrap').style.display = 'none';
-    } else if (order.status === 'awaiting_confirmation') {
-        titleEl.innerHTML = '<svg class="icon"><use href="icons.svg#icon-hourglass"></use></svg> بانتظار تأكيد العميل';
-        actionsEl.innerHTML = `
-            <div style="grid-column:1 / -1;text-align:center;font-size:13px;color:rgba(255,255,255,0.7);font-family:'Cairo',sans-serif;line-height:1.7">
-                ✅ تم إرسال طلب التأكيد للعميل<br>
-                سيتم تحرير مبلغك بعد تأكيد العميل أو تلقائياً خلال 24 ساعة
-            </div>
-        `;
-        clearInterval(countdownInterval);
-        countdownEl.style.display = 'none';
-        document.getElementById('awaitingReleaseWrap').style.display = 'block';
-        startAwaitingReleaseTimer(order.completion_requested_at);
-    }
-}
-
-// عداد تنازلي 24 ساعة (لحين تحرير المبلغ تلقائياً لو ما رد العميل)
-function startAwaitingReleaseTimer(completionRequestedAt) {
-    clearInterval(awaitingReleaseInterval);
-
-    const deadline = new Date(completionRequestedAt.replace(' ', 'T') + 'Z').getTime() + 24 * 60 * 60 * 1000;
-    const timerEl  = document.getElementById('awaitingReleaseTimer');
-
-    const tick = () => {
-        const remaining = deadline - Date.now();
-
-        if (remaining <= 0) {
-            timerEl.textContent = 'جاري التحرير التلقائي...';
-            clearInterval(awaitingReleaseInterval);
-            return;
-        }
-
-        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
-        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
-        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
-        timerEl.textContent = `${h}:${m}:${s}`;
-    };
-
-    tick();
-    awaitingReleaseInterval = setInterval(tick, 1000);
-}
-
-// العداد التنازلي (يظهر بس أثناء انتظار قرار القبول)
-function startCountdown() {
-    countdownSeconds = 60;
-    const fill = document.getElementById('countdownFill');
-    const num  = document.getElementById('countdownNum');
-
-    clearInterval(countdownInterval);
-    countdownInterval = setInterval(() => {
-        countdownSeconds--;
-        num.textContent  = countdownSeconds;
-        fill.style.width = `${(countdownSeconds / 60) * 100}%`;
-
-        if (countdownSeconds <= 0) {
-            clearInterval(countdownInterval);
-            if (currentActiveOrder) rejectActiveOrder(currentActiveOrder.id);
-        }
-    }, 1000);
-}
-
-// رفض/انتهاء مهلة الرد — يلغي الطلب فعلياً بقاعدة البيانات
-async function rejectActiveOrder(id) {
-    clearInterval(countdownInterval);
-    document.getElementById('newOrderSection').style.display = 'none';
-    currentActiveOrder = null;
-
-    try {
-        await fetch(`${API}/orders/${id}/status`, {
-            method:  'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ status: 'cancelled' }),
-        });
-    } catch (e) {}
-}
-
-// قبول طلب حقيقي (pending → accepted)
-async function acceptRealOrder(id) {
-    if (!confirm('هل تريد قبول هذا الطلب؟')) return;
-
-    try {
-        const res  = await fetch(`${API}/orders/${id}/accept`, { method: 'PUT' });
-        const data = await res.json();
-
-        if (data.success) {
-            alert('✅ تم قبول الطلب!');
-            loadProvider();
-        } else {
-            alert(`❌ ${data.message}`);
-        }
-    } catch (e) {
-        alert('❌ خطأ في الاتصال بالسيرفر');
-    }
-}
-
-// تسجيل وصول المزوّد لموقع الخدمة (accepted → arrived)
-async function markOrderArrived(id) {
-    if (!confirm('هل أنت متأكد إنك وصلت لموقع الخدمة؟')) return;
-
-    try {
-        const res  = await fetch(`${API}/orders/${id}/arrived`, { method: 'PUT' });
-        const data = await res.json();
-
-        if (data.success) {
-            alert('📍 تم تسجيل وصولك للموقع!');
-            loadProvider();
-        } else {
-            alert(`❌ ${data.message}`);
-        }
-    } catch (e) {
-        alert('❌ خطأ في الاتصال بالسيرفر');
-    }
-}
-
-// إبلاغ عن اكتمال الخدمة (arrived → awaiting_confirmation) — بانتظار تأكيد العميل قبل تحرير المبلغ
-async function markOrderCompleted(id) {
-    if (!confirm('هل أنت متأكد من اكتمال الخدمة؟')) return;
-
-    try {
-        const res  = await fetch(`${API}/orders/${id}/complete`, { method: 'PUT' });
-        const data = await res.json();
-
-        if (data.success) {
-            showAppAlert('✅ تم إرسال طلب التأكيد للعميل\n\nسيتم تحرير مبلغك بعد تأكيد العميل\nأو تلقائياً خلال 24 ساعة', () => loadProvider());
-        } else {
-            alert(`❌ ${data.message}`);
-        }
-    } catch (e) {
-        alert('❌ خطأ في الاتصال بالسيرفر');
-    }
-}
-
-// تغيير حالة التوفر
-function toggleAvailability() {
-    const toggle = document.getElementById('availToggle');
-    const label  = document.getElementById('availLabel');
-
-    if (toggle.checked) {
-        label.textContent    = 'متاح';
-        label.style.color    = '#10B981';
-    } else {
-        label.textContent    = 'مشغول';
-        label.style.color    = '#EF4444';
-        clearInterval(countdownInterval);
-        document.getElementById('newOrderSection').style.display = 'none';
-    }
-}
-
 // تسجيل الخروج
 function providerLogout() {
     localStorage.removeItem('yashjub_phone');
@@ -419,228 +127,6 @@ function providerLogout() {
 function toggleSidebar() {
     document.getElementById('appSidebar').classList.toggle('active');
     document.getElementById('sidebarOverlay').classList.toggle('active');
-}
-
-// ══ منتجات مزود الحاوية ══
-
-const productSizeLabels = { small: 'صغيرة (3م)', medium: 'متوسطة (6م)', large: 'كبيرة (12م)' };
-
-// تحميل المنتجات
-async function loadProducts() {
-    try {
-        const res  = await fetch(`${API}/products/provider/${currentProviderId}`);
-        const data = await res.json();
-
-        if (data.success) {
-            renderProducts(data.products);
-        }
-    } catch (e) {
-        console.log('خطأ في تحميل المنتجات');
-    }
-}
-
-// عرض المنتجات
-function renderProducts(products) {
-    const container = document.getElementById('productsList');
-
-    if (products.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon"><svg class="icon"><use href="icons.svg#icon-box"></use></svg></div>
-                <div class="empty-title">لا يوجد منتجات بعد</div>
-                <div class="empty-sub">أضف أول منتج لك الآن!</div>
-            </div>`;
-        return;
-    }
-
-    container.innerHTML = products.map(p => `
-        <div class="product-item">
-            <div class="product-item-top">
-                <div>
-                    <div class="product-item-name">${p.name}</div>
-                    <div class="product-item-desc">${p.description || ''}</div>
-                </div>
-                <span class="product-item-status" style="${p.is_available
-                    ? 'color:#10B981;background:rgba(16,185,129,0.1)'
-                    : 'color:#EF4444;background:rgba(239,68,68,0.1)'}">
-                    ${p.is_available ? 'متاح' : 'غير متاح'}
-                </span>
-            </div>
-            <div class="product-item-details">
-                <span><svg class="icon"><use href="icons.svg#icon-box"></use></svg> ${productSizeLabels[p.size] || p.size}</span>
-                <span><svg class="icon"><use href="icons.svg#icon-cash"></use></svg> ${p.price} ريال / ${p.min_days} أيام على الأقل</span>
-                <span><svg class="icon"><use href="icons.svg#icon-pin"></use></svg> ${p.city} — ${p.neighborhood}</span>
-            </div>
-            <div class="product-item-actions">
-                <button class="btn-small" onclick='editProduct(${JSON.stringify(p)})'><svg class="icon"><use href="icons.svg#icon-edit-pencil"></use></svg> تعديل</button>
-                <button class="btn-small btn-delete-product" onclick="deleteProduct(${p.id})"><svg class="icon"><use href="icons.svg#icon-trash"></use></svg> حذف</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// إظهار/إخفاء فورم المنتج
-function toggleProductForm() {
-    const form = document.getElementById('productForm');
-    const isHidden = form.style.display === 'none';
-
-    if (isHidden) {
-        form.style.display = 'block';
-        initProductMap();
-    } else {
-        form.style.display = 'none';
-        resetProductForm();
-    }
-}
-
-// ══ خريطة اختيار موقع المنتج ══
-
-function initProductMap() {
-    if (!productMap) {
-        productMap = L.map('productMap').setView([24.7136, 46.6753], 12);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-        }).addTo(productMap);
-
-        productMap.on('click', (e) => setProductMarker(e.latlng.lat, e.latlng.lng));
-    }
-
-    // الخريطة كانت مخفية (display:none) — لازم نحدّث حجمها بعد ما تظهر
-    setTimeout(() => productMap.invalidateSize(), 100);
-}
-
-function setProductMarker(lat, lng) {
-    if (productMarker) {
-        productMarker.setLatLng([lat, lng]);
-    } else {
-        productMarker = L.marker([lat, lng]).addTo(productMap);
-    }
-
-    document.getElementById('productLat').value = lat;
-    document.getElementById('productLng').value = lng;
-}
-
-function useMyLocationForProduct() {
-    if (!navigator.geolocation) {
-        alert('❌ المتصفح ما يدعم تحديد الموقع');
-        return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const { latitude, longitude } = position.coords;
-            productMap.setView([latitude, longitude], 15);
-            setProductMarker(latitude, longitude);
-        },
-        () => {
-            alert('❌ ما قدرنا نحدد موقعك — تأكد من تفعيل صلاحية الموقع بالمتصفح');
-        }
-    );
-}
-
-// تفريغ الفورم
-function resetProductForm() {
-    editingProductId = null;
-    document.getElementById('productName').value = '';
-    document.getElementById('productDescription').value = '';
-    document.getElementById('productSize').value = 'small';
-    document.getElementById('productPrice').value = '';
-    document.getElementById('productMinDays').value = '10';
-    document.getElementById('productCity').value = '';
-    document.getElementById('productNeighborhood').value = '';
-    document.getElementById('productAvailable').value = '1';
-    document.getElementById('productLat').value = '';
-    document.getElementById('productLng').value = '';
-    document.getElementById('saveProductBtn').textContent = 'حفظ المنتج';
-
-    if (productMarker) {
-        productMap.removeLayer(productMarker);
-        productMarker = null;
-    }
-}
-
-// حفظ منتج (إضافة أو تعديل)
-async function saveProduct() {
-    const name         = document.getElementById('productName').value.trim();
-    const description  = document.getElementById('productDescription').value.trim();
-    const size         = document.getElementById('productSize').value;
-    const price        = document.getElementById('productPrice').value;
-    const minDays      = document.getElementById('productMinDays').value;
-    const city         = document.getElementById('productCity').value;
-    const neighborhood = document.getElementById('productNeighborhood').value.trim();
-    const isAvailable  = document.getElementById('productAvailable').value === '1';
-    const lat          = document.getElementById('productLat').value || null;
-    const lng          = document.getElementById('productLng').value || null;
-
-    if (!name || !size || !price || !minDays || !city || !neighborhood) {
-        alert('❌ يرجى تعبئة جميع الحقول المطلوبة');
-        return;
-    }
-
-    try {
-        const url    = editingProductId ? `${API}/products/${editingProductId}` : `${API}/products`;
-        const method = editingProductId ? 'PUT' : 'POST';
-
-        const response = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                providerId: currentProviderId,
-                name, description, size, price, minDays, city, neighborhood, isAvailable, lat, lng,
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            document.getElementById('productForm').style.display = 'none';
-            resetProductForm();
-            loadProducts();
-        } else {
-            alert(`❌ ${data.message}`);
-        }
-    } catch (e) {
-        alert('❌ خطأ في الاتصال بالسيرفر');
-    }
-}
-
-// تعديل منتج
-function editProduct(product) {
-    editingProductId = product.id;
-
-    document.getElementById('productName').value         = product.name;
-    document.getElementById('productDescription').value  = product.description || '';
-    document.getElementById('productSize').value         = product.size;
-    document.getElementById('productPrice').value        = product.price;
-    document.getElementById('productMinDays').value      = product.min_days;
-    document.getElementById('productCity').value         = product.city;
-    document.getElementById('productNeighborhood').value = product.neighborhood;
-    document.getElementById('productAvailable').value    = product.is_available ? '1' : '0';
-    document.getElementById('saveProductBtn').textContent = 'تحديث المنتج';
-
-    document.getElementById('productForm').style.display = 'block';
-    document.getElementById('productForm').scrollIntoView({ behavior: 'smooth' });
-
-    initProductMap();
-    if (product.lat && product.lng) {
-        setTimeout(() => {
-            productMap.setView([product.lat, product.lng], 14);
-            setProductMarker(product.lat, product.lng);
-        }, 150);
-    }
-}
-
-// حذف منتج
-async function deleteProduct(id) {
-    if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
-
-    try {
-        await fetch(`${API}/products/${id}`, { method: 'DELETE' });
-        loadProducts();
-    } catch (e) {
-        alert('❌ خطأ في الاتصال بالسيرفر');
-    }
 }
 
 // ══ إعلاناتي (منصة عتاد معاهدة) ══
@@ -666,50 +152,7 @@ function selectAdType(type) {
         : 'اشرح خدمتك بالتفصيل...';
 }
 
-// يظهر قسم "إعلاناتي" فقط لو نظام الإعلانات هو النشط حالياً
-async function checkActiveSystemForAds(phone) {
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        if (!data.success || data.activeSystem !== 'ads') return;
-
-        document.getElementById('adsSection').style.display = 'block';
-        document.getElementById('adWhatsappInput').value = phone;
-
-        // بطاقة الإحصائيات وزر "متاح" يتحولون لنسخة الإعلانات (إحصائيات إعلانات بدل الطلبات، "حسابي" بدل التوفر)
-        document.getElementById('paidStatsGrid').style.display         = 'none';
-        document.getElementById('adsStatsGrid').style.display          = 'grid';
-        document.getElementById('availabilityToggleWrap').style.display = 'none';
-        document.getElementById('myAccountBtn').style.display           = 'inline-block';
-
-        // سايد بار موحّد بوضع الإعلانات — نفس البنية المستخدمة بالصفحة الرئيسية بالضبط
-        const sidebarMenu = document.getElementById('sidebarMenu');
-        if (sidebarMenu) sidebarMenu.innerHTML = `
-            <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
-            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
-            <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
-            <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
-            <a class="sidebar-link" href="favorites.html"><span><svg class="icon"><use href="icons.svg#icon-heart"></use></svg></span> قائمة المفضلة</a>
-            <a class="sidebar-link" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
-            <a class="sidebar-link" href="fees.html"><span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع</a>
-            <a class="sidebar-link" href="messages.html"><span><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> الرسائل <span class="sidebar-badge" id="messagesBadge" style="display:none">0</span></a>
-            <div class="sidebar-divider"></div>
-            <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
-            <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
-            <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
-            <a class="sidebar-link" href="privacy.html"><span><svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></span> سياسة الخصوصية</a>
-        `;
-        loadMessagesBadge();
-        setInterval(loadMessagesBadge, 30000);
-
-        loadCitiesForAds();
-        loadAdCategoriesForProvider();
-        loadMyAds();
-        loadAdsStats(phone);
-    } catch (e) {}
-}
-
-// بطاقات الإحصائيات الأربع بوضع الإعلانات (إعلانات نشطة/معطلة + مشاهدات كلية)
+// بطاقات الإحصائيات (إعلانات نشطة/معطلة + مشاهدات كلية + التقييم)
 async function loadAdsStats(phone) {
     try {
         const res  = await fetch(`${API}/ads/provider/${phone}/stats`);
@@ -1015,7 +458,7 @@ function moveAdImage(index, dir) {
     renderAdImagesPreview();
 }
 
-// تمييز الحقل الناقص بحد أحمر والتمرير إليه (نفس آلية register-provider.js)
+// تمييز الحقل الناقص بحد أحمر والتمرير إليه (نفس آلية register-provider.js القديمة)
 function highlightAdFieldError(id) {
     document.querySelectorAll('#adForm .field-error').forEach(el => el.classList.remove('field-error'));
 

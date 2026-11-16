@@ -1,80 +1,21 @@
-// كود صفحة محفظة المزود
+// كود صفحة محفظتي (محفظة العملات الذهبية — نظام الإعلانات)
 
 const API = window.location.origin + '/api';
 
-const LEVEL_BADGES = {
-    basic:    { label: 'مزود أساسي', icon: 'medal-silver' },
-    verified: { label: 'موثق',       icon: 'medal-gold'   },
-    business: { label: 'شركة',       icon: 'trophy'       },
-};
-
-// تحميل الصفحة — يتحقق أولاً من النظام النشط (paid/ads) قبل تقرير شروط الدخول ومحتوى الصفحة
+// تحميل الصفحة — يكفي إن المستخدم مسجّل دخوله (أي نوع)
 async function loadWalletPage() {
     const phone = localStorage.getItem('yashjub_phone');
-    const type  = localStorage.getItem('yashjub_type');
 
-    let isAdsMode = false;
-    try {
-        const res  = await fetch(`${API}/settings/active-system`);
-        const data = await res.json();
-        isAdsMode = data.success && data.activeSystem === 'ads';
-    } catch (e) {}
-
-    if (isAdsMode) {
-        // بوضع الإعلانات يكفي إن المستخدم مسجّل دخوله (أي نوع) — ماكو مفهوم "مزوّد" حصري هنا
-        if (!phone) {
-            showAppAlert('⚠️ يجب تسجيل الدخول أولاً', () => window.location.href = 'login.html');
-            return;
-        }
-        switchWalletToAdsMode(phone);
+    if (!phone) {
+        showAppAlert('⚠️ يجب تسجيل الدخول أولاً', () => window.location.href = 'login.html');
         return;
     }
-
-    // وضع النظام المدفوع (أو تعذّر الاتصال بالسيرفر) — نفس السلوك الأصلي بدون أي تغيير
-    if (!phone || type !== 'provider') {
-        showAppAlert('⚠️ هذه الصفحة للمزودين فقط', () => window.location.href = 'login.html');
-        return;
-    }
-
-    document.getElementById('providerNameSidebar').textContent  = 'مزود خدمة';
-    document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
-    renderSidebarAvatar();
-
-    loadProviderIdentity(phone);
-    loadWallet(phone);
-
-    loadNotifBell();
-    setInterval(loadNotifBell, 60000);
-}
-
-// تحويل محفظتي لمحفظة العملات الذهبية بوضع الإعلانات — نفس سايد بار index.html/provider.html الموحّد، مع تعليم "محفظتي" نشطة
-function switchWalletToAdsMode(phone) {
-    document.getElementById('walletSection').style.display      = 'none';
-    document.getElementById('coinsWalletSection').style.display = 'block';
 
     const savedName = localStorage.getItem('yashjub_name');
     document.getElementById('providerNameSidebar').textContent  = savedName || 'مستخدم عتاد';
     document.getElementById('providerPhoneSidebar').textContent = `+966${phone}`;
     renderSidebarAvatar();
-    const badge = document.getElementById('sidebarProviderBadge');
-    if (badge) badge.style.display = 'none';
 
-    const sidebarMenu = document.getElementById('sidebarMenu');
-    if (sidebarMenu) sidebarMenu.innerHTML = `
-        <a class="sidebar-link" href="index.html"><span><svg class="icon"><use href="icons.svg#icon-home"></use></svg></span> الرئيسية</a>
-        <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-plus"></use></svg></span> انشر إعلانك</a>
-        <a class="sidebar-link" href="profile.html"><span><svg class="icon"><use href="icons.svg#icon-user"></use></svg></span> حسابي</a>
-        <a class="sidebar-link" href="provider.html#adsSection"><span><svg class="icon"><use href="icons.svg#icon-broadcast"></use></svg></span> إعلاناتي</a>
-        <a class="sidebar-link" href="favorites.html"><span><svg class="icon"><use href="icons.svg#icon-heart"></use></svg></span> قائمة المفضلة</a>
-        <a class="sidebar-link active" href="wallet.html"><span><svg class="icon"><use href="icons.svg#icon-card"></use></svg></span> محفظتي</a>
-        <a class="sidebar-link" href="fees.html"><span><svg class="icon"><use href="icons.svg#icon-calculator"></use></svg></span> حاسبة الرسوم والدفع</a>
-        <a class="sidebar-link" href="messages.html"><span><svg class="icon"><use href="icons.svg#icon-chat"></use></svg></span> الرسائل <span class="sidebar-badge" id="messagesBadge" style="display:none">0</span></a>
-        <div class="sidebar-divider"></div>
-        <a class="sidebar-link" href="about.html"><span><svg class="icon"><use href="icons.svg#icon-info"></use></svg></span> من نحن</a>
-        <a class="sidebar-link" href="contact.html"><span><svg class="icon"><use href="icons.svg#icon-phone-call"></use></svg></span> تواصل معنا</a>
-        <a class="sidebar-link" href="terms.html"><span><svg class="icon"><use href="icons.svg#icon-document"></use></svg></span> الشروط والأحكام</a>
-            <a class="sidebar-link" href="privacy.html"><span><svg class="icon"><use href="icons.svg#icon-shield-lock"></use></svg></span> سياسة الخصوصية</a>
-    `;
     loadMessagesBadge();
     setInterval(loadMessagesBadge, 30000);
 
@@ -222,53 +163,6 @@ function renderSidebarAvatar() {
     const avatarPath = localStorage.getItem('yashjub_avatar');
     const el = document.getElementById('sidebarUserIcon');
     if (el && avatarPath) el.innerHTML = `<img src="${avatarPath}" class="avatar-img" alt="">`;
-}
-
-// اسم المزود وشارة المستوى بالسايد بار
-async function loadProviderIdentity(phone) {
-    try {
-        const res  = await fetch(`${API}/providers`);
-        const data = await res.json();
-        if (!data.success) return;
-
-        const me = data.providers.find(p => p.phone === phone);
-        if (!me) return;
-
-        document.getElementById('providerNameSidebar').textContent = me.name;
-
-        const levelBadge = LEVEL_BADGES[me.level] || LEVEL_BADGES.verified;
-        document.getElementById('sidebarProviderBadge').innerHTML =
-            `<svg class="icon"><use href="icons.svg#icon-${levelBadge.icon}"></use></svg> ${levelBadge.label}`;
-    } catch (e) {}
-}
-
-// تحميل بيانات المحفظة من طلبات المزوّد الحقيقية
-async function loadWallet(phone) {
-    try {
-        const res  = await fetch(`${API}/orders/provider/${phone}`);
-        const data = await res.json();
-        if (!data.success) return;
-
-        const orders    = data.orders;
-        const completed = orders.filter(o => o.status === 'completed');
-        const pending   = orders.filter(o => o.status === 'pending');
-
-        const totalEarned   = completed.reduce((sum, o) => sum + (o.price - o.commission), 0);
-        const pendingAmount = pending.reduce((sum, o) => sum + o.price, 0);
-
-        document.getElementById('walletBalance').textContent   = `${totalEarned.toLocaleString()} ريال`;
-        document.getElementById('walletTotal').textContent     = totalEarned.toLocaleString();
-        document.getElementById('walletPending').textContent   = pendingAmount.toLocaleString();
-        document.getElementById('walletWithdrawn').textContent = '0';
-    } catch (e) {
-        console.log('خطأ في تحميل المحفظة');
-    }
-}
-
-// طلب سحب
-function requestWithdraw() {
-    const balance = document.getElementById('walletBalance').textContent;
-    alert(`💳 طلب سحب\n\nالرصيد المتاح: ${balance}\n\nسيتم تحويل المبلغ لحسابك البنكي خلال 24-72 ساعة`);
 }
 
 // تسجيل الخروج
